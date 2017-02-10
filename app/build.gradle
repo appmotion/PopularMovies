@@ -1,0 +1,43 @@
+apply plugin: 'com.android.application'
+
+repositories {
+  mavenCentral()
+}
+
+android {
+  compileSdkVersion 25
+  buildToolsVersion "25.0.2"
+  defaultConfig {
+    applicationId "de.appmotion.popularmovies"
+    minSdkVersion 19
+    targetSdkVersion 25
+    versionCode 1
+    versionName "1.0"
+    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+  }
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    }
+    debug {
+      debuggable true
+    }
+  }
+}
+
+dependencies {
+  compile fileTree(dir: 'libs', include: ['*.jar'])
+  androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    exclude group: 'com.android.support', module: 'support-annotations'
+  })
+  compile 'com.android.support:appcompat-v7:25.1.1'
+  compile 'com.android.support:recyclerview-v7:25.1.1'
+  // Picasso
+  compile 'com.squareup.picasso:picasso:2.5.2'
+  compile 'com.jakewharton.picasso:picasso2-okhttp3-downloader:1.1.0'
+  // OkHttp with Okio
+  compile 'com.squareup.okhttp3:okhttp:3.6.0'
+  compile 'com.squareup.okio:okio:1.11.0'
+  testCompile 'junit:junit:4.12'
+}

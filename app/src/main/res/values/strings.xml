@@ -1,0 +1,5 @@
+<resources>
+  <string name="app_name">Pop Movies</string>
+  <string name="tmdb_notice">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
+  <string name="about">About</string>
+</resources>
