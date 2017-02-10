@@ -49,7 +49,7 @@ class PopularMoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
       // Load Movie Image
       Picasso.with(mActivity)
           .load(NetworkUtils.buildMovieImageUri(NetworkUtils.ImageSize.WIDTH185, movie.getImagePath()))
-          .placeholder(android.R.drawable.stat_sys_upload)
+          .placeholder(android.R.drawable.ic_input_add)
           .error(android.R.drawable.ic_delete)
           .into(viewHolderMovieItem.movieImage, new Callback() {
             @Override public void onSuccess() {
