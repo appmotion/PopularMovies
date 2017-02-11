@@ -16,13 +16,8 @@
 package de.appmotion.popularmovies.utilities;
 
 import android.net.Uri;
-import de.appmotion.popularmovies.App;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Scanner;
 
 /**
  * These utilities will be used to communicate with the network.
@@ -35,8 +30,6 @@ public class NetworkUtils {
   // Urls
   private final static String MOVIE_DB_POPULAR_MOVIES = "https://api.themoviedb.org/3/movie/popular";
   private final static String MOVIE_DB_IMAGE_URL = "http://image.tmdb.org/t/p/";
-
-  // https://api.themoviedb.org/3/movie/{movie_id}/images?api_key=<<api_key>>&language=en-US
 
   // Params
   private final static String API_KEY = "api_key";
@@ -81,11 +74,7 @@ public class NetworkUtils {
    * @return The Uri to use to get the image of a movie.
    */
   public static Uri buildMovieImageUri(ImageSize imageSize, String imagePath) {
-    return Uri.parse(MOVIE_DB_IMAGE_URL)
-        .buildUpon()
-        .appendEncodedPath(imageSize.width)
-        .appendEncodedPath(imagePath)
-        .build();
+    return Uri.parse(MOVIE_DB_IMAGE_URL).buildUpon().appendEncodedPath(imageSize.width).appendEncodedPath(imagePath).build();
   }
 
   public enum ImageSize {

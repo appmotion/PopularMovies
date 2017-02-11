@@ -11,18 +11,17 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.GridView;
 import android.widget.Toast;
 import de.appmotion.popularmovies.dto.Movie;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
-import okhttp3.MediaType;
+import java.util.Set;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
   private RecyclerView mMoviesRecyclerView;
   private PopularMoviesAdapter mPopularMoviesAdapter;
 
+  private Set<Integer> pageSet = new HashSet<>();
+  private int currentPage = 1;
+
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
@@ -42,6 +44,19 @@ public class MainActivity extends AppCompatActivity {
     // RecyclerView
     mMoviesRecyclerView = (RecyclerView) findViewById(android.R.id.list);
     mMoviesRecyclerView.setHasFixedSize(true);
+    mMoviesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+      @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+        super.onScrolled(recyclerView, dx, dy);
+        if (isLastItemDisplaying(recyclerView)) {
+          if (pageSet.contains(++currentPage)) {
+            return;
+          } else {
+            pageSet.add(currentPage);
+          }
+          downloadPopularMovies("de-DE", currentPage, "US");
+        }
+      }
+    });
 
     // LayoutManager
     RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 2, GridLayoutManager.VERTICAL, false);
@@ -52,11 +67,13 @@ public class MainActivity extends AppCompatActivity {
     mPopularMoviesAdapter.setHasStableIds(true);
     mMoviesRecyclerView.setAdapter(mPopularMoviesAdapter);
 
-    downloadPopularMovies();
+    pageSet.add(currentPage);
+    downloadPopularMovies("de-DE", currentPage, "US");
   }
 
   @Override protected void onDestroy() {
     dismissDialog(mAboutDialog);
+    mMoviesRecyclerView.clearOnScrollListeners();
     super.onDestroy();
   }
 
@@ -80,8 +97,8 @@ public class MainActivity extends AppCompatActivity {
   /**
    * Get Popular Movies from themoviedb.org
    */
-  private void downloadPopularMovies() {
-    URL popularMoviesUrl = NetworkUtils.buildPopularMoviesUrl("de-DE", "1", "US");
+  private void downloadPopularMovies(String language, int page, String region) {
+    URL popularMoviesUrl = NetworkUtils.buildPopularMoviesUrl(language, String.valueOf(page), region);
     new GetPopularMoviesTask().execute(popularMoviesUrl);
   }
 
@@ -128,7 +145,9 @@ public class MainActivity extends AppCompatActivity {
         }
         i++;
       }
-      mPopularMoviesAdapter.replaceMovieList(movieList);
+      if (mMoviesRecyclerView != null) {
+        mPopularMoviesAdapter.addMovieList(movieList);
+      }
     } catch (JSONException e) {
       e.printStackTrace();
     }
@@ -153,27 +172,33 @@ public class MainActivity extends AppCompatActivity {
     //mErrorMessageDisplay.setVisibility(View.VISIBLE);
   }
 
+  /**
+   * Check whether the last item in RecyclerView is being displayed or not
+   *
+   * @param recyclerView which you would like to check
+   * @return true if last position was Visible and false Otherwise
+   */
+  private boolean isLastItemDisplaying(RecyclerView recyclerView) {
+    if (recyclerView.getAdapter().getItemCount() != 0) {
+      int lastVisibleItemPosition = ((GridLayoutManager) recyclerView.getLayoutManager()).findLastVisibleItemPosition();
+      if (lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == recyclerView.getAdapter().getItemCount() - 1) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   public class GetPopularMoviesTask extends AsyncTask<URL, Void, String> {
 
-    @Override
-    protected void onPreExecute() {
+    @Override protected void onPreExecute() {
       super.onPreExecute();
       //mLoadingIndicator.setVisibility(View.VISIBLE);
     }
 
-    @Override
-    protected String doInBackground(URL... params) {
+    @Override protected String doInBackground(URL... params) {
       URL popularMoviesUrl = params[0];
-      String results = null;
       try {
-        MediaType mediaType = MediaType.parse("application/octet-stream");
-        RequestBody body = RequestBody.create(mediaType, "{}");
-        Request request =
-            new Request.Builder().url(popularMoviesUrl)
-                .tag("getPopularMovies")
-                .get()
-                .build();
+        Request request = new Request.Builder().url(popularMoviesUrl).tag("getPopularMovies").get().build();
 
         Response response = App.getInstance().getOkHttpClient().newCall(request).execute();
         if (response.code() == 200) {
@@ -183,20 +208,21 @@ public class MainActivity extends AppCompatActivity {
           if (hasInput) {
             return scanner.next();
           } else {
-            return null;
+            return "noMoreDataAvailable";
           }
         }
       } catch (IOException e) {
         e.printStackTrace();
       }
-      return results;
+      return null;
     }
 
-    @Override
-    protected void onPostExecute(String results) {
+    @Override protected void onPostExecute(String results) {
       //mLoadingIndicator.setVisibility(View.INVISIBLE);
       if (results != null && !results.equals("")) {
         showJsonDataView(results);
+      } else if (results != null && !results.equals("noMoreDataAvailable")) {
+        // do nothing
       } else {
         showErrorMessage();
       }

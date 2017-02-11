@@ -49,7 +49,7 @@ class PopularMoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
       // Load Movie Image
       Picasso.with(mActivity)
           .load(NetworkUtils.buildMovieImageUri(NetworkUtils.ImageSize.WIDTH185, movie.getImagePath()))
-          .placeholder(android.R.drawable.ic_input_add)
+          .placeholder(android.R.drawable.screen_background_light_transparent)
           .error(android.R.drawable.ic_delete)
           .into(viewHolderMovieItem.movieImage, new Callback() {
             @Override public void onSuccess() {
@@ -81,6 +81,14 @@ class PopularMoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
   void replaceMovieList(List<Movie> newList) {
     mMovieList = newList;
+    notifyDataSetChanged();
+  }
+
+  void addMovieList(List<Movie> newList) {
+    if (mMovieList == null) {
+      mMovieList = new ArrayList<>();
+    }
+    mMovieList.addAll(newList);
     notifyDataSetChanged();
   }
 
