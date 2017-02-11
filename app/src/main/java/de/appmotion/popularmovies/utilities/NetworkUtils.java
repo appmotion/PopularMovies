@@ -16,6 +16,7 @@
 package de.appmotion.popularmovies.utilities;
 
 import android.net.Uri;
+import de.appmotion.popularmovies.BuildConfig;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -25,7 +26,7 @@ import java.net.URL;
 public class NetworkUtils {
 
   // themoviedb API Key
-  private final static String key = "";
+  private final static String KEY = BuildConfig.MOVIE_DB_API_KEY;
 
   // Urls
   private final static String MOVIE_DB_POPULAR_MOVIES = "https://api.themoviedb.org/3/movie/popular";
@@ -50,7 +51,7 @@ public class NetworkUtils {
   public static URL buildPopularMoviesUrl(String language, String page, String region) {
     Uri builtUri = Uri.parse(MOVIE_DB_POPULAR_MOVIES)
         .buildUpon()
-        .appendQueryParameter(API_KEY, key)
+        .appendQueryParameter(API_KEY, KEY)
         .appendQueryParameter(PARAM_LANGUAGE, language)
         .appendQueryParameter(PARAM_PAGE, page)
         .appendQueryParameter(PARAM_REGION, region)

@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     // Handle item selection
     switch (item.getItemId()) {
       case R.id.popular:
+        mPopularMoviesAdapter.clearMovieList();
         downloadPopularMovies("de-DE", 1, "US");
         return true;
       case R.id.highest:

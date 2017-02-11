@@ -20,7 +20,7 @@ class PopularMoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
   PopularMoviesAdapter(Activity activity) {
     mActivity = activity;
-    mMovieList = new ArrayList<>();
+    mMovieList = new ArrayList<>(0);
   }
 
   @Override public int getItemViewType(int position) {
@@ -86,10 +86,16 @@ class PopularMoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
   void addMovieList(List<Movie> newList) {
     if (mMovieList == null) {
-      mMovieList = new ArrayList<>();
+      mMovieList = new ArrayList<>(0);
     }
     mMovieList.addAll(newList);
     notifyDataSetChanged();
+  }
+
+  void clearMovieList() {
+    if (mMovieList != null) {
+      mMovieList.clear();
+    }
   }
 
   private enum ViewType {
