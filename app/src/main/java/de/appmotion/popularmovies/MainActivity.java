@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
           if (hasInput) {
             return scanner.next();
           } else {
-            return "noMoreDataAvailable";
+            return "noDataAvailable";
           }
         }
       } catch (IOException e) {
@@ -219,11 +219,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override protected void onPostExecute(String results) {
       //mLoadingIndicator.setVisibility(View.INVISIBLE);
-      if (results != null && !results.equals("")) {
+      if (results != null && !results.equals("") && !results.equals("noDataAvailable")) {
         showJsonDataView(results);
-      } else if (results != null && !results.equals("noMoreDataAvailable")) {
-        // do nothing
-      } else {
+      } else if (results == null || !results.equals("noDataAvailable")) {
         showErrorMessage();
       }
     }
