@@ -2,4 +2,6 @@
   <string name="app_name">Pop Movies</string>
   <string name="tmdb_notice">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
   <string name="about">About</string>
+  <string name="popular_movies">Popular Movies</string>
+  <string name="highest_rated">Highest Rated Movies</string>
 </resources>

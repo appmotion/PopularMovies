@@ -17,10 +17,8 @@ import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONArray;
@@ -34,8 +32,7 @@ public class MainActivity extends AppCompatActivity {
   private RecyclerView mMoviesRecyclerView;
   private PopularMoviesAdapter mPopularMoviesAdapter;
 
-  private Set<Integer> pageSet = new HashSet<>();
-  private int currentPage = 1;
+  private int mCurrentMoviePage = 1;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -48,12 +45,7 @@ public class MainActivity extends AppCompatActivity {
       @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
         if (isLastItemDisplaying(recyclerView)) {
-          if (pageSet.contains(++currentPage)) {
-            return;
-          } else {
-            pageSet.add(currentPage);
-          }
-          downloadPopularMovies("de-DE", currentPage, "US");
+          downloadPopularMovies("de-DE", ++mCurrentMoviePage, "US");
         }
       }
     });
@@ -67,8 +59,7 @@ public class MainActivity extends AppCompatActivity {
     mPopularMoviesAdapter.setHasStableIds(true);
     mMoviesRecyclerView.setAdapter(mPopularMoviesAdapter);
 
-    pageSet.add(currentPage);
-    downloadPopularMovies("de-DE", currentPage, "US");
+    downloadPopularMovies("de-DE", mCurrentMoviePage, "US");
   }
 
   @Override protected void onDestroy() {
@@ -86,6 +77,11 @@ public class MainActivity extends AppCompatActivity {
   @Override public boolean onOptionsItemSelected(MenuItem item) {
     // Handle item selection
     switch (item.getItemId()) {
+      case R.id.popular:
+        downloadPopularMovies("de-DE", 1, "US");
+        return true;
+      case R.id.highest:
+        return true;
       case R.id.about:
         showAboutDialog();
         return true;
@@ -94,12 +90,25 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
+  private void downloadConfiguration() {
+    //URL configurationUrl = NetworkUtils.buildConfigurationUrl(language, String.valueOf(page), region);
+    //new GetMoviesTask().execute(configurationUrl);
+  }
+
   /**
    * Get Popular Movies from themoviedb.org
    */
   private void downloadPopularMovies(String language, int page, String region) {
     URL popularMoviesUrl = NetworkUtils.buildPopularMoviesUrl(language, String.valueOf(page), region);
-    new GetPopularMoviesTask().execute(popularMoviesUrl);
+    new GetMoviesTask().execute(popularMoviesUrl);
+  }
+
+  /**
+   * Get Highest Rated Movies from themoviedb.org
+   */
+  private void downloadHighestRatedMovies(String language, int page, String region) {
+    //URL highestRatedMoviesUrl = NetworkUtils.buildHighestRatedMoviesUrl(language, String.valueOf(page), region);
+    //new GetMoviesTask().execute(highestRatedMoviesUrl);
   }
 
   private void showAboutDialog() {
@@ -188,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
     return false;
   }
 
-  public class GetPopularMoviesTask extends AsyncTask<URL, Void, String> {
+  public class GetMoviesTask extends AsyncTask<URL, Void, String> {
 
     @Override protected void onPreExecute() {
       super.onPreExecute();
