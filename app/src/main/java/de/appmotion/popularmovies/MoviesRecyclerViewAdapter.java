@@ -13,12 +13,12 @@ import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-class PopularMoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
   private final Activity mActivity;
   private List<Movie> mMovieList;
 
-  PopularMoviesAdapter(Activity activity) {
+  MoviesRecyclerViewAdapter(Activity activity) {
     mActivity = activity;
     mMovieList = new ArrayList<>(0);
   }
@@ -95,6 +95,7 @@ class PopularMoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
   void clearMovieList() {
     if (mMovieList != null) {
       mMovieList.clear();
+      notifyDataSetChanged();
     }
   }
 

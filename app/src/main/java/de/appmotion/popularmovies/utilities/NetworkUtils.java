@@ -29,7 +29,9 @@ public class NetworkUtils {
   private final static String KEY = BuildConfig.MOVIE_DB_API_KEY;
 
   // Urls
+  private final static String MOVIE_DB_CONFIGURATION = "https://api.themoviedb.org/3/configuration";
   private final static String MOVIE_DB_POPULAR_MOVIES = "https://api.themoviedb.org/3/movie/popular";
+  private final static String MOVIE_DB_TOP_RATED_MOVIES = "https://api.themoviedb.org/3/movie/top_rated";
   private final static String MOVIE_DB_IMAGE_URL = "http://image.tmdb.org/t/p/";
 
   // Params
@@ -41,12 +43,30 @@ public class NetworkUtils {
   private final static String sortBy = "stars";
 
   /**
-   * Builds the URL used to query themoviedb for popular movies.
+   * Builds the URL used to query themoviedb for API Configuration data.
+   *
+   * @return The URL to use to get configuration data for the API.
+   */
+  public static URL buildConfigurationUrl() {
+    Uri builtUri = Uri.parse(MOVIE_DB_CONFIGURATION).buildUpon().appendQueryParameter(API_KEY, KEY).build();
+
+    URL url = null;
+    try {
+      url = new URL(builtUri.toString());
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+    }
+
+    return url;
+  }
+
+  /**
+   * Builds the URL used to query themoviedb for Popular Movies.
    *
    * @param language The language requested.
    * @param page The page requested.
    * @param region The region requested.
-   * @return The URL to use to get popular movies.
+   * @return The URL to use to get Popular Movies.
    */
   public static URL buildPopularMoviesUrl(String language, String page, String region) {
     Uri builtUri = Uri.parse(MOVIE_DB_POPULAR_MOVIES)
@@ -68,11 +88,38 @@ public class NetworkUtils {
   }
 
   /**
-   * Builds the URL used to query themoviedb for a poster image of a movie.
+   * Builds the URL used to query themoviedb for Top Rated Movies.
+   *
+   * @param language The language requested.
+   * @param page The page requested.
+   * @param region The region requested.
+   * @return The URL to use to get Top Rated Movies.
+   */
+  public static URL buildTopRatedMoviesUrl(String language, String page, String region) {
+    Uri builtUri = Uri.parse(MOVIE_DB_TOP_RATED_MOVIES)
+        .buildUpon()
+        .appendQueryParameter(API_KEY, KEY)
+        .appendQueryParameter(PARAM_LANGUAGE, language)
+        .appendQueryParameter(PARAM_PAGE, page)
+        .appendQueryParameter(PARAM_REGION, region)
+        .build();
+
+    URL url = null;
+    try {
+      url = new URL(builtUri.toString());
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+    }
+
+    return url;
+  }
+
+  /**
+   * Builds the URL used to query themoviedb for a poster image of a Movie.
    *
    * @param imageSize The size of the image.
    * @param imagePath The path of the image.
-   * @return The Uri to use to get the image of a movie.
+   * @return The Uri to use to get the image of a Movie.
    */
   public static Uri buildMovieImageUri(ImageSize imageSize, String imagePath) {
     return Uri.parse(MOVIE_DB_IMAGE_URL).buildUpon().appendEncodedPath(imageSize.width).appendEncodedPath(imagePath).build();

@@ -6,8 +6,8 @@
       android:title="@string/popular_movies"
       app:showAsAction="never"/>
   <item
-      android:id="@+id/highest"
-      android:title="@string/highest_rated"
+      android:id="@+id/top"
+      android:title="@string/top_rated"
       app:showAsAction="never"/>
   <item
       android:id="@+id/about"

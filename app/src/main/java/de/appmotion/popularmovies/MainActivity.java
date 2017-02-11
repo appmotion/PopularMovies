@@ -27,16 +27,21 @@ import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
+  private static final String STATE_MENU_STATE = "menu_state";
+
   private AlertDialog mAboutDialog;
 
   private RecyclerView mMoviesRecyclerView;
-  private PopularMoviesAdapter mPopularMoviesAdapter;
+  private MoviesRecyclerViewAdapter mMoviesRecyclerViewAdapter;
 
   private int mCurrentMoviePage = 1;
+  private MenuState mMenuState = MenuState.POPULAR_MOVIES;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+
+    updateValuesFromBundle(savedInstanceState);
 
     // RecyclerView
     mMoviesRecyclerView = (RecyclerView) findViewById(android.R.id.list);
@@ -45,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
       @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
         if (isLastItemDisplaying(recyclerView)) {
-          downloadPopularMovies("de-DE", ++mCurrentMoviePage, "US");
+          downloadMovies(mMenuState, "de-DE", "US");
         }
       }
     });
@@ -55,11 +60,16 @@ public class MainActivity extends AppCompatActivity {
     mMoviesRecyclerView.setLayoutManager(layoutManager);
 
     // Set the adapter
-    mPopularMoviesAdapter = new PopularMoviesAdapter(this);
-    mPopularMoviesAdapter.setHasStableIds(true);
-    mMoviesRecyclerView.setAdapter(mPopularMoviesAdapter);
+    mMoviesRecyclerViewAdapter = new MoviesRecyclerViewAdapter(this);
+    mMoviesRecyclerViewAdapter.setHasStableIds(true);
+    mMoviesRecyclerView.setAdapter(mMoviesRecyclerViewAdapter);
 
-    downloadPopularMovies("de-DE", mCurrentMoviePage, "US");
+    downloadMovies(mMenuState, "de-DE", "US");
+  }
+
+  @Override protected void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putSerializable(STATE_MENU_STATE, mMenuState);
   }
 
   @Override protected void onDestroy() {
@@ -78,10 +88,14 @@ public class MainActivity extends AppCompatActivity {
     // Handle item selection
     switch (item.getItemId()) {
       case R.id.popular:
-        mPopularMoviesAdapter.clearMovieList();
-        downloadPopularMovies("de-DE", 1, "US");
+        mMoviesRecyclerViewAdapter.clearMovieList();
+        mCurrentMoviePage = 1;
+        downloadMovies(MenuState.POPULAR_MOVIES, "de-DE", "US");
         return true;
-      case R.id.highest:
+      case R.id.top:
+        mMoviesRecyclerViewAdapter.clearMovieList();
+        mCurrentMoviePage = 1;
+        downloadMovies(MenuState.TOP_RATED_MOVIES, "de-DE", "US");
         return true;
       case R.id.about:
         showAboutDialog();
@@ -92,8 +106,20 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void downloadConfiguration() {
-    //URL configurationUrl = NetworkUtils.buildConfigurationUrl(language, String.valueOf(page), region);
-    //new GetMoviesTask().execute(configurationUrl);
+    URL configurationUrl = NetworkUtils.buildConfigurationUrl();
+    new CallApiTask().execute(configurationUrl);
+  }
+
+  /**
+   * Get Popular or Top Rated Movies from themoviedb.org
+   */
+  private void downloadMovies(MenuState menuState, String language, String region) {
+    mMenuState = menuState;
+    if (menuState.equals(MenuState.POPULAR_MOVIES)) {
+      downloadPopularMovies(language, ++mCurrentMoviePage, region);
+    } else if (menuState.equals(MenuState.TOP_RATED_MOVIES)) {
+      downloadTopRatedMovies(language, ++mCurrentMoviePage, region);
+    }
   }
 
   /**
@@ -101,15 +127,15 @@ public class MainActivity extends AppCompatActivity {
    */
   private void downloadPopularMovies(String language, int page, String region) {
     URL popularMoviesUrl = NetworkUtils.buildPopularMoviesUrl(language, String.valueOf(page), region);
-    new GetMoviesTask().execute(popularMoviesUrl);
+    new CallApiTask().execute(popularMoviesUrl);
   }
 
   /**
-   * Get Highest Rated Movies from themoviedb.org
+   * Get Top Rated Movies from themoviedb.org
    */
-  private void downloadHighestRatedMovies(String language, int page, String region) {
-    //URL highestRatedMoviesUrl = NetworkUtils.buildHighestRatedMoviesUrl(language, String.valueOf(page), region);
-    //new GetMoviesTask().execute(highestRatedMoviesUrl);
+  private void downloadTopRatedMovies(String language, int page, String region) {
+    URL topRatedMoviesUrl = NetworkUtils.buildTopRatedMoviesUrl(language, String.valueOf(page), region);
+    new CallApiTask().execute(topRatedMoviesUrl);
   }
 
   private void showAboutDialog() {
@@ -156,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         i++;
       }
       if (mMoviesRecyclerView != null) {
-        mPopularMoviesAdapter.addMovieList(movieList);
+        mMoviesRecyclerViewAdapter.addMovieList(movieList);
       }
     } catch (JSONException e) {
       e.printStackTrace();
@@ -198,7 +224,20 @@ public class MainActivity extends AppCompatActivity {
     return false;
   }
 
-  public class GetMoviesTask extends AsyncTask<URL, Void, String> {
+  private void updateValuesFromBundle(Bundle savedInstanceState) {
+    if (savedInstanceState != null) {
+      if (savedInstanceState.keySet().contains(STATE_MENU_STATE)) {
+        mMenuState = (MenuState) savedInstanceState.getSerializable(STATE_MENU_STATE);
+      }
+    }
+  }
+
+  private enum MenuState {
+    POPULAR_MOVIES,
+    TOP_RATED_MOVIES
+  }
+
+  public class CallApiTask extends AsyncTask<URL, Void, String> {
 
     @Override protected void onPreExecute() {
       super.onPreExecute();
@@ -206,9 +245,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override protected String doInBackground(URL... params) {
-      URL popularMoviesUrl = params[0];
+      URL url = params[0];
       try {
-        Request request = new Request.Builder().url(popularMoviesUrl).tag("getPopularMovies").get().build();
+        Request request = new Request.Builder().url(url).get().build();
 
         Response response = App.getInstance().getOkHttpClient().newCall(request).execute();
         if (response.code() == 200) {
