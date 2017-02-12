@@ -76,7 +76,7 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
       Picasso.with(mActivity)
           .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, movie.getImagePath()))
           .placeholder(android.R.drawable.screen_background_light_transparent)
-          .error(android.R.drawable.ic_delete)
+          .error(R.drawable.movie_empty)
           .into(viewHolderMovieItem.movieImage, new Callback() {
             @Override public void onSuccess() {
             }

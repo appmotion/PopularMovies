@@ -158,13 +158,6 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  /**
-   * This method will make the View for the JSON data visible and
-   * hide the error message.
-   * <p>
-   * Since it is okay to redundantly set the visibility of a View, we don't
-   * need to check whether each view is currently visible or invisible.
-   */
   private void showJsonDataView(String jsonData) {
     List<Movie> movieList = new ArrayList<>();
     try {
@@ -187,25 +180,10 @@ public class MainActivity extends AppCompatActivity {
     } catch (JSONException e) {
       e.printStackTrace();
     }
-    // First, make sure the error is invisible
-    //mErrorMessageDisplay.setVisibility(View.INVISIBLE);
-    // Then, make sure the JSON data is visible
-    //mSearchResultsTextView.setVisibility(View.VISIBLE);
   }
 
-  /**
-   * This method will make the error message visible and hide the JSON
-   * View.
-   * <p>
-   * Since it is okay to redundantly set the visibility of a View, we don't
-   * need to check whether each view is currently visible or invisible.
-   */
-  private void showErrorMessage() {
-    Toast.makeText(this, "Network Error occured!", Toast.LENGTH_LONG).show();
-    // First, hide the currently visible data
-    //mSearchResultsTextView.setVisibility(View.INVISIBLE);
-    // Then, show the error
-    //mErrorMessageDisplay.setVisibility(View.VISIBLE);
+  private void showErrorMessage(String message) {
+    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
   }
 
   /**
@@ -239,39 +217,51 @@ public class MainActivity extends AppCompatActivity {
 
   public class CallApiTask extends AsyncTask<URL, Void, String> {
 
-    @Override protected void onPreExecute() {
-      super.onPreExecute();
-      //mLoadingIndicator.setVisibility(View.VISIBLE);
-    }
-
     @Override protected String doInBackground(URL... params) {
       URL url = params[0];
       try {
         Request request = new Request.Builder().url(url).get().build();
 
         Response response = App.getInstance().getOkHttpClient().newCall(request).execute();
-        if (response.code() == 200) {
-          Scanner scanner = new Scanner(response.body().byteStream());
-          scanner.useDelimiter("\\A");
-          boolean hasInput = scanner.hasNext();
-          if (hasInput) {
-            return scanner.next();
-          } else {
-            return "noDataAvailable";
-          }
+        switch (response.code()) {
+          case 200:
+            Scanner scanner = new Scanner(response.body().byteStream());
+            scanner.useDelimiter("\\A");
+            boolean hasInput = scanner.hasNext();
+            if (hasInput) {
+              return scanner.next();
+            } else {
+              return "noDataAvailable";
+            }
+          default:
+            return "apiCallError";
         }
       } catch (IOException e) {
         e.printStackTrace();
+        return "offline";
       }
-      return null;
     }
 
     @Override protected void onPostExecute(String results) {
-      //mLoadingIndicator.setVisibility(View.INVISIBLE);
-      if (results != null && !results.equals("") && !results.equals("noDataAvailable")) {
-        showJsonDataView(results);
-      } else if (results == null || !results.equals("noDataAvailable")) {
-        showErrorMessage();
+      if (results == null) {
+        showErrorMessage(getString(R.string.error_loading_movies));
+      }
+      else {
+        if (results.equals("noDataAvailable")) {
+          // do nothing
+        }
+        else if (results.equals("apiCallError")) {
+          showErrorMessage(getString(R.string.error_loading_movies));
+        }
+        else if (results.equals("offline")) {
+          showErrorMessage(getString(R.string.error_connect_internet));
+        }
+        else if (results.equals("")) {
+          // do nothing
+        }
+        else {
+          showJsonDataView(results);
+        }
       }
     }
   }

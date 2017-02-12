@@ -15,7 +15,11 @@
  */
 package de.appmotion.popularmovies.utilities;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
+import de.appmotion.popularmovies.App;
 import de.appmotion.popularmovies.BuildConfig;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -139,5 +143,11 @@ public class NetworkUtils {
     ImageSize(final String width) {
       this.width = width;
     }
+  }
+
+  public static boolean isAnyNetworkOn() {
+    ConnectivityManager connMgr = (ConnectivityManager) App.getInstance().getSystemService(Context.CONNECTIVITY_SERVICE);
+    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+    return (networkInfo != null && networkInfo.isConnected());
   }
 }

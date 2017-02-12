@@ -4,4 +4,6 @@
   <string name="about">About</string>
   <string name="popular_movies">Popular Movies</string>
   <string name="top_rated">Top Rated Movies</string>
+  <string name="error_connect_internet">Please connect to the Internet</string>
+  <string name="error_loading_movies">Error loading Movies</string>
 </resources>
