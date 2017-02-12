@@ -1,6 +1,7 @@
 package de.appmotion.popularmovies;
 
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,11 +17,36 @@ import java.util.List;
 class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
   private final Activity mActivity;
+  private final NetworkUtils.ImageSize mRequiredImageSize;
   private List<Movie> mMovieList;
 
   MoviesRecyclerViewAdapter(Activity activity) {
     mActivity = activity;
     mMovieList = new ArrayList<>(0);
+    // Get current device configuration
+    Configuration configuration = activity.getResources().getConfiguration();
+    int screenWidthDp = configuration.screenWidthDp;
+    if (screenWidthDp <= 92) {
+      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH92;
+    }
+    else if (screenWidthDp <= 154) {
+      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH154;
+    }
+    else if (screenWidthDp <= 185) {
+      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH185;
+    }
+    else if (screenWidthDp <= 342) {
+      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH342;
+    }
+    else if (screenWidthDp <= 500) {
+      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH500;
+    }
+    else if (screenWidthDp <= 780) {
+      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH780;
+    }
+    else {
+      mRequiredImageSize = NetworkUtils.ImageSize.ORIGINAL;
+    }
   }
 
   @Override public int getItemViewType(int position) {
@@ -48,7 +74,7 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
       // Load Movie Image
       Picasso.with(mActivity)
-          .load(NetworkUtils.buildMovieImageUri(NetworkUtils.ImageSize.WIDTH185, movie.getImagePath()))
+          .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, movie.getImagePath()))
           .placeholder(android.R.drawable.screen_background_light_transparent)
           .error(android.R.drawable.ic_delete)
           .into(viewHolderMovieItem.movieImage, new Callback() {
