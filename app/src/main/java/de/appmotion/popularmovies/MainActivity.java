@@ -2,10 +2,8 @@ package de.appmotion.popularmovies;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -13,22 +11,19 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 import de.appmotion.popularmovies.dto.Movie;
+import de.appmotion.popularmovies.utilities.CallApiTask;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-import okhttp3.Request;
-import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity implements CallApiTask.OnPostExecuteListener {
 
+  public final static String EXTRA_MOVIE_ID = "movie_id";
   private static final String STATE_MENU_STATE = "menu_state";
-
   private AlertDialog mAboutDialog;
 
   private RecyclerView mMoviesRecyclerView;
@@ -49,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     mMoviesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
       @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
-        if (isLastItemDisplaying(recyclerView)) {
+        if (dy > 0 && isLastItemDisplaying(recyclerView)) {
           downloadMovies(mMenuState, "de-DE", "US");
         }
       }
@@ -88,11 +83,13 @@ public class MainActivity extends AppCompatActivity {
     // Handle item selection
     switch (item.getItemId()) {
       case R.id.popular:
+        setTitle(R.string.popular_movies);
         mMoviesRecyclerViewAdapter.clearMovieList();
         mCurrentMoviePage = 1;
         downloadMovies(MenuState.POPULAR_MOVIES, "de-DE", "US");
         return true;
       case R.id.top:
+        setTitle(R.string.top_rated);
         mMoviesRecyclerViewAdapter.clearMovieList();
         mCurrentMoviePage = 1;
         downloadMovies(MenuState.TOP_RATED_MOVIES, "de-DE", "US");
@@ -107,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
   private void downloadConfiguration() {
     URL configurationUrl = NetworkUtils.buildConfigurationUrl();
-    new CallApiTask().execute(configurationUrl);
+    new CallApiTask(this).execute(configurationUrl);
   }
 
   /**
@@ -124,18 +121,26 @@ public class MainActivity extends AppCompatActivity {
 
   /**
    * Get Popular Movies from themoviedb.org
+   *
+   * @param language The language requested.
+   * @param page The page requested.
+   * @param region The region requested.
    */
   private void downloadPopularMovies(String language, int page, String region) {
     URL popularMoviesUrl = NetworkUtils.buildPopularMoviesUrl(language, String.valueOf(page), region);
-    new CallApiTask().execute(popularMoviesUrl);
+    new CallApiTask(this).execute(popularMoviesUrl);
   }
 
   /**
    * Get Top Rated Movies from themoviedb.org
+   *
+   * @param language The language requested.
+   * @param page The page requested.
+   * @param region The region requested.
    */
   private void downloadTopRatedMovies(String language, int page, String region) {
     URL topRatedMoviesUrl = NetworkUtils.buildTopRatedMoviesUrl(language, String.valueOf(page), region);
-    new CallApiTask().execute(topRatedMoviesUrl);
+    new CallApiTask(this).execute(topRatedMoviesUrl);
   }
 
   private void showAboutDialog() {
@@ -158,7 +163,13 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  private void showJsonDataView(String jsonData) {
+  /**
+   * Called from onPostExecute of {@link CallApiTask}.
+   * Parse jsonData and show in Views.
+   *
+   * @param jsonData from onPostExecute of {@link CallApiTask}.
+   */
+  @Override public void parseAndShowJsonData(String jsonData) {
     List<Movie> movieList = new ArrayList<>();
     try {
       JSONObject popular = new JSONObject(jsonData);
@@ -182,7 +193,27 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  private void showErrorMessage(String message) {
+  /**
+   * Called from onPostExecute of {@link CallApiTask}.
+   * Show a Toast Error Message.
+   *
+   * @param errorType The errorType.
+   */
+  @Override public void showErrorMessage(CallApiTask.ErrorType errorType) {
+    String message;
+    switch (errorType) {
+      case NULL:
+        message = getString(R.string.error_loading_movies);
+        break;
+      case API_ERROR:
+        message = getString(R.string.error_loading_movies);
+        break;
+      case OFFLINE:
+        message = getString(R.string.error_connect_internet);
+        break;
+      default:
+        message = errorType.name();
+    }
     Toast.makeText(this, message, Toast.LENGTH_LONG).show();
   }
 
@@ -213,56 +244,5 @@ public class MainActivity extends AppCompatActivity {
   private enum MenuState {
     POPULAR_MOVIES,
     TOP_RATED_MOVIES
-  }
-
-  public class CallApiTask extends AsyncTask<URL, Void, String> {
-
-    @Override protected String doInBackground(URL... params) {
-      URL url = params[0];
-      try {
-        Request request = new Request.Builder().url(url).get().build();
-
-        Response response = App.getInstance().getOkHttpClient().newCall(request).execute();
-        switch (response.code()) {
-          case 200:
-            Scanner scanner = new Scanner(response.body().byteStream());
-            scanner.useDelimiter("\\A");
-            boolean hasInput = scanner.hasNext();
-            if (hasInput) {
-              return scanner.next();
-            } else {
-              return "noDataAvailable";
-            }
-          default:
-            return "apiCallError";
-        }
-      } catch (IOException e) {
-        e.printStackTrace();
-        return "offline";
-      }
-    }
-
-    @Override protected void onPostExecute(String results) {
-      if (results == null) {
-        showErrorMessage(getString(R.string.error_loading_movies));
-      }
-      else {
-        if (results.equals("noDataAvailable")) {
-          // do nothing
-        }
-        else if (results.equals("apiCallError")) {
-          showErrorMessage(getString(R.string.error_loading_movies));
-        }
-        else if (results.equals("offline")) {
-          showErrorMessage(getString(R.string.error_connect_internet));
-        }
-        else if (results.equals("")) {
-          // do nothing
-        }
-        else {
-          showJsonDataView(results);
-        }
-      }
-    }
   }
 }

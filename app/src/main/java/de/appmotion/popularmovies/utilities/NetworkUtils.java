@@ -36,6 +36,7 @@ public class NetworkUtils {
   private final static String MOVIE_DB_CONFIGURATION = "https://api.themoviedb.org/3/configuration";
   private final static String MOVIE_DB_POPULAR_MOVIES = "https://api.themoviedb.org/3/movie/popular";
   private final static String MOVIE_DB_TOP_RATED_MOVIES = "https://api.themoviedb.org/3/movie/top_rated";
+  private final static String MOVIE_DB_MOVIE_DETAIL = "https://api.themoviedb.org/3/movie/";
   private final static String MOVIE_DB_IMAGE_URL = "http://image.tmdb.org/t/p/";
 
   // Params
@@ -119,6 +120,31 @@ public class NetworkUtils {
   }
 
   /**
+   * Builds the URL used to query themoviedb for Detail of a Movie.
+   *
+   * @param movieId The ID of Movie requested.
+   * @param language The language requested.
+   * @return The URL to use to get Top Rated Movies.
+   */
+  public static URL builddMovieDetailUrl(long movieId, String language) {
+    Uri builtUri = Uri.parse(MOVIE_DB_MOVIE_DETAIL)
+        .buildUpon()
+        .appendEncodedPath(String.valueOf(movieId))
+        .appendQueryParameter(API_KEY, KEY)
+        .appendQueryParameter(PARAM_LANGUAGE, language)
+        .build();
+
+    URL url = null;
+    try {
+      url = new URL(builtUri.toString());
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+    }
+
+    return url;
+  }
+
+  /**
    * Builds the URL used to query themoviedb for a poster image of a Movie.
    *
    * @param imageSize The size of the image.
@@ -127,6 +153,12 @@ public class NetworkUtils {
    */
   public static Uri buildMovieImageUri(ImageSize imageSize, String imagePath) {
     return Uri.parse(MOVIE_DB_IMAGE_URL).buildUpon().appendEncodedPath(imageSize.width).appendEncodedPath(imagePath).build();
+  }
+
+  public static boolean isAnyNetworkOn() {
+    ConnectivityManager connMgr = (ConnectivityManager) App.getInstance().getSystemService(Context.CONNECTIVITY_SERVICE);
+    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+    return (networkInfo != null && networkInfo.isConnected());
   }
 
   public enum ImageSize {
@@ -143,11 +175,5 @@ public class NetworkUtils {
     ImageSize(final String width) {
       this.width = width;
     }
-  }
-
-  public static boolean isAnyNetworkOn() {
-    ConnectivityManager connMgr = (ConnectivityManager) App.getInstance().getSystemService(Context.CONNECTIVITY_SERVICE);
-    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-    return (networkInfo != null && networkInfo.isConnected());
   }
 }

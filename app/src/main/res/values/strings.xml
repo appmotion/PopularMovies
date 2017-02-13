@@ -1,9 +1,10 @@
 <resources>
-  <string name="app_name">Pop Movies</string>
+  <string name="app_name">Popular Movies</string>
   <string name="tmdb_notice">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
   <string name="about">About</string>
   <string name="popular_movies">Popular Movies</string>
   <string name="top_rated">Top Rated Movies</string>
   <string name="error_connect_internet">Please connect to the Internet</string>
   <string name="error_loading_movies">Error loading Movies</string>
+  <string name="detail">Detail</string>
 </resources>

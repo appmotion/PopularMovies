@@ -1,7 +1,6 @@
 package de.appmotion.popularmovies;
 
-import android.app.Activity;
-import android.content.res.Configuration;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,39 +13,19 @@ import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import static de.appmotion.popularmovies.MainActivity.EXTRA_MOVIE_ID;
+
+/**
+ * {@link RecyclerView.Adapter} that can display a {@link Movie}.
+ */
 class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-  private final Activity mActivity;
-  private final NetworkUtils.ImageSize mRequiredImageSize;
+  private final BaseActivity mActivity;
   private List<Movie> mMovieList;
 
-  MoviesRecyclerViewAdapter(Activity activity) {
+  MoviesRecyclerViewAdapter(BaseActivity activity) {
     mActivity = activity;
     mMovieList = new ArrayList<>(0);
-    // Get current device configuration
-    Configuration configuration = activity.getResources().getConfiguration();
-    int screenWidthDp = configuration.screenWidthDp;
-    if (screenWidthDp <= 92) {
-      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH92;
-    }
-    else if (screenWidthDp <= 154) {
-      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH154;
-    }
-    else if (screenWidthDp <= 185) {
-      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH185;
-    }
-    else if (screenWidthDp <= 342) {
-      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH342;
-    }
-    else if (screenWidthDp <= 500) {
-      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH500;
-    }
-    else if (screenWidthDp <= 780) {
-      mRequiredImageSize = NetworkUtils.ImageSize.WIDTH780;
-    }
-    else {
-      mRequiredImageSize = NetworkUtils.ImageSize.ORIGINAL;
-    }
   }
 
   @Override public int getItemViewType(int position) {
@@ -74,7 +53,7 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
       // Load Movie Image
       Picasso.with(mActivity)
-          .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, movie.getImagePath()))
+          .load(NetworkUtils.buildMovieImageUri(mActivity.mRequiredImageSize, movie.getImagePath()))
           .placeholder(android.R.drawable.screen_background_light_transparent)
           .error(R.drawable.movie_empty)
           .into(viewHolderMovieItem.movieImage, new Callback() {
@@ -86,7 +65,7 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
           });
 
       // Set ClickListener on itemView
-      viewHolderMovieItem.itemView.setOnClickListener(new ViewClickListener(viewHolderMovieItem, movie));
+      viewHolderMovieItem.itemView.setOnClickListener(new ViewClickListener(movie));
     }
   }
 
@@ -145,21 +124,22 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     ViewHolderMovieItem(View view) {
       super(view);
       itemView = view;
-      movieImage = (ImageView) view.findViewById(R.id.iv_movie);
+      movieImage = (ImageView) view.findViewById(R.id.iv_movie_image);
     }
   }
 
   private static class ViewClickListener implements View.OnClickListener {
-    private final ViewHolderMovieItem viewHolderMovieItem;
     private final Movie movie;
 
-    ViewClickListener(ViewHolderMovieItem viewHolderMovieItem, Movie movie) {
-      this.viewHolderMovieItem = viewHolderMovieItem;
+    ViewClickListener(Movie movie) {
       this.movie = movie;
     }
 
     @Override public void onClick(View v) {
       // Show Movie Detail Screen
+      Intent intent = new Intent(v.getContext(), MovieDetailActivity.class);
+      intent.putExtra(EXTRA_MOVIE_ID, movie.getId());
+      v.getContext().startActivity(intent);
     }
   }
 }
