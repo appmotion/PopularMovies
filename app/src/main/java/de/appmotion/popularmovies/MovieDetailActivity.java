@@ -46,7 +46,7 @@ public class MovieDetailActivity extends BaseActivity implements CallApiTask.OnP
       if (movieId == 0) {
         Toast.makeText(this, "Sorry, no Movie Details", Toast.LENGTH_LONG).show();
       } else {
-        downloadMovieDetails(movieId, "US");
+        downloadMovieDetails(movieId, "en-US");
       }
     } else {
       Toast.makeText(this, "Sorry, no Movie Details", Toast.LENGTH_LONG).show();
@@ -67,7 +67,7 @@ public class MovieDetailActivity extends BaseActivity implements CallApiTask.OnP
    * @param language The language requested.
    */
   private void downloadMovieDetails(long movieId, String language) {
-    URL movieDetailUrl = NetworkUtils.builddMovieDetailUrl(movieId, language);
+    URL movieDetailUrl = NetworkUtils.buildMovieDetailUrl(movieId, language);
     new CallApiTask(this).execute(movieDetailUrl);
   }
 

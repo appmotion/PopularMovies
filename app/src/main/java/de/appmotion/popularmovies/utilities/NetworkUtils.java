@@ -21,6 +21,8 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import de.appmotion.popularmovies.App;
 import de.appmotion.popularmovies.BuildConfig;
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -126,7 +128,7 @@ public class NetworkUtils {
    * @param language The language requested.
    * @return The URL to use to get Top Rated Movies.
    */
-  public static URL builddMovieDetailUrl(long movieId, String language) {
+  public static URL buildMovieDetailUrl(long movieId, String language) {
     Uri builtUri = Uri.parse(MOVIE_DB_MOVIE_DETAIL)
         .buildUpon()
         .appendEncodedPath(String.valueOf(movieId))
@@ -159,6 +161,17 @@ public class NetworkUtils {
     ConnectivityManager connMgr = (ConnectivityManager) App.getInstance().getSystemService(Context.CONNECTIVITY_SERVICE);
     NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
     return (networkInfo != null && networkInfo.isConnected());
+  }
+
+  public static void close(Closeable c) {
+    if (c == null) {
+      return;
+    }
+    try {
+      c.close();
+    } catch (IOException e) {
+      //ignore
+    }
   }
 
   public enum ImageSize {

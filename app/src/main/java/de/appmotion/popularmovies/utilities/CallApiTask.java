@@ -2,7 +2,9 @@ package de.appmotion.popularmovies.utilities;
 
 import android.os.AsyncTask;
 import de.appmotion.popularmovies.App;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Scanner;
 import okhttp3.Request;
@@ -18,6 +20,7 @@ public class CallApiTask extends AsyncTask<URL, Void, String> {
 
   @Override protected String doInBackground(URL... params) {
     URL url = params[0];
+    BufferedReader reader = null;
     try {
       Request request = new Request.Builder().url(url).get().build();
 
@@ -30,10 +33,11 @@ public class CallApiTask extends AsyncTask<URL, Void, String> {
           if (hasInput) {
             return scanner.next();
           } else {
-            return "noDataAvailable";
+            return null;
           }
+        // response.code() is not 200
         default:
-          return "apiCallError";
+          return "apiError";
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -45,24 +49,24 @@ public class CallApiTask extends AsyncTask<URL, Void, String> {
     if (results == null) {
       mListener.showErrorMessage(ErrorType.NULL);
     } else {
-      if (results.equals("noData")) {
-        // do nothing
-      } else if (results.equals("apiError")) {
-        mListener.showErrorMessage(ErrorType.API_ERROR);
-      } else if (results.equals("offline")) {
-        mListener.showErrorMessage(ErrorType.OFFLINE);
-      } else if (results.equals("")) {
-        // do nothing
-      } else {
-        mListener.parseAndShowJsonData(results);
+      switch (results) {
+        case "apiError":
+          mListener.showErrorMessage(ErrorType.API_ERROR);
+          break;
+        case "offline":
+          mListener.showErrorMessage(ErrorType.OFFLINE);
+          break;
+        case "":
+          break;
+        default:
+          mListener.parseAndShowJsonData(results);
+          break;
       }
     }
   }
 
   public enum ErrorType {
     NULL,
-    EPMTY,
-    NO_DATA,
     API_ERROR,
     OFFLINE
   }
