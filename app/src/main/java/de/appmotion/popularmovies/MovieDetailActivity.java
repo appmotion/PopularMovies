@@ -96,6 +96,7 @@ public class MovieDetailActivity extends BaseActivity {
       // Year
       mMovieYear.setText(year);
       // Duration
+      duration = duration + "min";
       mMovieDuration.setText(duration);
       // Rating
       rating = rating + " / 10";

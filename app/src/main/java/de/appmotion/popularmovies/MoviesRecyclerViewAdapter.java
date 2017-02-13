@@ -135,7 +135,7 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
 
     @Override public void onClick(View v) {
-      // Show Movie Detail Screen
+      // Show Movie Detail Activity
       Intent intent = new Intent(v.getContext(), MovieDetailActivity.class);
       intent.putExtra(EXTRA_MOVIE_ID, movie.getId());
       v.getContext().startActivity(intent);
