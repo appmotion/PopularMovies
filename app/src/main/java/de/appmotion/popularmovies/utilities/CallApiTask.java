@@ -4,7 +4,6 @@ import android.os.AsyncTask;
 import de.appmotion.popularmovies.App;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Scanner;
 import okhttp3.Request;
@@ -35,7 +34,7 @@ public class CallApiTask extends AsyncTask<URL, Void, String> {
           } else {
             return null;
           }
-        // response.code() is not 200
+          // response.code() is not 200
         default:
           return "apiError";
       }

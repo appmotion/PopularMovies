@@ -13,7 +13,7 @@ import java.net.URL;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MovieDetailActivity extends BaseActivity implements CallApiTask.OnPostExecuteListener {
+public class MovieDetailActivity extends BaseActivity {
 
   private TextView mMovieTitle;
   private ImageView mMovieImage;
@@ -24,7 +24,7 @@ public class MovieDetailActivity extends BaseActivity implements CallApiTask.OnP
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setTitle(R.string.detail);
+    setTitle(R.string.movie_detail);
     setContentView(R.layout.activity_movie_detail);
 
     // add back arrow to toolbar
@@ -114,29 +114,5 @@ public class MovieDetailActivity extends BaseActivity implements CallApiTask.OnP
     } catch (JSONException e) {
       e.printStackTrace();
     }
-  }
-
-  /**
-   * Called from onPostExecute of {@link CallApiTask}.
-   * Show a Toast Error Message.
-   *
-   * @param errorType The errorType.
-   */
-  @Override public void showErrorMessage(CallApiTask.ErrorType errorType) {
-    String message;
-    switch (errorType) {
-      case NULL:
-        message = getString(R.string.error_loading_movies);
-        break;
-      case API_ERROR:
-        message = getString(R.string.error_loading_movies);
-        break;
-      case OFFLINE:
-        message = getString(R.string.error_connect_internet);
-        break;
-      default:
-        message = errorType.name();
-    }
-    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
   }
 }

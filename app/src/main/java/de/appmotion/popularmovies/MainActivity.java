@@ -9,7 +9,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 import de.appmotion.popularmovies.dto.Movie;
 import de.appmotion.popularmovies.utilities.CallApiTask;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
@@ -20,7 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends BaseActivity implements CallApiTask.OnPostExecuteListener {
+public class MainActivity extends BaseActivity {
 
   public final static String EXTRA_MOVIE_ID = "movie_id";
   private static final String STATE_MENU_STATE = "menu_state";
@@ -191,30 +190,6 @@ public class MainActivity extends BaseActivity implements CallApiTask.OnPostExec
     } catch (JSONException e) {
       e.printStackTrace();
     }
-  }
-
-  /**
-   * Called from onPostExecute of {@link CallApiTask}.
-   * Show a Toast Error Message.
-   *
-   * @param errorType The errorType.
-   */
-  @Override public void showErrorMessage(CallApiTask.ErrorType errorType) {
-    String message;
-    switch (errorType) {
-      case NULL:
-        message = getString(R.string.error_loading_movies);
-        break;
-      case API_ERROR:
-        message = getString(R.string.error_loading_movies);
-        break;
-      case OFFLINE:
-        message = getString(R.string.error_connect_internet);
-        break;
-      default:
-        message = errorType.name();
-    }
-    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
   }
 
   /**

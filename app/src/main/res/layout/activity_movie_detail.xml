@@ -12,11 +12,10 @@
   <TextView
       android:id="@+id/tv_movie_title"
       android:layout_width="match_parent"
-      android:layout_height="64dp"
+      android:layout_height="wrap_content"
       android:background="@android:color/holo_blue_light"
       android:gravity="center_vertical"
-      android:ellipsize="end"
-      android:singleLine="true"
+      android:minHeight="64dp"
       android:paddingLeft="16dp"
       android:text="Test"
       android:textColor="@android:color/white"
