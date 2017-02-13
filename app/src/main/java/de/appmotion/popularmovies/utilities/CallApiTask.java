@@ -2,13 +2,15 @@ package de.appmotion.popularmovies.utilities;
 
 import android.os.AsyncTask;
 import de.appmotion.popularmovies.App;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Scanner;
 import okhttp3.Request;
 import okhttp3.Response;
 
+/**
+ * Use OkHttp inside this AsyncTask to get data from themoviedb.org.
+ */
 public class CallApiTask extends AsyncTask<URL, Void, String> {
 
   private final OnPostExecuteListener mListener;
@@ -19,7 +21,6 @@ public class CallApiTask extends AsyncTask<URL, Void, String> {
 
   @Override protected String doInBackground(URL... params) {
     URL url = params[0];
-    BufferedReader reader = null;
     try {
       Request request = new Request.Builder().url(url).get().build();
 

@@ -69,7 +69,6 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
   }
 
-  // Return the size of your dataset (invoked by the layout manager)
   @Override public int getItemCount() {
     if (mMovieList == null) {
       return 0;

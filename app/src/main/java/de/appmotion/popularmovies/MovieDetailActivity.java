@@ -13,6 +13,9 @@ import java.net.URL;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Display the details for a movie.
+ */
 public class MovieDetailActivity extends BaseActivity {
 
   private TextView mMovieTitle;
@@ -41,15 +44,16 @@ public class MovieDetailActivity extends BaseActivity {
     mMovieRating = (TextView) findViewById(R.id.tv_movie_rating);
     mMovieOverview = (TextView) findViewById(R.id.tv_movie_overview);
 
+    // Get Movie Id from Intent, then download Movie Details.
     if (getIntent() != null) {
       long movieId = getIntent().getLongExtra(MainActivity.EXTRA_MOVIE_ID, 0L);
       if (movieId == 0) {
-        Toast.makeText(this, "Sorry, no Movie Details", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, getString(R.string.error_loading_movie_detail), Toast.LENGTH_LONG).show();
       } else {
         downloadMovieDetails(movieId, "en-US");
       }
     } else {
-      Toast.makeText(this, "Sorry, no Movie Details", Toast.LENGTH_LONG).show();
+      Toast.makeText(this, getString(R.string.error_loading_movie_detail), Toast.LENGTH_LONG).show();
     }
   }
 

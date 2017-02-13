@@ -19,16 +19,27 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Display Movies via a grid of their corresponding movie poster thumbnails.
+ */
 public class MainActivity extends BaseActivity {
 
-  public final static String EXTRA_MOVIE_ID = "movie_id";
+  // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
+  public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
+  // Save {@link MenuState} via onSaveInstanceState
   private static final String STATE_MENU_STATE = "menu_state";
+  // The About Dialog
   private AlertDialog mAboutDialog;
 
+  // RecyclerView which shows Movies
   private RecyclerView mMoviesRecyclerView;
+  // RecyclerView.Adapter containing {@link Movie}s.
   private MoviesRecyclerViewAdapter mMoviesRecyclerViewAdapter;
 
-  private int mCurrentMoviePage = 1;
+  // Saves last downloaded movie page
+  private int mLastDownloadedMoviePage = 1;
+
+  // Saves current selected entry from Options Menu
   private MenuState mMenuState = MenuState.POPULAR_MOVIES;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +55,7 @@ public class MainActivity extends BaseActivity {
       @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
         if (dy > 0 && isLastItemDisplaying(recyclerView)) {
-          downloadMovies(mMenuState, "de-DE", "US");
+          downloadMovies(mMenuState, "en-US", "US");
         }
       }
     });
@@ -53,12 +64,12 @@ public class MainActivity extends BaseActivity {
     RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 2, GridLayoutManager.VERTICAL, false);
     mMoviesRecyclerView.setLayoutManager(layoutManager);
 
-    // Set the adapter
+    // Set the adapter for RecyclerView
     mMoviesRecyclerViewAdapter = new MoviesRecyclerViewAdapter(this);
     mMoviesRecyclerViewAdapter.setHasStableIds(true);
     mMoviesRecyclerView.setAdapter(mMoviesRecyclerViewAdapter);
 
-    downloadMovies(mMenuState, "de-DE", "US");
+    downloadMovies(mMenuState, "en-US", "US");
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
@@ -79,20 +90,22 @@ public class MainActivity extends BaseActivity {
   }
 
   @Override public boolean onOptionsItemSelected(MenuItem item) {
-    // Handle item selection
     switch (item.getItemId()) {
+      // Load and show Popular Movies.
       case R.id.popular:
         setTitle(R.string.popular_movies);
         mMoviesRecyclerViewAdapter.clearMovieList();
-        mCurrentMoviePage = 1;
-        downloadMovies(MenuState.POPULAR_MOVIES, "de-DE", "US");
+        mLastDownloadedMoviePage = 1;
+        downloadMovies(MenuState.POPULAR_MOVIES, "en-US", "US");
         return true;
+      // Load and show To Rated Movies.
       case R.id.top:
         setTitle(R.string.top_rated);
         mMoviesRecyclerViewAdapter.clearMovieList();
-        mCurrentMoviePage = 1;
-        downloadMovies(MenuState.TOP_RATED_MOVIES, "de-DE", "US");
+        mLastDownloadedMoviePage = 1;
+        downloadMovies(MenuState.TOP_RATED_MOVIES, "en-US", "US");
         return true;
+      // Show About Dialog.
       case R.id.about:
         showAboutDialog();
         return true;
@@ -112,9 +125,9 @@ public class MainActivity extends BaseActivity {
   private void downloadMovies(MenuState menuState, String language, String region) {
     mMenuState = menuState;
     if (menuState.equals(MenuState.POPULAR_MOVIES)) {
-      downloadPopularMovies(language, ++mCurrentMoviePage, region);
+      downloadPopularMovies(language, ++mLastDownloadedMoviePage, region);
     } else if (menuState.equals(MenuState.TOP_RATED_MOVIES)) {
-      downloadTopRatedMovies(language, ++mCurrentMoviePage, region);
+      downloadTopRatedMovies(language, ++mLastDownloadedMoviePage, region);
     }
   }
 
@@ -147,7 +160,7 @@ public class MainActivity extends BaseActivity {
     mAboutDialog = builder.setCancelable(true)
         .setMessage(R.string.tmdb_notice)
         .setTitle(R.string.about)
-        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
           @Override public void onClick(DialogInterface dialog, int which) {
             dialog.dismiss();
           }

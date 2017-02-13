@@ -6,5 +6,7 @@
   <string name="top_rated">Top Rated Movies</string>
   <string name="error_connect_internet">Please connect to the Internet</string>
   <string name="error_loading_movies">Error loading Movies</string>
+  <string name="error_loading_movie_detail">Sorry, no Movie Details</string>
   <string name="movie_detail">Movie Detail</string>
+  <string name="ok">OK</string>
 </resources>
