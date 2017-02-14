@@ -1,8 +1,11 @@
 package de.appmotion.popularmovies.utilities;
 
 import android.os.AsyncTask;
+import android.support.annotation.StringDef;
 import de.appmotion.popularmovies.App;
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.URL;
 import java.util.Scanner;
 import okhttp3.Request;
@@ -13,6 +16,11 @@ import okhttp3.Response;
  */
 public class CallApiTask extends AsyncTask<URL, Void, String> {
 
+  // Define {@link ErrorType} Types
+  public static final String NULL = "null";
+  public static final String API_ERROR = "api_error";
+  public static final String OFFLINE = "offline";
+  // Listener for onPostExecute method
   private final OnPostExecuteListener mListener;
 
   public CallApiTask(OnPostExecuteListener listener) {
@@ -37,24 +45,24 @@ public class CallApiTask extends AsyncTask<URL, Void, String> {
           }
           // response.code() is not 200
         default:
-          return "apiError";
+          return API_ERROR;
       }
     } catch (IOException e) {
       e.printStackTrace();
-      return "offline";
+      return OFFLINE;
     }
   }
 
   @Override protected void onPostExecute(String results) {
     if (results == null) {
-      mListener.showErrorMessage(ErrorType.NULL);
+      mListener.showErrorMessage(NULL);
     } else {
       switch (results) {
-        case "apiError":
-          mListener.showErrorMessage(ErrorType.API_ERROR);
+        case API_ERROR:
+          mListener.showErrorMessage(API_ERROR);
           break;
-        case "offline":
-          mListener.showErrorMessage(ErrorType.OFFLINE);
+        case OFFLINE:
+          mListener.showErrorMessage(OFFLINE);
           break;
         case "":
           break;
@@ -65,15 +73,12 @@ public class CallApiTask extends AsyncTask<URL, Void, String> {
     }
   }
 
-  public enum ErrorType {
-    NULL,
-    API_ERROR,
-    OFFLINE
-  }
-
   public interface OnPostExecuteListener {
     void parseAndShowJsonData(String jsonData);
 
-    void showErrorMessage(ErrorType errorType);
+    void showErrorMessage(@CallApiTask.ErrorType String errorType);
+  }
+
+  @Retention(RetentionPolicy.CLASS) @StringDef({ NULL, API_ERROR, OFFLINE }) public @interface ErrorType {
   }
 }

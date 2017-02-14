@@ -3,6 +3,7 @@ package de.appmotion.popularmovies;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,6 +13,8 @@ import android.view.MenuItem;
 import de.appmotion.popularmovies.dto.Movie;
 import de.appmotion.popularmovies.utilities.CallApiTask;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,27 +29,34 @@ public class MainActivity extends BaseActivity {
 
   // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
+  // Define {@link MenuState} Types
+  public static final int POPULAR_MOVIES = 0;
+  public static final int TOP_RATED_MOVIES = 1;
   // Save {@link MenuState} via onSaveInstanceState
   private static final String STATE_MENU_STATE = "menu_state";
   // The About Dialog
   private AlertDialog mAboutDialog;
-
   // RecyclerView which shows Movies
   private RecyclerView mMoviesRecyclerView;
   // RecyclerView.Adapter containing {@link Movie}s.
   private MoviesRecyclerViewAdapter mMoviesRecyclerViewAdapter;
-
   // Saves last downloaded movie page
   private int mLastDownloadedMoviePage = 1;
-
-  // Saves current selected entry from Options Menu
-  private MenuState mMenuState = MenuState.POPULAR_MOVIES;
+  // Saves current selected {@link MenuState} from Options Menu
+  private int mMenuState = POPULAR_MOVIES;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
     updateValuesFromBundle(savedInstanceState);
+
+    // Set title of this Activity depending on current {@link MenuState}
+    if (mMenuState == POPULAR_MOVIES) {
+      setTitle(R.string.popular_movies);
+    } else if (mMenuState == TOP_RATED_MOVIES) {
+      setTitle(R.string.top_rated);
+    }
 
     // RecyclerView
     mMoviesRecyclerView = (RecyclerView) findViewById(android.R.id.list);
@@ -74,7 +84,7 @@ public class MainActivity extends BaseActivity {
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    outState.putSerializable(STATE_MENU_STATE, mMenuState);
+    outState.putInt(STATE_MENU_STATE, mMenuState);
   }
 
   @Override protected void onDestroy() {
@@ -96,14 +106,14 @@ public class MainActivity extends BaseActivity {
         setTitle(R.string.popular_movies);
         mMoviesRecyclerViewAdapter.clearMovieList();
         mLastDownloadedMoviePage = 1;
-        downloadMovies(MenuState.POPULAR_MOVIES, "en-US", "US");
+        downloadMovies(POPULAR_MOVIES, "en-US", "US");
         return true;
       // Load and show To Rated Movies.
       case R.id.top:
         setTitle(R.string.top_rated);
         mMoviesRecyclerViewAdapter.clearMovieList();
         mLastDownloadedMoviePage = 1;
-        downloadMovies(MenuState.TOP_RATED_MOVIES, "en-US", "US");
+        downloadMovies(TOP_RATED_MOVIES, "en-US", "US");
         return true;
       // Show About Dialog.
       case R.id.about:
@@ -122,11 +132,11 @@ public class MainActivity extends BaseActivity {
   /**
    * Get Popular or Top Rated Movies from themoviedb.org
    */
-  private void downloadMovies(MenuState menuState, String language, String region) {
+  private void downloadMovies(@MenuState int menuState, String language, String region) {
     mMenuState = menuState;
-    if (menuState.equals(MenuState.POPULAR_MOVIES)) {
+    if (menuState == POPULAR_MOVIES) {
       downloadPopularMovies(language, mLastDownloadedMoviePage++, region);
-    } else if (menuState.equals(MenuState.TOP_RATED_MOVIES)) {
+    } else if (menuState == TOP_RATED_MOVIES) {
       downloadTopRatedMovies(language, mLastDownloadedMoviePage++, region);
     }
   }
@@ -224,13 +234,11 @@ public class MainActivity extends BaseActivity {
   private void updateValuesFromBundle(Bundle savedInstanceState) {
     if (savedInstanceState != null) {
       if (savedInstanceState.keySet().contains(STATE_MENU_STATE)) {
-        mMenuState = (MenuState) savedInstanceState.getSerializable(STATE_MENU_STATE);
+        mMenuState = savedInstanceState.getInt(STATE_MENU_STATE, POPULAR_MOVIES);
       }
     }
   }
 
-  private enum MenuState {
-    POPULAR_MOVIES,
-    TOP_RATED_MOVIES
+  @Retention(RetentionPolicy.CLASS) @IntDef({ POPULAR_MOVIES, TOP_RATED_MOVIES }) public @interface MenuState {
   }
 }

@@ -1,6 +1,7 @@
 package de.appmotion.popularmovies;
 
 import android.content.Intent;
+import android.support.annotation.IntDef;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,8 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.dto.Movie;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +23,9 @@ import static de.appmotion.popularmovies.MainActivity.EXTRA_MOVIE_ID;
  */
 class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+  // {@link ViewType} Type
+  private static final int DEFAULT = 0;
+
   private final BaseActivity mActivity;
   private List<Movie> mMovieList;
 
@@ -28,16 +34,16 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     mMovieList = new ArrayList<>(0);
   }
 
-  @Override public int getItemViewType(int position) {
-    return ViewType.DEFAULT.typeNumber;
+  @Override public @ViewType int getItemViewType(int position) {
+    return DEFAULT;
   }
 
-  @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+  @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, @ViewType int viewType) {
     View v;
     RecyclerView.ViewHolder vh = null;
 
      /* Movie View */
-    if (ViewType.DEFAULT.typeNumber == viewType) {
+    if (DEFAULT == viewType) {
       v = LayoutInflater.from(parent.getContext()).inflate(R.layout.movie_item, parent, false);
       vh = new ViewHolderMovieItem(v);
     }
@@ -47,7 +53,7 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
   // Replace the contents of a view (invoked by the layout manager)
   @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
     /* Movie View */
-    if (ViewType.DEFAULT.typeNumber == getItemViewType(position)) {
+    if (DEFAULT == getItemViewType(position)) {
       final ViewHolderMovieItem viewHolderMovieItem = (ViewHolderMovieItem) holder;
       Movie movie = mMovieList.get(position);
 
@@ -103,14 +109,7 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
   }
 
-  private enum ViewType {
-    DEFAULT(0);
-
-    public final int typeNumber;
-
-    ViewType(final int typeNumber) {
-      this.typeNumber = typeNumber;
-    }
+  @Retention(RetentionPolicy.CLASS) @IntDef({ DEFAULT }) @interface ViewType {
   }
 
   /**

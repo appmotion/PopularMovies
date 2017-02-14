@@ -19,10 +19,13 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.support.annotation.StringDef;
 import de.appmotion.popularmovies.App;
 import de.appmotion.popularmovies.BuildConfig;
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -31,22 +34,27 @@ import java.net.URL;
  */
 public class NetworkUtils {
 
+  // Define {@link ImageSize} Types
+  public static final String ORIGINAL = "original";
+  public static final String WIDTH92 = "w92";
+  public static final String WIDTH154 = "w154";
+  public static final String WIDTH185 = "w185";
+  public static final String WIDTH342 = "w342";
+  public static final String WIDTH500 = "w500";
+  public static final String WIDTH780 = "w780";
   // themoviedb API Key
   private final static String KEY = BuildConfig.MOVIE_DB_API_KEY;
-
   // Urls
   private final static String MOVIE_DB_CONFIGURATION = "https://api.themoviedb.org/3/configuration";
   private final static String MOVIE_DB_POPULAR_MOVIES = "https://api.themoviedb.org/3/movie/popular";
   private final static String MOVIE_DB_TOP_RATED_MOVIES = "https://api.themoviedb.org/3/movie/top_rated";
   private final static String MOVIE_DB_MOVIE_DETAIL = "https://api.themoviedb.org/3/movie/";
   private final static String MOVIE_DB_IMAGE_URL = "http://image.tmdb.org/t/p/";
-
   // Params
   private final static String API_KEY = "api_key";
   private final static String PARAM_LANGUAGE = "language";
   private final static String PARAM_PAGE = "page";
   private final static String PARAM_REGION = "region";
-
   private final static String sortBy = "stars";
 
   /**
@@ -153,8 +161,8 @@ public class NetworkUtils {
    * @param imagePath The path of the image.
    * @return The Uri to use to get the image of a Movie.
    */
-  public static Uri buildMovieImageUri(ImageSize imageSize, String imagePath) {
-    return Uri.parse(MOVIE_DB_IMAGE_URL).buildUpon().appendEncodedPath(imageSize.width).appendEncodedPath(imagePath).build();
+  public static Uri buildMovieImageUri(@ImageSize String imageSize, String imagePath) {
+    return Uri.parse(MOVIE_DB_IMAGE_URL).buildUpon().appendEncodedPath(imageSize).appendEncodedPath(imagePath).build();
   }
 
   public static boolean isAnyNetworkOn() {
@@ -174,19 +182,7 @@ public class NetworkUtils {
     }
   }
 
-  public enum ImageSize {
-    ORIGINAL("original"),
-    WIDTH92("w92"),
-    WIDTH154("w154"),
-    WIDTH185("w185"),
-    WIDTH342("w342"),
-    WIDTH500("w500"),
-    WIDTH780("w780");
-
-    public final String width;
-
-    ImageSize(final String width) {
-      this.width = width;
-    }
+  @Retention(RetentionPolicy.CLASS) @StringDef({ ORIGINAL, WIDTH92, WIDTH154, WIDTH185, WIDTH342, WIDTH500, WIDTH780 })
+  public @interface ImageSize {
   }
 }
