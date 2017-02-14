@@ -61,7 +61,7 @@ public class MainActivity extends BaseActivity {
     });
 
     // LayoutManager
-    RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 2, GridLayoutManager.VERTICAL, false);
+    RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, calculateNoOfColumns(), GridLayoutManager.VERTICAL, false);
     mMoviesRecyclerView.setLayoutManager(layoutManager);
 
     // Set the adapter for RecyclerView
