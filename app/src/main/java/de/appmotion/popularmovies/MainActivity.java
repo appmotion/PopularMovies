@@ -125,9 +125,9 @@ public class MainActivity extends BaseActivity {
   private void downloadMovies(MenuState menuState, String language, String region) {
     mMenuState = menuState;
     if (menuState.equals(MenuState.POPULAR_MOVIES)) {
-      downloadPopularMovies(language, ++mLastDownloadedMoviePage, region);
+      downloadPopularMovies(language, mLastDownloadedMoviePage++, region);
     } else if (menuState.equals(MenuState.TOP_RATED_MOVIES)) {
-      downloadTopRatedMovies(language, ++mLastDownloadedMoviePage, region);
+      downloadTopRatedMovies(language, mLastDownloadedMoviePage++, region);
     }
   }
 
