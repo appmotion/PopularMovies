@@ -209,7 +209,8 @@ public class MainActivity extends BaseActivity implements MoviesRecyclerViewAdap
         i++;
       }
       if (mMoviesRecyclerView != null) {
-        mMoviesRecyclerViewAdapter.replaceMovieList(movieList);
+        // Add new downloaded Movies to adapter
+        mMoviesRecyclerViewAdapter.addMovieList(movieList);
       }
     } catch (JSONException e) {
       e.printStackTrace();

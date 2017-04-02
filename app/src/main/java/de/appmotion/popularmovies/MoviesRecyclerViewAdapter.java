@@ -84,6 +84,15 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     notifyDataSetChanged();
   }
 
+  void addMovieList(List<Movie> newList) {
+    if (mMovieList == null) {
+      mMovieList = new ArrayList<>(0);
+    }
+    mMovieList.addAll(newList);
+    notifyDataSetChanged();
+  }
+
+
   void clearMovieList() {
     if (mMovieList != null) {
       mMovieList.clear();
