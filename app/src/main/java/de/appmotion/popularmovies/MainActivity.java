@@ -2,6 +2,7 @@ package de.appmotion.popularmovies;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.v7.app.AlertDialog;
@@ -25,13 +26,13 @@ import org.json.JSONObject;
 /**
  * Display Movies via a grid of their corresponding movie poster thumbnails.
  */
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements MoviesRecyclerViewAdapter.ListItemClickListener {
 
   // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
   // Define {@link MenuState} Types
-  public static final int POPULAR_MOVIES = 0;
-  public static final int TOP_RATED_MOVIES = 1;
+  private static final int POPULAR_MOVIES = 0;
+  private static final int TOP_RATED_MOVIES = 1;
   // Save {@link MenuState} via onSaveInstanceState
   private static final String STATE_MENU_STATE = "menu_state";
   // The About Dialog
@@ -75,7 +76,7 @@ public class MainActivity extends BaseActivity {
     mMoviesRecyclerView.setLayoutManager(layoutManager);
 
     // Set the adapter for RecyclerView
-    mMoviesRecyclerViewAdapter = new MoviesRecyclerViewAdapter(this);
+    mMoviesRecyclerViewAdapter = new MoviesRecyclerViewAdapter(new ArrayList<Movie>(0), mRequiredImageSize, this);
     mMoviesRecyclerViewAdapter.setHasStableIds(true);
     mMoviesRecyclerView.setAdapter(mMoviesRecyclerViewAdapter);
 
@@ -208,7 +209,7 @@ public class MainActivity extends BaseActivity {
         i++;
       }
       if (mMoviesRecyclerView != null) {
-        mMoviesRecyclerViewAdapter.addMovieList(movieList);
+        mMoviesRecyclerViewAdapter.replaceMovieList(movieList);
       }
     } catch (JSONException e) {
       e.printStackTrace();
@@ -237,6 +238,21 @@ public class MainActivity extends BaseActivity {
         mMenuState = savedInstanceState.getInt(STATE_MENU_STATE, POPULAR_MOVIES);
       }
     }
+  }
+
+  /**
+   * This is where we receive our callback from
+   * {@link MoviesRecyclerViewAdapter.ListItemClickListener}
+   *
+   * This callback is invoked when you click on an item in the list.
+   *
+   * @param movie {@link Movie} in the list that was clicked.
+   */
+  @Override public void onListItemClick(Movie movie) {
+    // Show Movie Detail Activity
+    Intent intent = new Intent(this, MovieDetailActivity.class);
+    intent.putExtra(EXTRA_MOVIE_ID, movie.getId());
+    startActivity(intent);
   }
 
   @Retention(RetentionPolicy.CLASS) @IntDef({ POPULAR_MOVIES, TOP_RATED_MOVIES }) public @interface MenuState {

@@ -17,9 +17,9 @@
       android:gravity="center_vertical"
       android:minHeight="64dp"
       android:paddingLeft="16dp"
-      tools:text="Title"
       android:textColor="@android:color/white"
       android:textSize="34sp"
+      tools:text="Title"
       />
 
   <ScrollView
@@ -80,8 +80,8 @@
               android:layout_height="wrap_content"
               android:layout_marginBottom="8dp"
               android:layout_marginTop="8dp"
-              tools:text="Duration"
               android:textStyle="italic"
+              tools:text="Duration"
               style="@style/TextAppearance.AppCompat.Medium"
               />
 

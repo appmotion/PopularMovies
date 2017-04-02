@@ -21,7 +21,7 @@ public abstract class BaseActivity extends AppCompatActivity implements CallApiT
   /**
    * Calculate the Movie Image size we would like to get from API.
    */
-  protected void calculateImageSizeForApiCall() {
+  private void calculateImageSizeForApiCall() {
     int noOfColumns = calculateNoOfColumns();
     DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
     int screenWidthPx = displayMetrics.widthPixels / noOfColumns;

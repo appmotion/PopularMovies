@@ -1,7 +1,8 @@
 package de.appmotion.popularmovies;
 
-import android.content.Intent;
+import android.content.Context;
 import android.support.annotation.IntDef;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,8 +17,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
-import static de.appmotion.popularmovies.MainActivity.EXTRA_MOVIE_ID;
-
 /**
  * {@link RecyclerView.Adapter} that can display a {@link Movie}.
  */
@@ -25,12 +24,15 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
   // {@link ViewType} Type
   private static final int DEFAULT = 0;
-
-  private final BaseActivity mActivity;
+  private final ListItemClickListener mOnClickListener;
+  private final @NetworkUtils.ImageSize String mRequiredImageSize;
   private List<Movie> mMovieList;
 
-  MoviesRecyclerViewAdapter(BaseActivity activity) {
-    mActivity = activity;
+  MoviesRecyclerViewAdapter(@Nullable List<Movie> movieList, @NetworkUtils.ImageSize String requiredImageSize,
+      ListItemClickListener listener) {
+    mMovieList = movieList;
+    mRequiredImageSize = requiredImageSize;
+    mOnClickListener = listener;
     mMovieList = new ArrayList<>(0);
   }
 
@@ -39,39 +41,27 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
   }
 
   @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, @ViewType int viewType) {
-    View v;
-    RecyclerView.ViewHolder vh = null;
+    Context context = parent.getContext();
+    int layoutIdForListItem = R.layout.movie_item;
+    LayoutInflater inflater = LayoutInflater.from(context);
+
+    View view;
+    RecyclerView.ViewHolder viewHolder = null;
 
      /* Movie View */
     if (DEFAULT == viewType) {
-      v = LayoutInflater.from(parent.getContext()).inflate(R.layout.movie_item, parent, false);
-      vh = new ViewHolderMovieItem(v);
+      view = inflater.inflate(layoutIdForListItem, parent, false);
+      viewHolder = new ViewHolderMovieItem(view);
     }
-    return vh;
+    return viewHolder;
   }
 
   // Replace the contents of a view (invoked by the layout manager)
   @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
     /* Movie View */
     if (DEFAULT == getItemViewType(position)) {
-      final ViewHolderMovieItem viewHolderMovieItem = (ViewHolderMovieItem) holder;
-      Movie movie = mMovieList.get(position);
-
-      // Load Movie Image
-      Picasso.with(mActivity)
-          .load(NetworkUtils.buildMovieImageUri(mActivity.mRequiredImageSize, movie.getImagePath()))
-          .placeholder(android.R.drawable.screen_background_light_transparent)
-          .error(R.drawable.movie_empty)
-          .into(viewHolderMovieItem.movieImage, new Callback() {
-            @Override public void onSuccess() {
-            }
-
-            @Override public void onError() {
-            }
-          });
-
-      // Set ClickListener on itemView
-      viewHolderMovieItem.itemView.setOnClickListener(new ViewClickListener(movie));
+      final ViewHolderMovieItem viewHolder = (ViewHolderMovieItem) holder;
+      viewHolder.bind(position);
     }
   }
 
@@ -94,19 +84,18 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     notifyDataSetChanged();
   }
 
-  void addMovieList(List<Movie> newList) {
-    if (mMovieList == null) {
-      mMovieList = new ArrayList<>(0);
-    }
-    mMovieList.addAll(newList);
-    notifyDataSetChanged();
-  }
-
   void clearMovieList() {
     if (mMovieList != null) {
       mMovieList.clear();
       notifyDataSetChanged();
     }
+  }
+
+  /**
+   * The interface that receives onClick messages.
+   */
+  public interface ListItemClickListener {
+    void onListItemClick(Movie movie);
   }
 
   @Retention(RetentionPolicy.CLASS) @IntDef({ DEFAULT }) @interface ViewType {
@@ -115,29 +104,40 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
   /**
    * ViewHolder MovieItem
    */
-  private static class ViewHolderMovieItem extends RecyclerView.ViewHolder {
-    View itemView;
-    ImageView movieImage;
+  private class ViewHolderMovieItem extends RecyclerView.ViewHolder implements View.OnClickListener {
+    final ImageView movieImage;
 
-    ViewHolderMovieItem(View view) {
-      super(view);
-      itemView = view;
-      movieImage = (ImageView) view.findViewById(R.id.iv_movie_image);
-    }
-  }
-
-  private static class ViewClickListener implements View.OnClickListener {
-    private final Movie movie;
-
-    ViewClickListener(Movie movie) {
-      this.movie = movie;
+    ViewHolderMovieItem(View itemView) {
+      super(itemView);
+      movieImage = (ImageView) itemView.findViewById(R.id.iv_movie_image);
+      itemView.setOnClickListener(this);
     }
 
+    void bind(int listIndex) {
+      final Movie movie = mMovieList.get(listIndex);
+
+      // Load Movie Image
+      Picasso.with(itemView.getContext())
+          .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, movie.getImagePath()))
+          .placeholder(android.R.drawable.screen_background_light_transparent)
+          .error(R.drawable.movie_empty)
+          .into(movieImage, new Callback() {
+            @Override public void onSuccess() {
+            }
+
+            @Override public void onError() {
+            }
+          });
+    }
+
+    /**
+     * Called whenever a user clicks on an item in the list.
+     *
+     * @param v The View that was clicked
+     */
     @Override public void onClick(View v) {
-      // Show Movie Detail Activity
-      Intent intent = new Intent(v.getContext(), MovieDetailActivity.class);
-      intent.putExtra(EXTRA_MOVIE_ID, movie.getId());
-      v.getContext().startActivity(intent);
+      int clickedPosition = getAdapterPosition();
+      mOnClickListener.onListItemClick(mMovieList.get(clickedPosition));
     }
   }
 }
