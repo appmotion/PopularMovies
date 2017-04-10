@@ -12,10 +12,19 @@ public abstract class BaseActivity extends AppCompatActivity {
 
   protected @NetworkUtils.ImageSize String mRequiredImageSize;
 
+  protected Toast mToast;
+
   @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     // Calculate mRequiredImageSize once for later usage.
     calculateImageSizeForApiCall();
+  }
+
+  @Override protected void onPause() {
+    if (mToast != null) {
+      mToast.cancel();
+    }
+    super.onPause();
   }
 
   /**
@@ -75,6 +84,23 @@ public abstract class BaseActivity extends AppCompatActivity {
       default:
         message = errorType;
     }
-    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    if (mToast != null) {
+      mToast.cancel();
+    }
+    mToast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+    mToast.show();
+  }
+
+  /**
+   * Show a Toast Message.
+   *
+   * @param message the Message to show
+   */
+  protected void showMessage(String message) {
+    if (mToast != null) {
+      mToast.cancel();
+    }
+    mToast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+    mToast.show();
   }
 }

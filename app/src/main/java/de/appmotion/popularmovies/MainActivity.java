@@ -371,6 +371,13 @@ public class MainActivity extends BaseActivity
     startActivity(intent);
   }
 
+  /**
+   * This is called when a new Loader needs to be created.
+   *
+   * @param id The ID whose loader is to be created.
+   * @param args Any arguments supplied by the caller.
+   * @return Return a new Loader instance that is ready to start loading.
+   */
   @Override public Loader<String> onCreateLoader(int id, Bundle args) {
     return new CallApiTaskLoader(this, args);
   }

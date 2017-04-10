@@ -8,7 +8,6 @@ import android.support.v4.content.Loader;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
@@ -60,12 +59,12 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
     if (getIntent() != null) {
       long movieId = getIntent().getLongExtra(MainActivity.EXTRA_MOVIE_ID, 0L);
       if (movieId == 0) {
-        Toast.makeText(this, getString(R.string.error_loading_movie_detail), Toast.LENGTH_LONG).show();
+        showMessage(getString(R.string.error_loading_movie_detail));
       } else {
         downloadMovieDetails(movieId, "en-US");
       }
     } else {
-      Toast.makeText(this, getString(R.string.error_loading_movie_detail), Toast.LENGTH_LONG).show();
+      showMessage(getString(R.string.error_loading_movie_detail));
     }
   }
 
