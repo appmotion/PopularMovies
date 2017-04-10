@@ -16,7 +16,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * Use OkHttp inside this AsyncTask to get data from themoviedb.org.
+ * Use OkHttp inside this AsyncTaskLoader to get data from themoviedb.org.
  */
 public class CallApiTaskLoader extends AsyncTaskLoader<String> {
 
