@@ -5,10 +5,10 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.widget.Toast;
-import de.appmotion.popularmovies.utilities.CallApiTask;
+import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 
-public abstract class BaseActivity extends AppCompatActivity implements CallApiTask.OnPostExecuteListener {
+public abstract class BaseActivity extends AppCompatActivity {
 
   protected @NetworkUtils.ImageSize String mRequiredImageSize;
 
@@ -56,21 +56,20 @@ public abstract class BaseActivity extends AppCompatActivity implements CallApiT
   }
 
   /**
-   * Called from onPostExecute of {@link CallApiTask}.
    * Show a Toast Error Message.
    *
-   * @param errorType the {@link CallApiTask.ErrorType}
+   * @param errorType the {@link CallApiTaskLoader.ErrorType}
    */
-  @Override public void showErrorMessage(@CallApiTask.ErrorType String errorType) {
+  protected void showErrorMessage(@CallApiTaskLoader.ErrorType String errorType) {
     String message;
     switch (errorType) {
-      case CallApiTask.NULL:
+      case CallApiTaskLoader.NULL:
         message = getString(R.string.error_loading_movies);
         break;
-      case CallApiTask.API_ERROR:
+      case CallApiTaskLoader.API_ERROR:
         message = getString(R.string.error_loading_movies);
         break;
-      case CallApiTask.OFFLINE:
+      case CallApiTaskLoader.OFFLINE:
         message = getString(R.string.error_connect_internet);
         break;
       default:

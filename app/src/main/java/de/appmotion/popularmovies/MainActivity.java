@@ -5,6 +5,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,7 +14,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import de.appmotion.popularmovies.dto.Movie;
-import de.appmotion.popularmovies.utilities.CallApiTask;
+import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -26,10 +28,12 @@ import org.json.JSONObject;
 /**
  * Display Movies via a grid of their corresponding movie poster thumbnails.
  */
-public class MainActivity extends BaseActivity implements MoviesRecyclerViewAdapter.ListItemClickListener {
+public class MainActivity extends BaseActivity
+    implements MoviesRecyclerViewAdapter.ListItemClickListener, LoaderManager.LoaderCallbacks<String> {
 
   // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
+
   // Define {@link MenuState} Types
   private static final int POPULAR_MOVIES = 0;
   private static final int TOP_RATED_MOVIES = 1;
@@ -87,6 +91,9 @@ public class MainActivity extends BaseActivity implements MoviesRecyclerViewAdap
     mMoviesRecyclerViewAdapter = new MoviesRecyclerViewAdapter(new ArrayList<Movie>(0), mRequiredImageSize, this);
     mMoviesRecyclerViewAdapter.setHasStableIds(true);
     mMoviesRecyclerView.setAdapter(mMoviesRecyclerViewAdapter);
+
+    // Initialize the loader with CallApiTaskLoader.MOVIE_API_LOADER as the ID, null for the bundle, and this for the context
+    getSupportLoaderManager().initLoader(CallApiTaskLoader.MOVIE_API_LOADER, null, this);
 
     downloadMovies(mMenuState, "en-US", "US");
   }
@@ -195,8 +202,21 @@ public class MainActivity extends BaseActivity implements MoviesRecyclerViewAdap
   }
 
   private void downloadConfiguration() {
+    // Get URL for popular Configuration Download and build Bundle for {@link CallApiTaskLoader}
     URL configurationUrl = NetworkUtils.buildConfigurationUrl();
-    new CallApiTask(this).execute(configurationUrl);
+    Bundle queryBundle = new Bundle();
+    queryBundle.putSerializable(CallApiTaskLoader.EXTRA_QUERY_URL, configurationUrl);
+
+    // Call getSupportLoaderManager and store it in a LoaderManager variable
+    LoaderManager loaderManager = getSupportLoaderManager();
+    // Get our Loader by calling getLoader and passing the ID we specified
+    Loader<String> callApiTaskLoader = loaderManager.getLoader(CallApiTaskLoader.MOVIE_API_LOADER);
+    // If the Loader was null, initialize it. Else, restart it.
+    if (callApiTaskLoader == null) {
+      loaderManager.initLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+    } else {
+      loaderManager.restartLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+    }
   }
 
   /**
@@ -219,8 +239,21 @@ public class MainActivity extends BaseActivity implements MoviesRecyclerViewAdap
    * @param region The region requested.
    */
   private void downloadPopularMovies(String language, int page, String region) {
+    // Get URL for popular Movies Download and build Bundle for {@link CallApiTaskLoader}
     URL popularMoviesUrl = NetworkUtils.buildPopularMoviesUrl(language, String.valueOf(page), region);
-    new CallApiTask(this).execute(popularMoviesUrl);
+    Bundle queryBundle = new Bundle();
+    queryBundle.putSerializable(CallApiTaskLoader.EXTRA_QUERY_URL, popularMoviesUrl);
+
+    // Call getSupportLoaderManager and store it in a LoaderManager variable
+    LoaderManager loaderManager = getSupportLoaderManager();
+    // Get our Loader by calling getLoader and passing the ID we specified
+    Loader<String> callApiTaskLoader = loaderManager.getLoader(CallApiTaskLoader.MOVIE_API_LOADER);
+    // If the Loader was null, initialize it. Else, restart it.
+    if (callApiTaskLoader == null) {
+      loaderManager.initLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+    } else {
+      loaderManager.restartLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+    }
   }
 
   /**
@@ -231,8 +264,21 @@ public class MainActivity extends BaseActivity implements MoviesRecyclerViewAdap
    * @param region The region requested.
    */
   private void downloadTopRatedMovies(String language, int page, String region) {
+    // Get URL for top rated Movies Download and build Bundle for {@link CallApiTaskLoader}
     URL topRatedMoviesUrl = NetworkUtils.buildTopRatedMoviesUrl(language, String.valueOf(page), region);
-    new CallApiTask(this).execute(topRatedMoviesUrl);
+    Bundle queryBundle = new Bundle();
+    queryBundle.putSerializable(CallApiTaskLoader.EXTRA_QUERY_URL, topRatedMoviesUrl);
+
+    // Call getSupportLoaderManager and store it in a LoaderManager variable
+    LoaderManager loaderManager = getSupportLoaderManager();
+    // Get our Loader by calling getLoader and passing the ID we specified
+    Loader<String> callApiTaskLoader = loaderManager.getLoader(CallApiTaskLoader.MOVIE_API_LOADER);
+    // If the Loader was null, initialize it. Else, restart it.
+    if (callApiTaskLoader == null) {
+      loaderManager.initLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+    } else {
+      loaderManager.restartLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+    }
   }
 
   private void showAboutDialog() {
@@ -256,12 +302,12 @@ public class MainActivity extends BaseActivity implements MoviesRecyclerViewAdap
   }
 
   /**
-   * Called from onPostExecute of {@link CallApiTask}.
+   * Called when CallApiTaskLoader.MOVIE_API_LOADER finished in onLoadFinished().
    * Parse jsonData and show in Views.
    *
-   * @param jsonData from onPostExecute of {@link CallApiTask}.
+   * @param jsonData from onLoadFinished of {@link CallApiTaskLoader}.
    */
-  @Override public void parseAndShowJsonData(String jsonData) {
+  private void parseAndShowJsonData(String jsonData) {
     List<Movie> movieList = new ArrayList<>();
     try {
       JSONObject popular = new JSONObject(jsonData);
@@ -323,6 +369,38 @@ public class MainActivity extends BaseActivity implements MoviesRecyclerViewAdap
     Intent intent = new Intent(this, MovieDetailActivity.class);
     intent.putExtra(EXTRA_MOVIE_ID, movie.getId());
     startActivity(intent);
+  }
+
+  @Override public Loader<String> onCreateLoader(int id, Bundle args) {
+    return new CallApiTaskLoader(this, args);
+  }
+
+  @Override public void onLoadFinished(Loader<String> loader, String data) {
+    // When we finish loading, we want to hide the loading indicator from the user.
+    //mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+    // If the results are null, we assume an error has occurred.
+    if (data == null) {
+      showErrorMessage(CallApiTaskLoader.NULL);
+    } else {
+      switch (data) {
+        case CallApiTaskLoader.API_ERROR:
+          showErrorMessage(CallApiTaskLoader.API_ERROR);
+          break;
+        case CallApiTaskLoader.OFFLINE:
+          showErrorMessage(CallApiTaskLoader.OFFLINE);
+          break;
+        case "":
+          break;
+        default:
+          parseAndShowJsonData(data);
+          break;
+      }
+    }
+  }
+
+  // Override onLoaderReset as it is part of the interface we implement, but don't do anything in this method
+  @Override public void onLoaderReset(Loader<String> loader) {
   }
 
   @Retention(RetentionPolicy.CLASS) @IntDef({ POPULAR_MOVIES, TOP_RATED_MOVIES }) public @interface MenuState {

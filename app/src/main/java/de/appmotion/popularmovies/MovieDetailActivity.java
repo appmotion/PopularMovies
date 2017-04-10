@@ -2,14 +2,16 @@ package de.appmotion.popularmovies;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
+import android.support.v4.content.Loader;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
-import de.appmotion.popularmovies.utilities.CallApiTask;
+import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.net.URL;
 import org.json.JSONException;
@@ -18,7 +20,7 @@ import org.json.JSONObject;
 /**
  * Display the details for a movie.
  */
-public class MovieDetailActivity extends BaseActivity {
+public class MovieDetailActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<String> {
 
   // Suggestions to Make Your Project Stand Out
   //TODO: Implement sharing functionality to allow the user to share the first trailer’s YouTube URL from the movie details screen.
@@ -51,6 +53,9 @@ public class MovieDetailActivity extends BaseActivity {
     mMovieRating = (TextView) findViewById(R.id.tv_movie_rating);
     mMovieOverview = (TextView) findViewById(R.id.tv_movie_overview);
 
+    // Initialize the loader with CallApiTaskLoader.MOVIE_API_LOADER as the ID, null for the bundle, and this for the context
+    getSupportLoaderManager().initLoader(CallApiTaskLoader.MOVIE_API_LOADER, null, this);
+
     // Get Movie Id from Intent, then download Movie Details.
     if (getIntent() != null) {
       long movieId = getIntent().getLongExtra(MainActivity.EXTRA_MOVIE_ID, 0L);
@@ -78,17 +83,30 @@ public class MovieDetailActivity extends BaseActivity {
    * @param language The language requested.
    */
   private void downloadMovieDetails(long movieId, String language) {
+    // Get URL for Movie details Download and build Bundle for {@link CallApiTaskLoader}
     URL movieDetailUrl = NetworkUtils.buildMovieDetailUrl(movieId, language);
-    new CallApiTask(this).execute(movieDetailUrl);
+    Bundle queryBundle = new Bundle();
+    queryBundle.putSerializable(CallApiTaskLoader.EXTRA_QUERY_URL, movieDetailUrl);
+
+    // Call getSupportLoaderManager and store it in a LoaderManager variable
+    LoaderManager loaderManager = getSupportLoaderManager();
+    // Get our Loader by calling getLoader and passing the ID we specified
+    Loader<String> callApiTaskLoader = loaderManager.getLoader(CallApiTaskLoader.MOVIE_API_LOADER);
+    // If the Loader was null, initialize it. Else, restart it.
+    if (callApiTaskLoader == null) {
+      loaderManager.initLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+    } else {
+      loaderManager.restartLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+    }
   }
 
   /**
-   * Called from onPostExecute of {@link CallApiTask}.
+   * Called when CallApiTaskLoader.MOVIE_API_LOADER finished in onLoadFinished().
    * Parse jsonData and show in Views.
    *
-   * @param jsonData from onPostExecute of {@link CallApiTask}.
+   * @param jsonData from onLoadFinished of {@link CallApiTaskLoader}.
    */
-  @Override public void parseAndShowJsonData(String jsonData) {
+  private void parseAndShowJsonData(String jsonData) {
     try {
       JSONObject movieDetail = new JSONObject(jsonData);
       String title = movieDetail.getString("title");
@@ -126,6 +144,38 @@ public class MovieDetailActivity extends BaseActivity {
     } catch (JSONException e) {
       e.printStackTrace();
     }
+  }
+
+  @Override public Loader<String> onCreateLoader(int id, Bundle args) {
+    return new CallApiTaskLoader(this, args);
+  }
+
+  @Override public void onLoadFinished(Loader<String> loader, String data) {
+    // When we finish loading, we want to hide the loading indicator from the user.
+    //mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+    // If the results are null, we assume an error has occurred.
+    if (data == null) {
+      showErrorMessage(CallApiTaskLoader.NULL);
+    } else {
+      switch (data) {
+        case CallApiTaskLoader.API_ERROR:
+          showErrorMessage(CallApiTaskLoader.API_ERROR);
+          break;
+        case CallApiTaskLoader.OFFLINE:
+          showErrorMessage(CallApiTaskLoader.OFFLINE);
+          break;
+        case "":
+          break;
+        default:
+          parseAndShowJsonData(data);
+          break;
+      }
+    }
+  }
+
+  // Override onLoaderReset as it is part of the interface we implement, but don't do anything in this method
+  @Override public void onLoaderReset(Loader<String> loader) {
   }
 
   /**
