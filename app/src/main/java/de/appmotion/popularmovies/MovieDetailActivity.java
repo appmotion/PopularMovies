@@ -128,8 +128,6 @@ public class MovieDetailActivity extends BaseActivity {
     }
   }
 
-
-
   /**
    * Uses the ShareCompat Intent builder to create our Trailer intent for sharing. We set the
    * type of content that we are sharing (just regular text), the text itself, and we return the

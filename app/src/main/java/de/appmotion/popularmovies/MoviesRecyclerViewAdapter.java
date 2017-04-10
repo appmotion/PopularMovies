@@ -92,7 +92,6 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     notifyDataSetChanged();
   }
 
-
   void clearMovieList() {
     if (mMovieList != null) {
       mMovieList.clear();
