@@ -2,6 +2,7 @@ package de.appmotion.popularmovies;
 
 import android.app.Application;
 import com.jakewharton.picasso.OkHttp3Downloader;
+import com.squareup.leakcanary.LeakCanary;
 import com.squareup.picasso.Picasso;
 import java.util.concurrent.TimeUnit;
 import okhttp3.Cache;
@@ -22,6 +23,13 @@ public class App extends Application {
 
   @Override public void onCreate() {
     super.onCreate();
+    // LeakCanary
+    if (LeakCanary.isInAnalyzerProcess(this)) {
+      // This process is dedicated to LeakCanary for heap analysis.
+      // You should not init your app in this process.
+      return;
+    }
+    LeakCanary.install(this);
 
     // OkHttpClient
     int cacheSize = 10 * 1024 * 1024; // 10 MiB

@@ -1,6 +1,8 @@
 package de.appmotion.popularmovies;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.ShareCompat;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -17,6 +19,11 @@ import org.json.JSONObject;
  * Display the details for a movie.
  */
 public class MovieDetailActivity extends BaseActivity {
+
+  // Suggestions to Make Your Project Stand Out
+  //TODO: Implement sharing functionality to allow the user to share the first trailer’s YouTube URL from the movie details screen.
+  //TODO: Extend the favorites ContentProvider to store the movie poster, synopsis, user rating, and release date, and display them even when offline.
+  private static final String TRAILER_SHARE_HASHTAG = " #PopularMovieApp";
 
   private TextView mMovieTitle;
   private ImageView mMovieImage;
@@ -119,5 +126,20 @@ public class MovieDetailActivity extends BaseActivity {
     } catch (JSONException e) {
       e.printStackTrace();
     }
+  }
+
+
+
+  /**
+   * Uses the ShareCompat Intent builder to create our Trailer intent for sharing. We set the
+   * type of content that we are sharing (just regular text), the text itself, and we return the
+   * newly created Intent.
+   *
+   * @return The Intent to use to start our share.
+   */
+  private Intent createShareTrailerIntent() {
+    Intent shareIntent =
+        ShareCompat.IntentBuilder.from(this).setType("text/plain").setText("mTrailerUrl" + TRAILER_SHARE_HASHTAG).getIntent();
+    return shareIntent;
   }
 }
