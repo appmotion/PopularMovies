@@ -66,9 +66,9 @@ public class MainActivity extends BaseActivity
 
     // Set title of this Activity depending on current {@link MenuState}
     if (mMenuState == POPULAR_MOVIES) {
-      setTitle(R.string.popular_movies);
+      setTitle(R.string.action_popular);
     } else if (mMenuState == TOP_RATED_MOVIES) {
-      setTitle(R.string.top_rated);
+      setTitle(R.string.action_top);
     }
 
     // RecyclerView
@@ -172,28 +172,28 @@ public class MainActivity extends BaseActivity
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.menu, menu);
+    inflater.inflate(R.menu.main, menu);
     return true;
   }
 
   @Override public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       // Load and show Popular Movies.
-      case R.id.popular:
-        setTitle(R.string.popular_movies);
+      case R.id.action_popular:
+        setTitle(R.string.action_popular);
         mMoviesRecyclerViewAdapter.clearMovieList();
         mLastDownloadedMoviePage = 1;
         downloadMovies(POPULAR_MOVIES, "en-US", "US");
         return true;
       // Load and show To Rated Movies.
-      case R.id.top:
-        setTitle(R.string.top_rated);
+      case R.id.action_top:
+        setTitle(R.string.action_top);
         mMoviesRecyclerViewAdapter.clearMovieList();
         mLastDownloadedMoviePage = 1;
         downloadMovies(TOP_RATED_MOVIES, "en-US", "US");
         return true;
       // Show About Dialog.
-      case R.id.about:
+      case R.id.action_about:
         showAboutDialog();
         return true;
       default:
@@ -285,7 +285,7 @@ public class MainActivity extends BaseActivity
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     mAboutDialog = builder.setCancelable(true)
         .setMessage(R.string.tmdb_notice)
-        .setTitle(R.string.about)
+        .setTitle(R.string.action_about)
         .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
           @Override public void onClick(DialogInterface dialog, int which) {
             dialog.dismiss();

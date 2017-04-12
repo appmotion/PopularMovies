@@ -36,6 +36,10 @@ public class CallApiTaskLoader extends AsyncTaskLoader<String> {
   // Arguments for this AsyncTaskLoader
   private Bundle mArgs;
 
+  // Caching: This String will contain the raw JSON from the server results
+  // We dont need this, because OkHttp is already doing caching in a smarter way.
+  private String mJson;
+
   public CallApiTaskLoader(Context context, Bundle args) {
     super(context);
     mArgs = args;
@@ -50,6 +54,18 @@ public class CallApiTaskLoader extends AsyncTaskLoader<String> {
 
     // Show the loading indicator
     //mLoadingIndicator.setVisibility(View.VISIBLE);
+
+    /*
+     * If we already have cached results, just deliver them now. If we don't have any
+     * cached results, force a load.
+     */
+    /*
+    if (mJson != null) {
+      deliverResult(mJson);
+    } else {
+      forceLoad();
+    }
+    */
 
     // Force a load
     forceLoad();
@@ -88,6 +104,16 @@ public class CallApiTaskLoader extends AsyncTaskLoader<String> {
       e.printStackTrace();
       return OFFLINE;
     }
+  }
+
+  /**
+   * Used for caching response from server to mJson
+   *
+   * @param json the response from server
+   */
+  @Override public void deliverResult(String json) {
+    mJson = json;
+    super.deliverResult(json);
   }
 
   @Retention(RetentionPolicy.CLASS) @StringDef({ NULL, API_ERROR, OFFLINE }) public @interface ErrorType {

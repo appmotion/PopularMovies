@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- the menu found in the movie main screen -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <item
-      android:id="@+id/popular"
-      android:title="@string/popular_movies"
+      android:id="@+id/action_popular"
+      android:title="@string/action_popular"
       app:showAsAction="never"/>
   <item
-      android:id="@+id/top"
-      android:title="@string/top_rated"
+      android:id="@+id/action_top"
+      android:title="@string/action_top"
       app:showAsAction="never"/>
   <item
-      android:id="@+id/about"
-      android:title="@string/about"
+      android:id="@+id/action_about"
+      android:title="@string/action_about"
       app:showAsAction="never"/>
 </menu>

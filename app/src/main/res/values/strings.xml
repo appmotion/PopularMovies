@@ -1,12 +1,28 @@
 <resources>
+
+  <!-- - - - - - - - - - - - - - - - -->
+  <!-- Used throughout PopularMovies -->
+  <!-- - - - - - - - - - - - - - - - -->
+
   <string name="app_name">Popular Movies</string>
   <string name="tmdb_notice">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
-  <string name="about">About</string>
-  <string name="popular_movies">Popular Movies</string>
-  <string name="top_rated">Top Rated Movies</string>
   <string name="error_connect_internet">Please connect to the Internet</string>
   <string name="error_loading_movies">Error loading Movies</string>
   <string name="error_loading_movie_detail">Sorry, no Movie Details</string>
   <string name="movie_detail">Movie Detail</string>
   <string name="ok">OK</string>
+
+  <!--By convention, "action" denotes that this String will be used as the label for an Action,-->
+  <!--typically from the action bar. The ActionBar is limited real estate, so shorter is better.-->
+  <string name="action_share">Share</string>
+  <string name="action_popular">Popular Movies</string>
+  <string name="action_top">Top Rated Movies</string>
+  <string name="action_about">About</string>
+
+
+  <!-- - - - - - - - - - - -->
+  <!-- Used by NetworkUtils-->
+  <!-- - - - - - - - - - - -->
+  <!--NONE-->
+
 </resources>
