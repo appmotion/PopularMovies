@@ -1,4 +1,4 @@
-package de.appmotion.popularmovies.dto;
+package de.appmotion.popularmovies.data.dto;
 
 public class Movie {
 
