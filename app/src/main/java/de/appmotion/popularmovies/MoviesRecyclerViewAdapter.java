@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.data.dto.Movie;
@@ -112,12 +114,12 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
   /**
    * ViewHolder MovieItem
    */
-  private class ViewHolderMovieItem extends RecyclerView.ViewHolder implements View.OnClickListener {
-    final ImageView movieImage;
+  class ViewHolderMovieItem extends RecyclerView.ViewHolder implements View.OnClickListener {
+    @BindView(R.id.iv_movie_image) ImageView movieImage;
 
     ViewHolderMovieItem(View itemView) {
       super(itemView);
-      movieImage = (ImageView) itemView.findViewById(R.id.iv_movie_image);
+      ButterKnife.bind(this, itemView);
       itemView.setOnClickListener(this);
     }
 

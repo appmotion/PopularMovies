@@ -14,6 +14,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.data.PopularMoviesContract;
@@ -37,20 +39,20 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   private static final String TRAILER_SHARE_HASHTAG = " #PopularMovieApp";
 
   // Views
-  private TextView mMovieTitle;
-  private ImageView mMovieImage;
-  private TextView mMovieYear;
-  private TextView mMovieDuration;
-  private TextView mMovieRating;
-  private TextView mMovieOverview;
+  @BindView(R.id.tv_movie_title) TextView mMovieTitle;
+  @BindView(R.id.iv_movie_image) ImageView mMovieImage;
+  @BindView(R.id.tv_movie_year) TextView mMovieYear;
+  @BindView(R.id.tv_movie_duration) TextView mMovieDuration;
+  @BindView(R.id.tv_movie_rating) TextView mMovieRating;
+  @BindView(R.id.tv_movie_overview) TextView mMovieOverview;
 
   private SQLiteDatabase mDb;
   private long mMovieId;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setTitle(R.string.movie_detail);
     setContentView(R.layout.activity_movie_detail);
+    ButterKnife.bind(this);
 
     // add back arrow to toolbar
     if (getSupportActionBar() != null) {
@@ -63,14 +65,6 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
     // Keep a reference to the mDb until paused or killed. Get a writable database
     // because we will be adding favorite movies
     mDb = dbHelper.getWritableDatabase();
-
-    // Views
-    mMovieTitle = (TextView) findViewById(R.id.tv_movie_title);
-    mMovieImage = (ImageView) findViewById(R.id.iv_movie_image);
-    mMovieYear = (TextView) findViewById(R.id.tv_movie_year);
-    mMovieDuration = (TextView) findViewById(R.id.tv_movie_duration);
-    mMovieRating = (TextView) findViewById(R.id.tv_movie_rating);
-    mMovieOverview = (TextView) findViewById(R.id.tv_movie_overview);
 
     // Initialize the loader with CallApiTaskLoader.MOVIE_API_LOADER as the ID, null for the bundle, and this for the context
     getSupportLoaderManager().initLoader(CallApiTaskLoader.MOVIE_API_LOADER, null, this);

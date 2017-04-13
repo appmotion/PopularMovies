@@ -15,6 +15,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.TextView;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import de.appmotion.popularmovies.data.PopularMoviesContract;
 import de.appmotion.popularmovies.data.PopularMoviesDbHelper;
 import de.appmotion.popularmovies.data.dto.Movie;
@@ -38,6 +41,10 @@ public class MainActivity extends BaseActivity
   // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
 
+  // Views
+  // RecyclerView which shows Movies
+  @BindView(android.R.id.list) RecyclerView mMoviesRecyclerView;
+
   // Define {@link MenuState} Types
   private static final int POPULAR_MOVIES = 0;
   private static final int TOP_RATED_MOVIES = 1;
@@ -46,8 +53,6 @@ public class MainActivity extends BaseActivity
   private static final String STATE_MENU_STATE = "menu_state";
   // The About Dialog
   private AlertDialog mAboutDialog;
-  // RecyclerView which shows Movies
-  private RecyclerView mMoviesRecyclerView;
   // RecyclerView.Adapter containing {@link Movie}s.
   private MoviesRecyclerViewAdapter mMoviesRecyclerViewAdapter;
   // Saves last downloaded movie page
@@ -68,6 +73,7 @@ public class MainActivity extends BaseActivity
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+    ButterKnife.bind(this);
 
     updateValuesFromBundle(savedInstanceState);
 
@@ -86,7 +92,6 @@ public class MainActivity extends BaseActivity
     }
 
     // RecyclerView
-    mMoviesRecyclerView = (RecyclerView) findViewById(android.R.id.list);
     mMoviesRecyclerView.setHasFixedSize(true);
     mMoviesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
       @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
