@@ -11,6 +11,10 @@
       android:title="@string/action_top"
       app:showAsAction="never"/>
   <item
+      android:id="@+id/action_favorite_show"
+      android:title="@string/action_favorite_show"
+      app:showAsAction="never"/>
+  <item
       android:id="@+id/action_about"
       android:title="@string/action_about"
       app:showAsAction="never"/>

@@ -3,6 +3,8 @@ package de.appmotion.popularmovies;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.v4.app.LoaderManager;
@@ -13,6 +15,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import de.appmotion.popularmovies.data.PopularMoviesContract;
+import de.appmotion.popularmovies.data.PopularMoviesDbHelper;
 import de.appmotion.popularmovies.data.dto.Movie;
 import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
@@ -37,6 +41,7 @@ public class MainActivity extends BaseActivity
   // Define {@link MenuState} Types
   private static final int POPULAR_MOVIES = 0;
   private static final int TOP_RATED_MOVIES = 1;
+  private static final int FAVORITE_MOVIES = 2;
   // Save {@link MenuState} via onSaveInstanceState
   private static final String STATE_MENU_STATE = "menu_state";
   // The About Dialog
@@ -49,6 +54,8 @@ public class MainActivity extends BaseActivity
   private int mLastDownloadedMoviePage = 1;
   // Saves current selected {@link MenuState} from Options Menu
   private int mMenuState = POPULAR_MOVIES;
+
+  private SQLiteDatabase mDb;
 
   /**
    * Called when the activity is first created. This is where you should do all of your normal
@@ -64,11 +71,18 @@ public class MainActivity extends BaseActivity
 
     updateValuesFromBundle(savedInstanceState);
 
+    // Create a DB helper (this will create the DB if run for the first time)
+    PopularMoviesDbHelper dbHelper = new PopularMoviesDbHelper(this);
+    // Keep a reference to the mDb until paused or killed.
+    mDb = dbHelper.getReadableDatabase();
+
     // Set title of this Activity depending on current {@link MenuState}
     if (mMenuState == POPULAR_MOVIES) {
       setTitle(R.string.action_popular);
     } else if (mMenuState == TOP_RATED_MOVIES) {
       setTitle(R.string.action_top);
+    } else if (mMenuState == FAVORITE_MOVIES) {
+      setTitle(R.string.action_favorite_show);
     }
 
     // RecyclerView
@@ -78,7 +92,7 @@ public class MainActivity extends BaseActivity
       @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
         if (dy > 0 && isLastItemDisplaying(recyclerView)) {
-          downloadMovies(mMenuState, "en-US", "US");
+          getAndShowMovies(mMenuState, "en-US", "US");
         }
       }
     });
@@ -95,7 +109,7 @@ public class MainActivity extends BaseActivity
     // Initialize the loader with CallApiTaskLoader.MOVIE_API_LOADER as the ID, null for the bundle, and this for the context
     getSupportLoaderManager().initLoader(CallApiTaskLoader.MOVIE_API_LOADER, null, this);
 
-    downloadMovies(mMenuState, "en-US", "US");
+    getAndShowMovies(mMenuState, "en-US", "US");
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
@@ -167,6 +181,7 @@ public class MainActivity extends BaseActivity
   @Override protected void onDestroy() {
     dismissDialog(mAboutDialog);
     mMoviesRecyclerView.clearOnScrollListeners();
+    mDb.close();
     super.onDestroy();
   }
 
@@ -183,14 +198,21 @@ public class MainActivity extends BaseActivity
         setTitle(R.string.action_popular);
         mMoviesRecyclerViewAdapter.clearMovieList();
         mLastDownloadedMoviePage = 1;
-        downloadMovies(POPULAR_MOVIES, "en-US", "US");
+        getAndShowMovies(POPULAR_MOVIES, "en-US", "US");
         return true;
       // Load and show To Rated Movies.
       case R.id.action_top:
         setTitle(R.string.action_top);
         mMoviesRecyclerViewAdapter.clearMovieList();
         mLastDownloadedMoviePage = 1;
-        downloadMovies(TOP_RATED_MOVIES, "en-US", "US");
+        getAndShowMovies(TOP_RATED_MOVIES, "en-US", "US");
+        return true;
+      // Load local saved favorite Movies.
+      case R.id.action_favorite_show:
+        setTitle(R.string.action_favorite_show);
+        mMoviesRecyclerViewAdapter.clearMovieList();
+        mLastDownloadedMoviePage = 1;
+        getAndShowMovies(FAVORITE_MOVIES, null, null);
         return true;
       // Show About Dialog.
       case R.id.action_about:
@@ -220,14 +242,16 @@ public class MainActivity extends BaseActivity
   }
 
   /**
-   * Get Popular or Top Rated Movies from themoviedb.org
+   * Get Popular or Top Rated Movies from themoviedb.org or local saved Favorite Movies
    */
-  private void downloadMovies(@MenuState int menuState, String language, String region) {
+  private void getAndShowMovies(@MenuState int menuState, String language, String region) {
     mMenuState = menuState;
     if (menuState == POPULAR_MOVIES) {
-      downloadPopularMovies(language, mLastDownloadedMoviePage++, region);
+      downloadAndShowPopularMovies(language, mLastDownloadedMoviePage++, region);
     } else if (menuState == TOP_RATED_MOVIES) {
-      downloadTopRatedMovies(language, mLastDownloadedMoviePage++, region);
+      downloadAndShowTopRatedMovies(language, mLastDownloadedMoviePage++, region);
+    } else if (menuState == FAVORITE_MOVIES) {
+      loadAndShowFavoriteMovies(mLastDownloadedMoviePage++);
     }
   }
 
@@ -238,7 +262,7 @@ public class MainActivity extends BaseActivity
    * @param page The page requested.
    * @param region The region requested.
    */
-  private void downloadPopularMovies(String language, int page, String region) {
+  private void downloadAndShowPopularMovies(String language, int page, String region) {
     // Get URL for popular Movies Download and build Bundle for {@link CallApiTaskLoader}
     URL popularMoviesUrl = NetworkUtils.buildPopularMoviesUrl(language, String.valueOf(page), region);
     Bundle queryBundle = new Bundle();
@@ -263,7 +287,7 @@ public class MainActivity extends BaseActivity
    * @param page The page requested.
    * @param region The region requested.
    */
-  private void downloadTopRatedMovies(String language, int page, String region) {
+  private void downloadAndShowTopRatedMovies(String language, int page, String region) {
     // Get URL for top rated Movies Download and build Bundle for {@link CallApiTaskLoader}
     URL topRatedMoviesUrl = NetworkUtils.buildTopRatedMoviesUrl(language, String.valueOf(page), region);
     Bundle queryBundle = new Bundle();
@@ -279,6 +303,38 @@ public class MainActivity extends BaseActivity
     } else {
       loaderManager.restartLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
     }
+  }
+
+  /**
+   * Get Favorite Movies from local database
+   *
+   * @param page The page requested.
+   */
+  private void loadAndShowFavoriteMovies(int page) {
+    // Run the getAllFavoriteMovies function and store the result in a Cursor variable
+    Cursor cursor = getAllFavoriteMovies();
+
+    // Add new downloaded Movies to adapter
+    //TODO: Extra Adapter erstellen für Cursor? mDb.close() bei onPause oder onDestroy?
+    //mMoviesRecyclerViewAdapter.addMovieList(cursor);
+  }
+
+  /**
+   * Query the mDb and get all favorite movies from the favoritelist table
+   *
+   * @return Cursor containing the list of favorite movies
+   */
+  private Cursor getAllFavoriteMovies() {
+    // Call query on mDb passing in the table name and projection String [] order by COLUMN_TIMESTAMP
+    return mDb.query(
+        PopularMoviesContract.FavoritelistEntry.TABLE_NAME,
+        null,
+        null,
+        null,
+        null,
+        null,
+        PopularMoviesContract.FavoritelistEntry.COLUMN_TIMESTAMP
+    );
   }
 
   private void showAboutDialog() {
@@ -372,6 +428,10 @@ public class MainActivity extends BaseActivity
   }
 
   /**
+   * Below this point are the three {@link LoaderManager.LoaderCallbacks} methods
+   **/
+
+  /**
    * This is called when a new Loader needs to be created.
    *
    * @param id The ID whose loader is to be created.
@@ -410,6 +470,9 @@ public class MainActivity extends BaseActivity
   @Override public void onLoaderReset(Loader<String> loader) {
   }
 
-  @Retention(RetentionPolicy.CLASS) @IntDef({ POPULAR_MOVIES, TOP_RATED_MOVIES }) public @interface MenuState {
+  /**
+   * Logical type which value must be one of explicitly named constants: POPULAR_MOVIES, TOP_RATED_MOVIES or FAVORITE_MOVIES
+   **/
+  @Retention(RetentionPolicy.CLASS) @IntDef({ POPULAR_MOVIES, TOP_RATED_MOVIES, FAVORITE_MOVIES }) public @interface MenuState {
   }
 }

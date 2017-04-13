@@ -1,7 +1,11 @@
 package de.appmotion.popularmovies;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.Loader;
@@ -12,8 +16,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import de.appmotion.popularmovies.data.PopularMoviesContract;
+import de.appmotion.popularmovies.data.PopularMoviesDbHelper;
 import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.URL;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,12 +36,16 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   //TODO: Extend the favorites ContentProvider to store the movie poster, synopsis, user rating, and release date, and display them even when offline.
   private static final String TRAILER_SHARE_HASHTAG = " #PopularMovieApp";
 
+  // Views
   private TextView mMovieTitle;
   private ImageView mMovieImage;
   private TextView mMovieYear;
   private TextView mMovieDuration;
   private TextView mMovieRating;
   private TextView mMovieOverview;
+
+  private SQLiteDatabase mDb;
+  private long mMovieId;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -45,6 +57,12 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
       getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
+
+    // Create a DB helper (this will create the DB if run for the first time)
+    PopularMoviesDbHelper dbHelper = new PopularMoviesDbHelper(this);
+    // Keep a reference to the mDb until paused or killed. Get a writable database
+    // because we will be adding favorite movies
+    mDb = dbHelper.getWritableDatabase();
 
     // Views
     mMovieTitle = (TextView) findViewById(R.id.tv_movie_title);
@@ -59,15 +77,20 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
 
     // Get Movie Id from Intent, then download Movie Details.
     if (getIntent() != null) {
-      long movieId = getIntent().getLongExtra(MainActivity.EXTRA_MOVIE_ID, 0L);
-      if (movieId == 0) {
+      mMovieId = getIntent().getLongExtra(MainActivity.EXTRA_MOVIE_ID, 0L);
+      if (mMovieId == 0) {
         showMessage(getString(R.string.error_loading_movie_detail));
       } else {
-        downloadMovieDetails(movieId, "en-US");
+        downloadMovieDetails(mMovieId, "en-US");
       }
     } else {
       showMessage(getString(R.string.error_loading_movie_detail));
     }
+  }
+
+  @Override protected void onDestroy() {
+    mDb.close();
+    super.onDestroy();
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
@@ -82,6 +105,29 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
     switch (item.getItemId()) {
       case android.R.id.home:
         finish();
+        return true;
+      // Add the currently shown Movie to favoritelist table in DB.
+      case R.id.action_favorite_add:
+        String movieTitle = mMovieTitle.getText().toString();
+        if (mMovieId != 0L && movieTitle.length() > 0) {
+          long rowId = addNewFavoriteMovie(mMovieId, movieTitle);
+          // Error: Movie can not be added to favoritelist
+          if (rowId == -1L) {
+            showMessage(getString(R.string.error_adding_movie_to_favoritelist));
+          }
+          // Error: Movie was already added to favoritelist
+          else if (rowId == -2L) {
+            showMessage(getString(R.string.error_adding_duplicate_movie_to_favoritelist));
+          }
+          // Movie successfuly added to favoritelist
+          else {
+            showMessage(getString(R.string.adding_movie_to_favoritelist));
+          }
+        }
+        // Error: Movie data is empty and so it cannot be added to favoritelist
+        else {
+          showMessage(getString(R.string.error_adding_empty_movie_to_favoritelist));
+        }
         return true;
       default:
         return super.onOptionsItemSelected(item);
@@ -158,6 +204,48 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
     }
   }
 
+  /**
+   * Adds a movie to the mDb favoritelist with its id, title and the current timestamp.
+   * This method checks if the id of the movie already exists in favoritelist. If not,
+   * the movie will be added to favoritelist.
+   *
+   * @param id movies's id
+   * @param title movie's title
+   * @return id of new record added
+   */
+  private long addNewFavoriteMovie(long id, String title) {
+    String whereClause = PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID + " = ?";
+    String[] whereArgs = new String[] { String.valueOf(id) };
+    Cursor cursor = mDb.query(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, whereClause, whereArgs, null, null, null);
+    if (!cursor.moveToFirst()) {
+      cursor.close();
+      ContentValues cv = new ContentValues();
+      cv.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, id);
+      cv.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, title);
+      return mDb.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, cv);
+    } else {
+      cursor.close();
+      return -2L;
+    }
+  }
+
+  /**
+   * Uses the ShareCompat Intent builder to create our Trailer intent for sharing. We set the
+   * type of content that we are sharing (just regular text), the text itself, and we return the
+   * newly created Intent.
+   *
+   * @return The Intent to use to start our share.
+   */
+  private Intent createShareTrailerIntent() {
+    Intent shareIntent =
+        ShareCompat.IntentBuilder.from(this).setType("text/plain").setText("mTrailerUrl" + TRAILER_SHARE_HASHTAG).getIntent();
+    return shareIntent;
+  }
+
+  /**
+   * Below this point are the three {@link LoaderManager.LoaderCallbacks} methods
+   **/
+
   @Override public Loader<String> onCreateLoader(int id, Bundle args) {
     return new CallApiTaskLoader(this, args);
   }
@@ -188,18 +276,5 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
 
   // Override onLoaderReset as it is part of the interface we implement, but don't do anything in this method
   @Override public void onLoaderReset(Loader<String> loader) {
-  }
-
-  /**
-   * Uses the ShareCompat Intent builder to create our Trailer intent for sharing. We set the
-   * type of content that we are sharing (just regular text), the text itself, and we return the
-   * newly created Intent.
-   *
-   * @return The Intent to use to start our share.
-   */
-  private Intent createShareTrailerIntent() {
-    Intent shareIntent =
-        ShareCompat.IntentBuilder.from(this).setType("text/plain").setText("mTrailerUrl" + TRAILER_SHARE_HASHTAG).getIntent();
-    return shareIntent;
   }
 }

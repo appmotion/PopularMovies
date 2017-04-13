@@ -27,7 +27,7 @@ public class PopularMoviesDbHelper extends SQLiteOpenHelper {
         + " INTEGER PRIMARY KEY AUTOINCREMENT,"
         + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID
         + " LONG NOT NULL UNIQUE, "
-        + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_NAME
+        + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE
         + " TEXT NOT NULL, "
         + PopularMoviesContract.FavoritelistEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP"

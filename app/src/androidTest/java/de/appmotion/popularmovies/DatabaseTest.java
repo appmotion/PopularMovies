@@ -97,7 +97,7 @@ import static org.junit.Assert.fail;
 
     ContentValues testValues = new ContentValues();
     testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, 11);
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_NAME, "test name");
+    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, "test Title");
 
     /* Insert ContentValues into database and get first row ID back */
     long firstRowId = database.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, testValues);
@@ -153,14 +153,14 @@ import static org.junit.Assert.fail;
 
     ContentValues testValues = new ContentValues();
     testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, 22);
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_NAME, "test name");
+    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, "test Title");
 
     /* Insert ContentValues into database and get first row ID back */
     long firstRowId = database.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, testValues);
 
     testValues = new ContentValues();
     testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, 33);
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_NAME, "test name");
+    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, "test Title");
 
     /* Insert ContentValues into database and get another row ID back */
     long secondRowId = database.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, testValues);
@@ -189,14 +189,14 @@ import static org.junit.Assert.fail;
 
     ContentValues testValues = new ContentValues();
     testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, 11);
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_NAME, "test name");
+    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, "test Title");
 
     /* Insert ContentValues into database and get first row ID back */
     long firstRowId = database.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, testValues);
 
     testValues = new ContentValues();
     testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, 22);
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_NAME, "test name");
+    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, "test Title");
 
     /* Insert ContentValues into database and get another row ID back */
     long secondRowId = database.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, testValues);
