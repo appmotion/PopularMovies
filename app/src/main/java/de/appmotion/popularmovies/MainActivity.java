@@ -236,6 +236,7 @@ public class MainActivity extends BaseActivity
     switch (item.getItemId()) {
       // Load and show Popular Movies.
       case R.id.action_popular:
+        mMenuState = POPULAR_MOVIES;
         setTitle(R.string.action_popular);
         mMovieListAdapter.clearMovieList();
         mMoviePageToDownload = 1;
@@ -244,6 +245,7 @@ public class MainActivity extends BaseActivity
         return true;
       // Load and show To Rated Movies.
       case R.id.action_top:
+        mMenuState = TOP_RATED_MOVIES;
         setTitle(R.string.action_top);
         mMovieListAdapter.clearMovieList();
         mMoviePageToDownload = 1;
@@ -252,6 +254,7 @@ public class MainActivity extends BaseActivity
         return true;
       // Load local saved favorite Movies.
       case R.id.action_favorite_show:
+        mMenuState = FAVORITE_MOVIES;
         setTitle(R.string.action_favorite_show);
         mMoviesRecyclerView.setAdapter(mFavoriteMovieListAdapter);
         mMovieItemTouchHelper.attachToRecyclerView(mMoviesRecyclerView);
