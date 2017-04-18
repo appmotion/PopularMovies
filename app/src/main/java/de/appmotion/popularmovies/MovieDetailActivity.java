@@ -234,16 +234,6 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   }
 
   /**
-   * Removes the record with the specified id
-   *
-   * @param id the DB id to be removed
-   * @return True: if removed successfully, False: if failed
-   */
-  private boolean removeFavoriteMovie(long id) {
-    return mDb.delete(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, PopularMoviesContract.FavoritelistEntry._ID + "=" + id, null) > 0;
-  }
-
-  /**
    * Uses the ShareCompat Intent builder to create our Trailer intent for sharing. We set the
    * type of content that we are sharing (just regular text), the text itself, and we return the
    * newly created Intent.

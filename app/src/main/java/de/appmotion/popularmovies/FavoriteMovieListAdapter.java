@@ -3,7 +3,6 @@ package de.appmotion.popularmovies;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.IntDef;
-import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,8 +17,6 @@ import de.appmotion.popularmovies.data.dto.Movie;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * {@link RecyclerView.Adapter} that can display a {@link Movie}.
@@ -79,13 +76,6 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     return mCursor.getCount();
   }
 
-  @Override public long getItemId(int position) {
-    if (mCursor != null && mCursor.getPosition() != -1) {
-      return mCursor.getLong(mCursor.getColumnIndex(PopularMoviesContract.FavoritelistEntry._ID));
-    }
-    return RecyclerView.NO_ID;
-  }
-
   /**
    * Swaps the Cursor currently held in the adapter with a new one
    * and triggers a UI refresh
@@ -129,7 +119,8 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     void bind() {
       final long rowId = mCursor.getLong(mCursor.getColumnIndex(PopularMoviesContract.FavoritelistEntry._ID));
       final String movieTitle = mCursor.getString(mCursor.getColumnIndex(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE));
-      final String movieImageUrl = mCursor.getString(mCursor.getColumnIndex(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_IMAGE_URL));
+      final String movieImageUrl =
+          mCursor.getString(mCursor.getColumnIndex(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_IMAGE_URL));
 
       // Load Movie Image
       Picasso.with(itemView.getContext())
@@ -143,7 +134,6 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             @Override public void onError() {
             }
           });
-
 
       // Set rowId as a tag of an itemView, so we can always get the rowId from a ViewHolderMovieItem
       itemView.setTag(rowId);

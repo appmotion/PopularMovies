@@ -12,6 +12,7 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -35,21 +36,20 @@ import org.json.JSONObject;
  * Display Movies via a grid of their corresponding movie poster thumbnails.
  */
 public class MainActivity extends BaseActivity
-    implements MovieListAdapter.ListItemClickListener, FavoriteMovieListAdapter.ListItemClickListener, LoaderManager.LoaderCallbacks<String> {
+    implements MovieListAdapter.ListItemClickListener, FavoriteMovieListAdapter.ListItemClickListener,
+    LoaderManager.LoaderCallbacks<String> {
 
   // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
-
-  // Views
-  // RecyclerView which shows Movies
-  @BindView(android.R.id.list) RecyclerView mMoviesRecyclerView;
-
   // Define {@link MenuState} Types
   private static final int POPULAR_MOVIES = 0;
   private static final int TOP_RATED_MOVIES = 1;
   private static final int FAVORITE_MOVIES = 2;
   // Save {@link MenuState} via onSaveInstanceState
   private static final String STATE_MENU_STATE = "menu_state";
+  // Views
+  // RecyclerView which shows Movies
+  @BindView(android.R.id.list) RecyclerView mMoviesRecyclerView;
   // The About Dialog
   private AlertDialog mAboutDialog;
   // RecyclerView.Adapter containing popular and top rated {@link Movie}s.
@@ -62,6 +62,8 @@ public class MainActivity extends BaseActivity
   private int mMenuState = POPULAR_MOVIES;
 
   private SQLiteDatabase mDb;
+  // An ItemTouchHelper for swiping movie items while in FAVORITE_MOVIES {@link MenuState}
+  private ItemTouchHelper mMovieItemTouchHelper;
 
   /**
    * Called when the activity is first created. This is where you should do all of your normal
@@ -98,6 +100,25 @@ public class MainActivity extends BaseActivity
       }
     });
 
+    // Create an item touch helper to handle swiping items off the list
+    mMovieItemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+      @Override public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+        //do nothing, we only care about swiping
+        return false;
+      }
+
+      @Override public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipevDir) {
+        //get the id of the item being swiped
+        long id = (long) viewHolder.itemView.getTag();
+        //remove from DB
+        removeFavoriteMovie(id);
+        //update the list
+        loadAndShowFavoriteMovies();
+      }
+    });
+    mMovieItemTouchHelper.attachToRecyclerView(null);
+
     // LayoutManager
     RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, calculateNoOfColumns(), GridLayoutManager.VERTICAL, false);
     mMoviesRecyclerView.setLayoutManager(layoutManager);
@@ -108,7 +129,7 @@ public class MainActivity extends BaseActivity
 
     // Initiate the favorite movielist adapter for RecyclerView
     mFavoriteMovieListAdapter = new FavoriteMovieListAdapter(mRequiredImageSize, this);
-    mFavoriteMovieListAdapter.setHasStableIds(true);
+    //mFavoriteMovieListAdapter.setHasStableIds(true); //TODO: Can we make the Ids stable?
 
     // Initialize the loader with mMoviePageToDownload as the ID, null for the bundle, and this for the context
     getSupportLoaderManager().initLoader(mMoviePageToDownload, null, this);
@@ -126,6 +147,7 @@ public class MainActivity extends BaseActivity
     } else if (mMenuState == FAVORITE_MOVIES) {
       setTitle(R.string.action_favorite_show);
       mMoviesRecyclerView.setAdapter(mFavoriteMovieListAdapter);
+      mMovieItemTouchHelper.attachToRecyclerView(mMoviesRecyclerView);
       loadAndShowFavoriteMovies();
     }
   }
@@ -210,6 +232,7 @@ public class MainActivity extends BaseActivity
   }
 
   @Override public boolean onOptionsItemSelected(MenuItem item) {
+    mMovieItemTouchHelper.attachToRecyclerView(null);
     switch (item.getItemId()) {
       // Load and show Popular Movies.
       case R.id.action_popular:
@@ -231,6 +254,7 @@ public class MainActivity extends BaseActivity
       case R.id.action_favorite_show:
         setTitle(R.string.action_favorite_show);
         mMoviesRecyclerView.setAdapter(mFavoriteMovieListAdapter);
+        mMovieItemTouchHelper.attachToRecyclerView(mMoviesRecyclerView);
         loadAndShowFavoriteMovies();
         return true;
       // Show About Dialog.
@@ -325,15 +349,8 @@ public class MainActivity extends BaseActivity
    */
   private Cursor getAllFavoriteMovies() {
     // Call query on mDb passing in the table name and projection String [] order by COLUMN_TIMESTAMP
-    return mDb.query(
-        PopularMoviesContract.FavoritelistEntry.TABLE_NAME,
-        null,
-        null,
-        null,
-        null,
-        null,
-        PopularMoviesContract.FavoritelistEntry.COLUMN_TIMESTAMP
-    );
+    return mDb.query(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, null, null, null, null,
+        PopularMoviesContract.FavoritelistEntry.COLUMN_TIMESTAMP);
   }
 
   private void showAboutDialog() {
@@ -409,6 +426,16 @@ public class MainActivity extends BaseActivity
         mMenuState = savedInstanceState.getInt(STATE_MENU_STATE, POPULAR_MOVIES);
       }
     }
+  }
+
+  /**
+   * Removes the record with the specified id
+   *
+   * @param id the DB id to be removed
+   * @return True: if removed successfully, False: if failed
+   */
+  private boolean removeFavoriteMovie(long id) {
+    return mDb.delete(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, PopularMoviesContract.FavoritelistEntry._ID + "=" + id, null) > 0;
   }
 
   /**
