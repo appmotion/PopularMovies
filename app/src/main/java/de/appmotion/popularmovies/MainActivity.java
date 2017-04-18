@@ -15,7 +15,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.appmotion.popularmovies.data.PopularMoviesContract;
@@ -36,7 +35,7 @@ import org.json.JSONObject;
  * Display Movies via a grid of their corresponding movie poster thumbnails.
  */
 public class MainActivity extends BaseActivity
-    implements MoviesRecyclerViewAdapter.ListItemClickListener, LoaderManager.LoaderCallbacks<String> {
+    implements MovieListAdapter.ListItemClickListener, FavoriteMovieListAdapter.ListItemClickListener, LoaderManager.LoaderCallbacks<String> {
 
   // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
@@ -53,10 +52,12 @@ public class MainActivity extends BaseActivity
   private static final String STATE_MENU_STATE = "menu_state";
   // The About Dialog
   private AlertDialog mAboutDialog;
-  // RecyclerView.Adapter containing {@link Movie}s.
-  private MoviesRecyclerViewAdapter mMoviesRecyclerViewAdapter;
-  // Saves last downloaded movie page
-  private int mLastDownloadedMoviePage = 1;
+  // RecyclerView.Adapter containing popular and top rated {@link Movie}s.
+  private MovieListAdapter mMovieListAdapter;
+  // RecyclerView.Adapter containing favorite {@link Movie}s.
+  private FavoriteMovieListAdapter mFavoriteMovieListAdapter;
+  // Which page of a movie list from the server has to be downloaded
+  private int mMoviePageToDownload = 1;
   // Saves current selected {@link MenuState} from Options Menu
   private int mMenuState = POPULAR_MOVIES;
 
@@ -82,22 +83,17 @@ public class MainActivity extends BaseActivity
     // Keep a reference to the mDb until paused or killed.
     mDb = dbHelper.getReadableDatabase();
 
-    // Set title of this Activity depending on current {@link MenuState}
-    if (mMenuState == POPULAR_MOVIES) {
-      setTitle(R.string.action_popular);
-    } else if (mMenuState == TOP_RATED_MOVIES) {
-      setTitle(R.string.action_top);
-    } else if (mMenuState == FAVORITE_MOVIES) {
-      setTitle(R.string.action_favorite_show);
-    }
-
     // RecyclerView
     mMoviesRecyclerView.setHasFixedSize(true);
     mMoviesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
       @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
         if (dy > 0 && isLastItemDisplaying(recyclerView)) {
-          getAndShowMovies(mMenuState, "en-US", "US");
+          if (mMenuState == POPULAR_MOVIES) {
+            downloadAndShowPopularMovies(mDefaultLanguage, mDefaultCountry);
+          } else if (mMenuState == TOP_RATED_MOVIES) {
+            downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
+          }
         }
       }
     });
@@ -106,15 +102,32 @@ public class MainActivity extends BaseActivity
     RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, calculateNoOfColumns(), GridLayoutManager.VERTICAL, false);
     mMoviesRecyclerView.setLayoutManager(layoutManager);
 
-    // Set the adapter for RecyclerView
-    mMoviesRecyclerViewAdapter = new MoviesRecyclerViewAdapter(new ArrayList<Movie>(0), mRequiredImageSize, this);
-    mMoviesRecyclerViewAdapter.setHasStableIds(true);
-    mMoviesRecyclerView.setAdapter(mMoviesRecyclerViewAdapter);
+    // Initiate the popular and top rated movielist adapter for RecyclerView
+    mMovieListAdapter = new MovieListAdapter(new ArrayList<Movie>(0), mRequiredImageSize, this);
+    mMovieListAdapter.setHasStableIds(true);
 
-    // Initialize the loader with CallApiTaskLoader.MOVIE_API_LOADER as the ID, null for the bundle, and this for the context
-    getSupportLoaderManager().initLoader(CallApiTaskLoader.MOVIE_API_LOADER, null, this);
+    // Initiate the favorite movielist adapter for RecyclerView
+    mFavoriteMovieListAdapter = new FavoriteMovieListAdapter(this);
+    mFavoriteMovieListAdapter.setHasStableIds(true);
 
-    getAndShowMovies(mMenuState, "en-US", "US");
+    // Initialize the loader with mMoviePageToDownload as the ID, null for the bundle, and this for the context
+    getSupportLoaderManager().initLoader(mMoviePageToDownload, null, this);
+
+    // Set title of this Activity depending on current {@link MenuState} and
+    // get Movies depending on current {@link MenuState}
+    if (mMenuState == POPULAR_MOVIES) {
+      setTitle(R.string.action_popular);
+      mMoviesRecyclerView.setAdapter(mMovieListAdapter);
+      downloadAndShowPopularMovies(mDefaultLanguage, mDefaultCountry);
+    } else if (mMenuState == TOP_RATED_MOVIES) {
+      setTitle(R.string.action_top);
+      mMoviesRecyclerView.setAdapter(mMovieListAdapter);
+      downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
+    } else if (mMenuState == FAVORITE_MOVIES) {
+      setTitle(R.string.action_favorite_show);
+      mMoviesRecyclerView.setAdapter(mFavoriteMovieListAdapter);
+      loadAndShowFavoriteMovies();
+    }
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
@@ -201,23 +214,21 @@ public class MainActivity extends BaseActivity
       // Load and show Popular Movies.
       case R.id.action_popular:
         setTitle(R.string.action_popular);
-        mMoviesRecyclerViewAdapter.clearMovieList();
-        mLastDownloadedMoviePage = 1;
-        getAndShowMovies(POPULAR_MOVIES, "en-US", "US");
+        mMovieListAdapter.clearMovieList();
+        mMoviePageToDownload = 1;
+        downloadAndShowPopularMovies(mDefaultLanguage, mDefaultCountry);
         return true;
       // Load and show To Rated Movies.
       case R.id.action_top:
         setTitle(R.string.action_top);
-        mMoviesRecyclerViewAdapter.clearMovieList();
-        mLastDownloadedMoviePage = 1;
-        getAndShowMovies(TOP_RATED_MOVIES, "en-US", "US");
+        mMovieListAdapter.clearMovieList();
+        mMoviePageToDownload = 1;
+        downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
         return true;
       // Load local saved favorite Movies.
       case R.id.action_favorite_show:
         setTitle(R.string.action_favorite_show);
-        mMoviesRecyclerViewAdapter.clearMovieList();
-        mLastDownloadedMoviePage = 1;
-        getAndShowMovies(FAVORITE_MOVIES, null, null);
+        loadAndShowFavoriteMovies();
         return true;
       // Show About Dialog.
       case R.id.action_about:
@@ -237,26 +248,12 @@ public class MainActivity extends BaseActivity
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiTaskLoader = loaderManager.getLoader(CallApiTaskLoader.MOVIE_API_LOADER);
+    Loader<String> callApiTaskLoader = loaderManager.getLoader(0);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiTaskLoader == null) {
-      loaderManager.initLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+      loaderManager.initLoader(0, queryBundle, this);
     } else {
-      loaderManager.restartLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
-    }
-  }
-
-  /**
-   * Get Popular or Top Rated Movies from themoviedb.org or local saved Favorite Movies
-   */
-  private void getAndShowMovies(@MenuState int menuState, String language, String region) {
-    mMenuState = menuState;
-    if (menuState == POPULAR_MOVIES) {
-      downloadAndShowPopularMovies(language, mLastDownloadedMoviePage++, region);
-    } else if (menuState == TOP_RATED_MOVIES) {
-      downloadAndShowTopRatedMovies(language, mLastDownloadedMoviePage++, region);
-    } else if (menuState == FAVORITE_MOVIES) {
-      loadAndShowFavoriteMovies(mLastDownloadedMoviePage++);
+      loaderManager.restartLoader(0, queryBundle, this);
     }
   }
 
@@ -264,24 +261,23 @@ public class MainActivity extends BaseActivity
    * Get Popular Movies from themoviedb.org
    *
    * @param language The language requested.
-   * @param page The page requested.
    * @param region The region requested.
    */
-  private void downloadAndShowPopularMovies(String language, int page, String region) {
+  private void downloadAndShowPopularMovies(String language, String region) {
     // Get URL for popular Movies Download and build Bundle for {@link CallApiTaskLoader}
-    URL popularMoviesUrl = NetworkUtils.buildPopularMoviesUrl(language, String.valueOf(page), region);
+    URL popularMoviesUrl = NetworkUtils.buildPopularMoviesUrl(language, String.valueOf(mMoviePageToDownload), region);
     Bundle queryBundle = new Bundle();
     queryBundle.putSerializable(CallApiTaskLoader.EXTRA_QUERY_URL, popularMoviesUrl);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiTaskLoader = loaderManager.getLoader(CallApiTaskLoader.MOVIE_API_LOADER);
+    Loader<String> callApiTaskLoader = loaderManager.getLoader(mMoviePageToDownload);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiTaskLoader == null) {
-      loaderManager.initLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+      loaderManager.initLoader(mMoviePageToDownload, queryBundle, this);
     } else {
-      loaderManager.restartLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, this);
     }
   }
 
@@ -289,39 +285,34 @@ public class MainActivity extends BaseActivity
    * Get Top Rated Movies from themoviedb.org
    *
    * @param language The language requested.
-   * @param page The page requested.
    * @param region The region requested.
    */
-  private void downloadAndShowTopRatedMovies(String language, int page, String region) {
+  private void downloadAndShowTopRatedMovies(String language, String region) {
     // Get URL for top rated Movies Download and build Bundle for {@link CallApiTaskLoader}
-    URL topRatedMoviesUrl = NetworkUtils.buildTopRatedMoviesUrl(language, String.valueOf(page), region);
+    URL topRatedMoviesUrl = NetworkUtils.buildTopRatedMoviesUrl(language, String.valueOf(mMoviePageToDownload), region);
     Bundle queryBundle = new Bundle();
     queryBundle.putSerializable(CallApiTaskLoader.EXTRA_QUERY_URL, topRatedMoviesUrl);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiTaskLoader = loaderManager.getLoader(CallApiTaskLoader.MOVIE_API_LOADER);
+    Loader<String> callApiTaskLoader = loaderManager.getLoader(mMoviePageToDownload);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiTaskLoader == null) {
-      loaderManager.initLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+      loaderManager.initLoader(mMoviePageToDownload, queryBundle, this);
     } else {
-      loaderManager.restartLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, this);
     }
   }
 
   /**
    * Get Favorite Movies from local database
-   *
-   * @param page The page requested.
    */
-  private void loadAndShowFavoriteMovies(int page) {
+  private void loadAndShowFavoriteMovies() {
     // Run the getAllFavoriteMovies function and store the result in a Cursor variable
     Cursor cursor = getAllFavoriteMovies();
-
-    // Add new downloaded Movies to adapter
-    //TODO: Extra Adapter erstellen für Cursor? mDb.close() bei onPause oder onDestroy?
-    //mMoviesRecyclerViewAdapter.addMovieList(cursor);
+    // Update the cursor in the adapter to trigger UI to display the new list
+    mFavoriteMovieListAdapter.swapCursor(cursor);
   }
 
   /**
@@ -363,7 +354,7 @@ public class MainActivity extends BaseActivity
   }
 
   /**
-   * Called when CallApiTaskLoader.MOVIE_API_LOADER finished in onLoadFinished().
+   * Called when Loader with ID:mMoviePageToDownload finished in onLoadFinished().
    * Parse jsonData and show in Views.
    *
    * @param jsonData from onLoadFinished of {@link CallApiTaskLoader}.
@@ -386,7 +377,7 @@ public class MainActivity extends BaseActivity
       }
       if (mMoviesRecyclerView != null) {
         // Add new downloaded Movies to adapter
-        mMoviesRecyclerViewAdapter.addMovieList(movieList);
+        mMovieListAdapter.addMovieList(movieList);
       }
     } catch (JSONException e) {
       e.printStackTrace();
@@ -419,7 +410,7 @@ public class MainActivity extends BaseActivity
 
   /**
    * This is where we receive our callback from
-   * {@link MoviesRecyclerViewAdapter.ListItemClickListener}
+   * {@link MovieListAdapter.ListItemClickListener}
    *
    * This callback is invoked when you click on an item in the list.
    *
@@ -430,6 +421,18 @@ public class MainActivity extends BaseActivity
     Intent intent = new Intent(this, MovieDetailActivity.class);
     intent.putExtra(EXTRA_MOVIE_ID, movie.getId());
     startActivity(intent);
+  }
+
+  /**
+   * This is where we receive our callback from
+   * {@link FavoriteMovieListAdapter.ListItemClickListener}
+   *
+   * This callback is invoked when you click on an item in the list.
+   *
+   * @param id of movie in the list that was clicked.
+   */
+  @Override public void onListItemClick(long id) {
+    showMessage("Movie DB Id: " + String.valueOf(id));
   }
 
   /**
@@ -465,7 +468,9 @@ public class MainActivity extends BaseActivity
         case "":
           break;
         default:
+          // Here we succesfully get data from server. So next time we can download the following movie page by incrementing mMoviePageToDownload.
           parseAndShowJsonData(data);
+          mMoviePageToDownload++;
           break;
       }
     }

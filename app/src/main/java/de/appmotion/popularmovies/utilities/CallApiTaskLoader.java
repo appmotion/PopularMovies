@@ -20,12 +20,6 @@ import okhttp3.Response;
  */
 public class CallApiTaskLoader extends AsyncTaskLoader<String> {
 
-  /*
-   * This number will uniquely identify our Loader and is chosen arbitrarily. You can change this
-   * to any number you like, as long as you use the same variable name.
-   */
-  public static final int MOVIE_API_LOADER = 22;
-
   // Name of the URL sent via Bundle to {@link CallApiTaskLoader}
   public final static String EXTRA_QUERY_URL = BuildConfig.APPLICATION_ID + ".query_url";
 

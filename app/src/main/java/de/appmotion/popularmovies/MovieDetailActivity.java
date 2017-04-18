@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.support.annotation.IntDef;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.Loader;
@@ -22,8 +21,6 @@ import de.appmotion.popularmovies.data.PopularMoviesContract;
 import de.appmotion.popularmovies.data.PopularMoviesDbHelper;
 import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.net.URL;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,6 +34,12 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   //TODO: Implement sharing functionality to allow the user to share the first trailer’s YouTube URL from the movie details screen.
   //TODO: Extend the favorites ContentProvider to store the movie poster, synopsis, user rating, and release date, and display them even when offline.
   private static final String TRAILER_SHARE_HASHTAG = " #PopularMovieApp";
+
+  /*
+   * This number will uniquely identify our Loader and is chosen arbitrarily. You can change this
+   * to any number you like, as long as you use the same variable name.
+   */
+  private static int MOVIE_DETAIL_LOADER = 1;
 
   // Views
   @BindView(R.id.tv_movie_title) TextView mMovieTitle;
@@ -66,8 +69,8 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
     // because we will be adding favorite movies
     mDb = dbHelper.getWritableDatabase();
 
-    // Initialize the loader with CallApiTaskLoader.MOVIE_API_LOADER as the ID, null for the bundle, and this for the context
-    getSupportLoaderManager().initLoader(CallApiTaskLoader.MOVIE_API_LOADER, null, this);
+    // Initialize the loader with MOVIE_DETAIL_LOADER as the ID, null for the bundle, and this for the context
+    getSupportLoaderManager().initLoader(MOVIE_DETAIL_LOADER, null, this);
 
     // Get Movie Id from Intent, then download Movie Details.
     if (getIntent() != null) {
@@ -75,7 +78,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
       if (mMovieId == 0) {
         showMessage(getString(R.string.error_loading_movie_detail));
       } else {
-        downloadMovieDetails(mMovieId, "en-US");
+        downloadMovieDetails(mMovieId, mDefaultLanguage);
       }
     } else {
       showMessage(getString(R.string.error_loading_movie_detail));
@@ -104,7 +107,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
       case R.id.action_favorite_add:
         String movieTitle = mMovieTitle.getText().toString();
         if (mMovieId != 0L && movieTitle.length() > 0) {
-          long rowId = addNewFavoriteMovie(mMovieId, movieTitle);
+          long rowId = addFavoriteMovie(mMovieId, movieTitle);
           // Error: Movie can not be added to favoritelist
           if (rowId == -1L) {
             showMessage(getString(R.string.error_adding_movie_to_favoritelist));
@@ -143,17 +146,17 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiTaskLoader = loaderManager.getLoader(CallApiTaskLoader.MOVIE_API_LOADER);
+    Loader<String> callApiTaskLoader = loaderManager.getLoader(MOVIE_DETAIL_LOADER);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiTaskLoader == null) {
-      loaderManager.initLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+      loaderManager.initLoader(MOVIE_DETAIL_LOADER, queryBundle, this);
     } else {
-      loaderManager.restartLoader(CallApiTaskLoader.MOVIE_API_LOADER, queryBundle, this);
+      loaderManager.restartLoader(MOVIE_DETAIL_LOADER, queryBundle, this);
     }
   }
 
   /**
-   * Called when CallApiTaskLoader.MOVIE_API_LOADER finished in onLoadFinished().
+   * Called when MOVIE_DETAIL_LOADER finished in onLoadFinished().
    * Parse jsonData and show in Views.
    *
    * @param jsonData from onLoadFinished of {@link CallApiTaskLoader}.
@@ -207,7 +210,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
    * @param title movie's title
    * @return id of new record added
    */
-  private long addNewFavoriteMovie(long id, String title) {
+  private long addFavoriteMovie(long id, String title) {
     String whereClause = PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID + " = ?";
     String[] whereArgs = new String[] { String.valueOf(id) };
     Cursor cursor = mDb.query(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, whereClause, whereArgs, null, null, null);
@@ -221,6 +224,16 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
       cursor.close();
       return -2L;
     }
+  }
+
+  /**
+   * Removes the record with the specified id
+   *
+   * @param id the DB id to be removed
+   * @return True: if removed successfully, False: if failed
+   */
+  private boolean removeFavoriteMovie(long id) {
+    return mDb.delete(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, PopularMoviesContract.FavoritelistEntry._ID + "=" + id, null) > 0;
   }
 
   /**

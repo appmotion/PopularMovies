@@ -7,12 +7,16 @@ import android.util.DisplayMetrics;
 import android.widget.Toast;
 import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
+import java.util.Locale;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
   protected @NetworkUtils.ImageSize String mRequiredImageSize;
 
   protected Toast mToast;
+
+  protected String mDefaultLanguage = Locale.getDefault().toString();
+  protected String mDefaultCountry = Locale.getDefault().getCountry();
 
   @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);

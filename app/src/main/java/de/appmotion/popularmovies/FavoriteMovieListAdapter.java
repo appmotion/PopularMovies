@@ -1,6 +1,7 @@
 package de.appmotion.popularmovies;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -12,6 +13,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import de.appmotion.popularmovies.data.PopularMoviesContract;
 import de.appmotion.popularmovies.data.dto.Movie;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.lang.annotation.Retention;
@@ -22,20 +24,16 @@ import java.util.List;
 /**
  * {@link RecyclerView.Adapter} that can display a {@link Movie}.
  */
-class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
   // {@link ViewType} Type
   private static final int DEFAULT = 0;
   private final ListItemClickListener mOnClickListener;
-  private final @NetworkUtils.ImageSize String mRequiredImageSize;
-  private List<Movie> mMovieList;
+  // Holds on to the cursor to display the favoritelist
+  private Cursor mCursor;
 
-  MoviesRecyclerViewAdapter(@Nullable List<Movie> movieList, @NetworkUtils.ImageSize String requiredImageSize,
-      ListItemClickListener listener) {
-    mMovieList = movieList;
-    mRequiredImageSize = requiredImageSize;
+  FavoriteMovieListAdapter(ListItemClickListener listener) {
     mOnClickListener = listener;
-    mMovieList = new ArrayList<>(0);
   }
 
   @Override public @ViewType int getItemViewType(int position) {
@@ -60,43 +58,46 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
   // Replace the contents of a view (invoked by the layout manager)
   @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    // Move the mCursor to the position of the item to be displayed
+    if (!mCursor.moveToPosition(position)) {
+      return; // bail if returned null
+    }
+
     /* Movie View */
     if (DEFAULT == getItemViewType(position)) {
       final ViewHolderMovieItem viewHolder = (ViewHolderMovieItem) holder;
-      viewHolder.bind(position);
+      viewHolder.bind();
     }
   }
 
   @Override public int getItemCount() {
-    if (mMovieList == null) {
+    if (mCursor == null) {
       return 0;
     }
-    return mMovieList.size();
+    return mCursor.getCount();
   }
 
   @Override public long getItemId(int position) {
-    if (mMovieList == null) {
+    if (mCursor == null) {
       return 0L;
     }
-    return mMovieList.get(position).getId();
+    return mCursor.getLong(mCursor.getColumnIndex(PopularMoviesContract.FavoritelistEntry._ID));
   }
 
-  void replaceMovieList(List<Movie> newList) {
-    mMovieList = newList;
-    notifyDataSetChanged();
-  }
-
-  void addMovieList(List<Movie> newList) {
-    if (mMovieList == null) {
-      mMovieList = new ArrayList<>(0);
+  /**
+   * Swaps the Cursor currently held in the adapter with a new one
+   * and triggers a UI refresh
+   *
+   * @param newCursor the new cursor that will replace the existing one
+   */
+  public void swapCursor(Cursor newCursor) {
+    // Always close the previous mCursor first
+    if (mCursor != null) {
+      mCursor.close();
     }
-    mMovieList.addAll(newList);
-    notifyDataSetChanged();
-  }
-
-  void clearMovieList() {
-    if (mMovieList != null) {
-      mMovieList.clear();
+    mCursor = newCursor;
+    if (newCursor != null) {
+      // Force the RecyclerView to refresh
       notifyDataSetChanged();
     }
   }
@@ -105,7 +106,7 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
    * The interface that receives onClick messages.
    */
   public interface ListItemClickListener {
-    void onListItemClick(Movie movie);
+    void onListItemClick(long movieId);
   }
 
   @Retention(RetentionPolicy.CLASS) @IntDef({ DEFAULT }) @interface ViewType {
@@ -123,10 +124,16 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
       itemView.setOnClickListener(this);
     }
 
-    void bind(int listIndex) {
-      final Movie movie = mMovieList.get(listIndex);
+    void bind() {
+      final String movieTitle = mCursor.getString(mCursor.getColumnIndex(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE));
+      final long id = mCursor.getLong(mCursor.getColumnIndex(PopularMoviesContract.FavoritelistEntry._ID));
+
+
+
+      itemView.setTag(id);
 
       // Load Movie Image
+      /*
       Picasso.with(itemView.getContext())
           .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, movie.getImagePath()))
           .placeholder(android.R.drawable.screen_background_light_transparent)
@@ -138,6 +145,7 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             @Override public void onError() {
             }
           });
+      */
     }
 
     /**
@@ -146,8 +154,7 @@ class MoviesRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
      * @param v The View that was clicked
      */
     @Override public void onClick(View v) {
-      int clickedPosition = getAdapterPosition();
-      mOnClickListener.onListItemClick(mMovieList.get(clickedPosition));
+      mOnClickListener.onListItemClick((long) v.getTag());
     }
   }
 }
