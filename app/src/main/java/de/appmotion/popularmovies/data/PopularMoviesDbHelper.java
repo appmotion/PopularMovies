@@ -29,6 +29,8 @@ public class PopularMoviesDbHelper extends SQLiteOpenHelper {
         + " LONG NOT NULL UNIQUE, "
         + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE
         + " TEXT NOT NULL, "
+        + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_IMAGE_URL
+        + " TEXT, "
         + PopularMoviesContract.FavoritelistEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
         + "); ";

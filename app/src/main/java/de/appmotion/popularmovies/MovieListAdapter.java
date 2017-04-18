@@ -30,8 +30,7 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
   private final @NetworkUtils.ImageSize String mRequiredImageSize;
   private List<Movie> mMovieList;
 
-  MovieListAdapter(@Nullable List<Movie> movieList, @NetworkUtils.ImageSize String requiredImageSize,
-      ListItemClickListener listener) {
+  MovieListAdapter(@Nullable List<Movie> movieList, @NetworkUtils.ImageSize String requiredImageSize, ListItemClickListener listener) {
     mMovieList = movieList;
     mRequiredImageSize = requiredImageSize;
     mOnClickListener = listener;
@@ -76,7 +75,7 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
   @Override public long getItemId(int position) {
     if (mMovieList == null) {
-      return 0L;
+      return RecyclerView.NO_ID;
     }
     return mMovieList.get(position).getId();
   }
@@ -128,7 +127,7 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
       // Load Movie Image
       Picasso.with(itemView.getContext())
-          .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, movie.getImagePath()))
+          .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, movie.getImageUrl()))
           .placeholder(android.R.drawable.screen_background_light_transparent)
           .error(R.drawable.movie_empty)
           .into(movieImage, new Callback() {

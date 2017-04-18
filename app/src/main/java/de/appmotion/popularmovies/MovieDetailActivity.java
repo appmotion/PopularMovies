@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.Loader;
@@ -50,7 +51,12 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   @BindView(R.id.tv_movie_overview) TextView mMovieOverview;
 
   private SQLiteDatabase mDb;
+  // The Id of this movie
   private long mMovieId;
+  // The tile of this movie
+  private String mTitle;
+  // The image url of this movie
+  private String mImageUrl;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -105,9 +111,8 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
         return true;
       // Add the currently shown Movie to favoritelist table in DB.
       case R.id.action_favorite_add:
-        String movieTitle = mMovieTitle.getText().toString();
-        if (mMovieId != 0L && movieTitle.length() > 0) {
-          long rowId = addFavoriteMovie(mMovieId, movieTitle);
+        if (mMovieId != 0L && mTitle != null && mTitle.length() > 0) {
+          long rowId = addFavoriteMovie(mMovieId, mTitle, mImageUrl);
           // Error: Movie can not be added to favoritelist
           if (rowId == -1L) {
             showMessage(getString(R.string.error_adding_movie_to_favoritelist));
@@ -164,15 +169,15 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   private void parseAndShowJsonData(String jsonData) {
     try {
       JSONObject movieDetail = new JSONObject(jsonData);
-      String title = movieDetail.getString("title");
+      mTitle = movieDetail.getString("title");
       String year = movieDetail.getString("release_date");
       String duration = movieDetail.getString("runtime");
       String rating = movieDetail.getString("vote_average");
       String overview = movieDetail.getString("overview");
-      String imagePath = movieDetail.getString("poster_path");
+      mImageUrl = movieDetail.getString("poster_path");
 
       // Ttile
-      mMovieTitle.setText(title);
+      mMovieTitle.setText(mTitle);
       // Year
       mMovieYear.setText(year);
       // Duration
@@ -186,7 +191,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
 
       // Load Movie Image
       Picasso.with(this)
-          .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, imagePath))
+          .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, mImageUrl))
           .placeholder(android.R.drawable.screen_background_light_transparent)
           .error(R.drawable.movie_empty)
           .into(mMovieImage, new Callback() {
@@ -202,15 +207,16 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   }
 
   /**
-   * Adds a movie to the mDb favoritelist with its id, title and the current timestamp.
+   * Adds a movie to the mDb favoritelist with its id, title, imageUrl and the current timestamp.
    * This method checks if the id of the movie already exists in favoritelist. If not,
    * the movie will be added to favoritelist.
    *
    * @param id movies's id
    * @param title movie's title
+   * @param imageUrl url to an image
    * @return id of new record added
    */
-  private long addFavoriteMovie(long id, String title) {
+  private long addFavoriteMovie(long id, @NonNull String title, String imageUrl) {
     String whereClause = PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID + " = ?";
     String[] whereArgs = new String[] { String.valueOf(id) };
     Cursor cursor = mDb.query(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, whereClause, whereArgs, null, null, null);
@@ -219,6 +225,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
       ContentValues cv = new ContentValues();
       cv.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, id);
       cv.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, title);
+      cv.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_IMAGE_URL, imageUrl);
       return mDb.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, cv);
     } else {
       cursor.close();

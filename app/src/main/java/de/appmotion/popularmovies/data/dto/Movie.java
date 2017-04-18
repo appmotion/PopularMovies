@@ -3,18 +3,18 @@ package de.appmotion.popularmovies.data.dto;
 public class Movie {
 
   private final Long id;
-  private final String imagePath;
+  private final String imageUrl;
 
-  public Movie(Long id, String imagePath) {
+  public Movie(Long id, String imageUrl) {
     this.id = id;
-    this.imagePath = imagePath;
+    this.imageUrl = imageUrl;
   }
 
   public Long getId() {
     return id;
   }
 
-  public String getImagePath() {
-    return imagePath;
+  public String getImageUrl() {
+    return imageUrl;
   }
 }

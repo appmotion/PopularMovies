@@ -107,7 +107,7 @@ public class MainActivity extends BaseActivity
     mMovieListAdapter.setHasStableIds(true);
 
     // Initiate the favorite movielist adapter for RecyclerView
-    mFavoriteMovieListAdapter = new FavoriteMovieListAdapter(this);
+    mFavoriteMovieListAdapter = new FavoriteMovieListAdapter(mRequiredImageSize, this);
     mFavoriteMovieListAdapter.setHasStableIds(true);
 
     // Initialize the loader with mMoviePageToDownload as the ID, null for the bundle, and this for the context
@@ -372,8 +372,8 @@ public class MainActivity extends BaseActivity
         JSONObject result = results.getJSONObject(i);
         if (result != null) {
           Long movieId = result.getLong("id");
-          String imagePath = result.getString("poster_path");
-          Movie movie = new Movie(movieId, imagePath);
+          String imageUrl = result.getString("poster_path");
+          Movie movie = new Movie(movieId, imageUrl);
           movieList.add(movie);
         }
         i++;

@@ -14,6 +14,7 @@ public final class PopularMoviesContract {
     public static final String TABLE_NAME = "favoritelist";
     public static final String COLUMN_MOVIE_ID = "movieId";
     public static final String COLUMN_MOVIE_TITLE = "movieTitle";
+    public static final String COLUMN_MOVIE_IMAGE_URL = "movieImageUrl";
     public static final String COLUMN_TIMESTAMP = "timestamp";
   }
 }
