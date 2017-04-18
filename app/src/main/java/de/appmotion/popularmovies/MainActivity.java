@@ -216,6 +216,7 @@ public class MainActivity extends BaseActivity
         setTitle(R.string.action_popular);
         mMovieListAdapter.clearMovieList();
         mMoviePageToDownload = 1;
+        mMoviesRecyclerView.setAdapter(mMovieListAdapter);
         downloadAndShowPopularMovies(mDefaultLanguage, mDefaultCountry);
         return true;
       // Load and show To Rated Movies.
@@ -223,11 +224,13 @@ public class MainActivity extends BaseActivity
         setTitle(R.string.action_top);
         mMovieListAdapter.clearMovieList();
         mMoviePageToDownload = 1;
+        mMoviesRecyclerView.setAdapter(mMovieListAdapter);
         downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
         return true;
       // Load local saved favorite Movies.
       case R.id.action_favorite_show:
         setTitle(R.string.action_favorite_show);
+        mMoviesRecyclerView.setAdapter(mFavoriteMovieListAdapter);
         loadAndShowFavoriteMovies();
         return true;
       // Show About Dialog.
