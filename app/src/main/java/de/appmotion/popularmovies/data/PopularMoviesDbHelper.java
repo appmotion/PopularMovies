@@ -45,13 +45,20 @@ public class PopularMoviesDbHelper extends SQLiteOpenHelper {
         + PopularMoviesContract.FavoritelistEntry._ID
         + " INTEGER PRIMARY KEY AUTOINCREMENT, "
         + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID
-        + " INTEGER NOT NULL UNIQUE, "
+        + " INTEGER NOT NULL, "
         + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE
         + " TEXT NOT NULL, "
         + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_IMAGE_URL
         + " TEXT, "
         + PopularMoviesContract.FavoritelistEntry.COLUMN_TIMESTAMP
-        + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+        + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        /*
+         * To ensure this table can only contain one Movie entry per Movie ID, we declare
+         * the ID column to be unique. We also specify "ON CONFLICT REPLACE". This tells
+         * SQLite that if we have a Movie entry for a certain ID and we attempt to
+         * insert another Movie entry with that ID, we replace the old Movie entry.
+         */
+        + " UNIQUE (" + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID + ") ON CONFLICT REPLACE"
         + ");";
 
     /*
