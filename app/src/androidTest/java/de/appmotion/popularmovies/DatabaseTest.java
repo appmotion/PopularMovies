@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Instrumentation test, which will execute on an Android device.
+ * Instrumentation test, which will execute on an Android device. Used to test the database
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */

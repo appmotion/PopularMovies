@@ -12,11 +12,9 @@ import java.util.Locale;
 public abstract class BaseActivity extends AppCompatActivity {
 
   protected @NetworkUtils.ImageSize String mRequiredImageSize;
-
-  protected Toast mToast;
-
   protected String mDefaultLanguage = Locale.getDefault().toString();
   protected String mDefaultCountry = Locale.getDefault().getCountry();
+  private Toast mToast;
 
   @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
