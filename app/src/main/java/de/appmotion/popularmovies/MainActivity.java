@@ -13,6 +13,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -38,6 +39,8 @@ import org.json.JSONObject;
 public class MainActivity extends BaseActivity
     implements MovieListAdapter.ListItemClickListener, FavoriteMovieListAdapter.ListItemClickListener,
     LoaderManager.LoaderCallbacks<String> {
+
+  private static final String TAG = MainActivity.class.getSimpleName();
 
   // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
@@ -86,6 +89,8 @@ public class MainActivity extends BaseActivity
     mDb = dbHelper.getReadableDatabase();
 
     // RecyclerView
+    // Use setHasFixedSize to improve performance if you know that changes in content do not
+    // change the child layout size in the RecyclerView
     mMoviesRecyclerView.setHasFixedSize(true);
     mMoviesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
       @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -120,7 +125,10 @@ public class MainActivity extends BaseActivity
     mMovieItemTouchHelper.attachToRecyclerView(null);
 
     // LayoutManager
-    RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, calculateNoOfColumns(), GridLayoutManager.VERTICAL, false);
+    // This value should be true if you want to reverse your layout. Generally, this is only
+    // true with horizontal lists that need to support a right-to-left layout.
+    boolean shouldReverseLayout = false;
+    RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, calculateNoOfColumns(), GridLayoutManager.VERTICAL, shouldReverseLayout);
     mMoviesRecyclerView.setLayoutManager(layoutManager);
 
     // Initiate the popular and top rated movielist adapter for RecyclerView
@@ -499,6 +507,7 @@ public class MainActivity extends BaseActivity
           showErrorMessage(CallApiTaskLoader.OFFLINE);
           break;
         case "":
+          Log.d(TAG, "Empty response from Server");
           break;
         default:
           // Here we succesfully get data from server. So next time we can download the following movie page by incrementing mMoviePageToDownload.
@@ -509,7 +518,13 @@ public class MainActivity extends BaseActivity
     }
   }
 
-  // Override onLoaderReset as it is part of the interface we implement, but don't do anything in this method
+  /**
+   * Called when a previously created loader is being reset, and thus
+   * making its data unavailable. The application should at this point
+   * remove any references it has to the Loader's data.
+   *
+   * @param loader The Loader that is being reset.
+   */
   @Override public void onLoaderReset(Loader<String> loader) {
   }
 
