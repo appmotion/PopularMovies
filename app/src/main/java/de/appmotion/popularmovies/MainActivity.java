@@ -40,10 +40,9 @@ public class MainActivity extends BaseActivity
     implements MovieListAdapter.ListItemClickListener, FavoriteMovieListAdapter.ListItemClickListener,
     LoaderManager.LoaderCallbacks<String> {
 
-  private static final String TAG = MainActivity.class.getSimpleName();
-
   // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
+  private static final String TAG = MainActivity.class.getSimpleName();
   // Define {@link MenuState} Types
   private static final int POPULAR_MOVIES = 0;
   private static final int TOP_RATED_MOVIES = 1;
@@ -128,7 +127,8 @@ public class MainActivity extends BaseActivity
     // This value should be true if you want to reverse your layout. Generally, this is only
     // true with horizontal lists that need to support a right-to-left layout.
     boolean shouldReverseLayout = false;
-    RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, calculateNoOfColumns(), GridLayoutManager.VERTICAL, shouldReverseLayout);
+    RecyclerView.LayoutManager layoutManager =
+        new GridLayoutManager(this, calculateNoOfColumns(), GridLayoutManager.VERTICAL, shouldReverseLayout);
     mMoviesRecyclerView.setLayoutManager(layoutManager);
 
     // Initiate the popular and top rated movielist adapter for RecyclerView

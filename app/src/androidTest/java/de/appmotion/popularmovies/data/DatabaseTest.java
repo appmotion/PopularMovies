@@ -1,4 +1,4 @@
-package de.appmotion.popularmovies;
+package de.appmotion.popularmovies.data;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,8 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import de.appmotion.popularmovies.data.PopularMoviesContract;
-import de.appmotion.popularmovies.data.PopularMoviesDbHelper;
 import java.lang.reflect.Field;
 import org.junit.Before;
 import org.junit.Test;
