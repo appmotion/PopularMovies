@@ -40,17 +40,17 @@ public class PopularMoviesDbHelper extends SQLiteOpenHelper {
      * deleted rows.
      */
     final String SQL_CREATE_WAITLIST_TABLE = "CREATE TABLE "
-        + PopularMoviesContract.FavoritelistEntry.TABLE_NAME
+        + PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME
         + " ("
-        + PopularMoviesContract.FavoritelistEntry._ID
+        + PopularMoviesContract.FavoriteMovieEntry._ID
         + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-        + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID
+        + PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID
         + " INTEGER NOT NULL, "
-        + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE
+        + PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE
         + " TEXT NOT NULL, "
-        + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_IMAGE_URL
+        + PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL
         + " TEXT, "
-        + PopularMoviesContract.FavoritelistEntry.COLUMN_TIMESTAMP
+        + PopularMoviesContract.FavoriteMovieEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         /*
          * To ensure this table can only contain one Movie entry per Movie ID, we declare
@@ -58,7 +58,9 @@ public class PopularMoviesDbHelper extends SQLiteOpenHelper {
          * SQLite that if we have a Movie entry for a certain ID and we attempt to
          * insert another Movie entry with that ID, we replace the old Movie entry.
          */
-        + " UNIQUE (" + PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID + ") ON CONFLICT REPLACE"
+        + " UNIQUE ("
+        + PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID
+        + ") ON CONFLICT REPLACE"
         + ");";
 
     /*
@@ -81,7 +83,7 @@ public class PopularMoviesDbHelper extends SQLiteOpenHelper {
     // DATABASE_VERSION the table will be dropped.
     // In a production app, this method might be modified to ALTER the table
     // instead of dropping it, so that existing data is not deleted.
-    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + PopularMoviesContract.FavoritelistEntry.TABLE_NAME);
+    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME);
     onCreate(sqLiteDatabase);
   }
 }

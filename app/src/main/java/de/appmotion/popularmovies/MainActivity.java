@@ -42,6 +42,7 @@ public class MainActivity extends BaseActivity
 
   // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
+  // Constant for logging
   private static final String TAG = MainActivity.class.getSimpleName();
   // Define {@link MenuState} Types
   private static final int POPULAR_MOVIES = 0;
@@ -112,6 +113,7 @@ public class MainActivity extends BaseActivity
         return false;
       }
 
+      // Called when a user swipes left or right on a ViewHolder
       @Override public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipevDir) {
         //get the id of the item being swiped
         long id = (long) viewHolder.itemView.getTag();
@@ -360,8 +362,8 @@ public class MainActivity extends BaseActivity
    */
   private Cursor getAllFavoriteMovies() {
     // Call query on mDb passing in the table name and projection String [] order by COLUMN_TIMESTAMP
-    return mDb.query(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, null, null, null, null,
-        PopularMoviesContract.FavoritelistEntry.COLUMN_TIMESTAMP);
+    return mDb.query(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, null, null, null, null, null,
+        PopularMoviesContract.FavoriteMovieEntry.COLUMN_TIMESTAMP);
   }
 
   private void showAboutDialog() {
@@ -446,7 +448,8 @@ public class MainActivity extends BaseActivity
    * @return True: if removed successfully, False: if failed
    */
   private boolean removeFavoriteMovie(long id) {
-    return mDb.delete(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, PopularMoviesContract.FavoritelistEntry._ID + "=" + id, null) > 0;
+    return mDb.delete(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, PopularMoviesContract.FavoriteMovieEntry._ID + "=" + id, null)
+        > 0;
   }
 
   /**

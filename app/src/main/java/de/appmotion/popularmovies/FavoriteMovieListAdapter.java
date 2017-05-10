@@ -117,11 +117,11 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     void bind() {
-      final long rowId = mCursor.getLong(mCursor.getColumnIndexOrThrow(PopularMoviesContract.FavoritelistEntry._ID));
+      final long rowId = mCursor.getLong(mCursor.getColumnIndexOrThrow(PopularMoviesContract.FavoriteMovieEntry._ID));
       final String movieTitle =
-          mCursor.getString(mCursor.getColumnIndexOrThrow(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE));
+          mCursor.getString(mCursor.getColumnIndexOrThrow(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE));
       final String movieImageUrl =
-          mCursor.getString(mCursor.getColumnIndexOrThrow(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_IMAGE_URL));
+          mCursor.getString(mCursor.getColumnIndexOrThrow(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL));
 
       // Load Movie Image
       Picasso.with(itemView.getContext())

@@ -2,8 +2,8 @@ package de.appmotion.popularmovies;
 
 import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
@@ -109,24 +109,16 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
       case android.R.id.home:
         finish();
         return true;
-      // Add the currently shown Movie to favoritelist table in DB.
+      // Add the currently shown Movie to favorite movie table in DB.
       case R.id.action_favorite_add:
         if (mMovieId != 0L && mTitle != null && mTitle.length() > 0) {
-          long rowId = addFavoriteMovie(mMovieId, mTitle, mImageUrl);
-          // Error: Movie can not be added to favoritelist
-          if (rowId == -1L) {
-            showMessage(getString(R.string.error_adding_movie_to_favoritelist));
-          }
-          // Error: Movie was already added to favoritelist
-          else if (rowId == -2L) {
-            showMessage(getString(R.string.error_adding_duplicate_movie_to_favoritelist));
-          }
-          // Movie successfuly added to favoritelist
-          else {
-            showMessage(getString(R.string.adding_movie_to_favoritelist));
+          Uri uri = addFavoriteMovie(mMovieId, mTitle, mImageUrl);
+          if (uri != null) {
+            // Movie successfuly added to table
+            showMessage(getString(R.string.adding_movie_to_favoritelist) + "\n" + uri.toString());
           }
         }
-        // Error: Movie data is empty and so it cannot be added to favoritelist
+        // Error: Movie data is empty and so it cannot be added to table
         else {
           showMessage(getString(R.string.error_adding_empty_movie_to_favoritelist));
         }
@@ -208,29 +200,20 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
 
   /**
    * Adds a movie to the mDb favoritelist with its id, title, imageUrl and the current timestamp.
-   * This method checks if the id of the movie already exists in favoritelist. If not,
-   * the movie will be added to favoritelist.
    *
-   * @param id movies's id
+   * @param movieId movies's id
    * @param title movie's title
    * @param imageUrl url to an image
-   * @return id of new record added
+   * @return {@link Uri} of new record added
    */
-  private long addFavoriteMovie(long id, @NonNull String title, String imageUrl) {
-    String whereClause = PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID + " = ?";
-    String[] whereArgs = new String[] { String.valueOf(id) };
-    Cursor cursor = mDb.query(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, whereClause, whereArgs, null, null, null);
-    if (!cursor.moveToFirst()) {
-      cursor.close();
-      ContentValues cv = new ContentValues();
-      cv.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, id);
-      cv.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, title);
-      cv.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_IMAGE_URL, imageUrl);
-      return mDb.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, cv);
-    } else {
-      cursor.close();
-      return -2L;
-    }
+  private Uri addFavoriteMovie(long movieId, @NonNull String title, String imageUrl) {
+    ContentValues cv = new ContentValues();
+    cv.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID, movieId);
+    cv.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE, title);
+    cv.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL, imageUrl);
+
+    // Insert the content values via a ContentResolver
+    return getContentResolver().insert(PopularMoviesContract.FavoriteMovieEntry.CONTENT_URI, cv);
   }
 
   /**

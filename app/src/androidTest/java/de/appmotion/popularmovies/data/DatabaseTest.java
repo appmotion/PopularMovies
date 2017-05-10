@@ -60,7 +60,7 @@ import static org.junit.Assert.fail;
 
     /* This Cursor will contain the names of each table in our database */
     Cursor tableNameCursor = database.rawQuery(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='" + PopularMoviesContract.FavoritelistEntry.TABLE_NAME + "'", null);
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='" + PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME + "'", null);
 
     /*
      * If tableNameCursor.moveToFirst returns false from this query, it means the database
@@ -70,7 +70,7 @@ import static org.junit.Assert.fail;
     assertTrue(errorInCreatingDatabase, tableNameCursor.moveToFirst());
 
     /* If this fails, it means that your database doesn't contain the expected table(s) */
-    assertEquals("Error: Your database was created without the expected tables.", PopularMoviesContract.FavoritelistEntry.TABLE_NAME,
+    assertEquals("Error: Your database was created without the expected tables.", PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME,
         tableNameCursor.getString(0));
 
     /* Always close a cursor when you are done with it */
@@ -94,11 +94,11 @@ import static org.junit.Assert.fail;
     SQLiteDatabase database = dbHelper.getWritableDatabase();
 
     ContentValues testValues = new ContentValues();
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, 11);
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, "test Title");
+    testValues.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID, 11);
+    testValues.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE, "test Title");
 
     /* Insert ContentValues into database and get first row ID back */
-    long firstRowId = database.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, testValues);
+    long firstRowId = database.insert(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, null, testValues);
 
     /* If the insert fails, database.insert returns -1 */
     assertNotEquals("Unable to insert into the database", -1, firstRowId);
@@ -109,7 +109,7 @@ import static org.junit.Assert.fail;
      */
     Cursor wCursor = database.query(
         /* Name of table on which to perform the query */
-        PopularMoviesContract.FavoritelistEntry.TABLE_NAME,
+        PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME,
         /* Columns; leaving this null returns every column in the table */
         null,
         /* Optional specification for columns in the "where" clause above */
@@ -150,18 +150,18 @@ import static org.junit.Assert.fail;
     SQLiteDatabase database = dbHelper.getWritableDatabase();
 
     ContentValues testValues = new ContentValues();
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, 22);
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, "test Title");
+    testValues.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID, 22);
+    testValues.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE, "test Title");
 
     /* Insert ContentValues into database and get first row ID back */
-    long firstRowId = database.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, testValues);
+    long firstRowId = database.insert(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, null, testValues);
 
     testValues = new ContentValues();
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, 33);
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, "test Title");
+    testValues.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID, 33);
+    testValues.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE, "test Title");
 
     /* Insert ContentValues into database and get another row ID back */
-    long secondRowId = database.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, testValues);
+    long secondRowId = database.insert(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, null, testValues);
     assertEquals("ID Autoincrement test failed!", firstRowId + 1, secondRowId);
 
     /* Close database */
@@ -186,25 +186,25 @@ import static org.junit.Assert.fail;
     SQLiteDatabase database = dbHelper.getWritableDatabase();
 
     ContentValues testValues = new ContentValues();
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, 11);
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, "test Title");
+    testValues.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID, 11);
+    testValues.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE, "test Title");
 
     /* Insert ContentValues into database and get first row ID back */
-    long firstRowId = database.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, testValues);
+    long firstRowId = database.insert(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, null, testValues);
 
     testValues = new ContentValues();
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_ID, 22);
-    testValues.put(PopularMoviesContract.FavoritelistEntry.COLUMN_MOVIE_TITLE, "test Title");
+    testValues.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID, 22);
+    testValues.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE, "test Title");
 
     /* Insert ContentValues into database and get another row ID back */
-    long secondRowId = database.insert(PopularMoviesContract.FavoritelistEntry.TABLE_NAME, null, testValues);
+    long secondRowId = database.insert(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, null, testValues);
 
     dbHelper.onUpgrade(database, 0, 1);
     database = dbHelper.getReadableDatabase();
 
     /* This Cursor will contain the names of each table in our database */
     Cursor tableNameCursor = database.rawQuery(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='" + PopularMoviesContract.FavoritelistEntry.TABLE_NAME + "'", null);
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='" + PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME + "'", null);
 
     assertTrue(tableNameCursor.getCount() == 1);
 
@@ -214,7 +214,7 @@ import static org.junit.Assert.fail;
      */
     Cursor wCursor = database.query(
         /* Name of table on which to perform the query */
-        PopularMoviesContract.FavoritelistEntry.TABLE_NAME,
+        PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME,
         /* Columns; leaving this null returns every column in the table */
         null,
         /* Optional specification for columns in the "where" clause above */
