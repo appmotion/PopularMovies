@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.v4.app.LoaderManager;
@@ -121,8 +122,6 @@ public class MainActivity extends BaseActivity
         long id = (long) viewHolder.itemView.getTag();
         //remove from DB
         removeFavoriteMovie(id);
-        //update the list
-        loadAndShowFavoriteMovies();
       }
     });
     mMovieItemTouchHelper.attachToRecyclerView(null);
@@ -449,9 +448,16 @@ public class MainActivity extends BaseActivity
    * @param id the DB id to be removed
    * @return True: if removed successfully, False: if failed
    */
-  private boolean removeFavoriteMovie(long id) {
-    //return mDb.delete(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, PopularMoviesContract.FavoriteMovieEntry._ID + "=" + id, null) > 0;
-    return false;
+  private void removeFavoriteMovie(long id) {
+    // Build appropriate uri with String row id appended
+    String stringId = String.valueOf(id);
+    Uri uri = PopularMoviesContract.FavoriteMovieEntry.CONTENT_URI;
+    uri = uri.buildUpon().appendPath(stringId).build();
+    // Delete a single row of data using a ContentResolver
+    getContentResolver().delete(uri, null, null);
+
+    // Restart the loader to re-query for all movies after a deletion
+    loadAndShowFavoriteMovies();
   }
 
   /**

@@ -58,7 +58,8 @@ public class CallDbTaskLoader extends AsyncTaskLoader<Cursor> {
 
     // Query and load all data in the background; sort by timestamp
     try {
-      return getContext().getContentResolver().query(queryUri, null, null, null, PopularMoviesContract.FavoriteMovieEntry.COLUMN_TIMESTAMP);
+      return getContext().getContentResolver()
+          .query(queryUri, null, null, null, PopularMoviesContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC");
     } catch (Exception e) {
       Log.e(TAG, "Failed to asynchronously load data.");
       e.printStackTrace();

@@ -66,6 +66,16 @@ public class PopularMoviesContentProvider extends ContentProvider {
         returnCursor =
             db.query(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
         break;
+      case FAVORITE_MOVIES_WITH_ID:
+        // using selection and selectionArgs
+        // URI: content://<authority>/favorite_movies/#
+        String id = uri.getPathSegments().get(1);
+        // Selection is the _ID column = ?, and the Selection args = the row ID from the URI
+        String mSelection = "_id=?";
+        String[] mSelectionArgs = new String[] { id };
+        returnCursor =
+            db.query(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, projection, mSelection, mSelectionArgs, null, null, sortOrder);
+        break;
       default:
         throw new UnsupportedOperationException("Unknown uri: " + uri);
     }
@@ -130,7 +140,35 @@ public class PopularMoviesContentProvider extends ContentProvider {
   }
 
   @Override public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-    return 0;
+    // Get access to the database
+    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+    int match = sUriMatcher.match(uri);
+    int moviesDeleted;  // Keep track of the number of deleted movies
+
+    // Delete a single row of data
+    switch (match) {
+      // Handle the single item case, recognized by the ID included in the URI path
+      case FAVORITE_MOVIES_WITH_ID:
+        // using selection and selectionArgs
+        // URI: content://<authority>/favorite_movies/#
+        String id = uri.getPathSegments().get(1);
+        // Selection is the _ID column = ?, and the Selection args = the row ID from the URI
+        String mSelection = "_id=?";
+        String[] mSelectionArgs = new String[] { id };
+        moviesDeleted = db.delete(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, mSelection, mSelectionArgs);
+        break;
+      default:
+        throw new UnsupportedOperationException("Unknown uri: " + uri);
+    }
+
+    // Notify the resolver of a change and return the number of items deleted
+    if (moviesDeleted != 0) {
+      // A movie was deleted, set notification
+      getContext().getContentResolver().notifyChange(uri, null);
+    }
+    // Return the number of movies deleted
+    return moviesDeleted;
   }
 
   @Override
