@@ -48,19 +48,43 @@ public class PopularMoviesContentProvider extends ContentProvider {
     return true;
   }
 
-  @Nullable @Override
-  public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs,
-      @Nullable String sortOrder) {
-    return null;
+  /**
+   * Handle requests for data by URI
+   */
+  @Nullable @Override public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
+      @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+    // Get access to underlying database (read-only for query)
+    final SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+    // Write URI matching code and set a variable to return a Cursor
+    int match = sUriMatcher.match(uri);
+    Cursor returnCursor;
+
+    switch (match) {
+      // Query for the favorite movies directory
+      case FAVORITE_MOVIES:
+        returnCursor =
+            db.query(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+        break;
+      default:
+        throw new UnsupportedOperationException("Unknown uri: " + uri);
+    }
+
+    // Set a notification URI on the Cursor and return that Cursor
+    returnCursor.setNotificationUri(getContext().getContentResolver(), uri);
+
+    // Return the desired Cursor
+    return returnCursor;
   }
 
   @Nullable @Override public String getType(@NonNull Uri uri) {
     return null;
   }
 
-  // Insert a single new row of data
+  /**
+   * Insert a single new row of data
+   */
   @Nullable @Override public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-
     // Get access to the database (to write new data to)
     final SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
@@ -78,7 +102,6 @@ public class PopularMoviesContentProvider extends ContentProvider {
           throw new android.database.SQLException("Failed to insert row into " + uri);
         }
         break;
-      // Default case throws an UnsupportedOperationException
       default:
         throw new UnsupportedOperationException("Unknown uri: " + uri);
     }
