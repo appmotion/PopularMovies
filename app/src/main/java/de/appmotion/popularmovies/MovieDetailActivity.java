@@ -2,7 +2,6 @@ package de.appmotion.popularmovies;
 
 import android.content.ContentValues;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -19,7 +18,6 @@ import butterknife.ButterKnife;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.data.PopularMoviesContract;
-import de.appmotion.popularmovies.data.PopularMoviesDbHelper;
 import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.net.URL;
@@ -50,7 +48,6 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   @BindView(R.id.tv_movie_rating) TextView mMovieRating;
   @BindView(R.id.tv_movie_overview) TextView mMovieOverview;
 
-  private SQLiteDatabase mDb;
   // The Id of this movie
   private long mMovieId;
   // The tile of this movie
@@ -69,12 +66,6 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
       getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
-    // Create a DB helper (this will create the DB if run for the first time)
-    PopularMoviesDbHelper dbHelper = new PopularMoviesDbHelper(this);
-    // Keep a reference to the mDb until paused or killed. Get a writable database
-    // because we will be adding favorite movies
-    mDb = dbHelper.getWritableDatabase();
-
     // Initialize the loader with MOVIE_DETAIL_LOADER as the ID, null for the bundle, and this for the context
     getSupportLoaderManager().initLoader(MOVIE_DETAIL_LOADER, null, this);
 
@@ -89,11 +80,6 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
     } else {
       showMessage(getString(R.string.error_loading_movie_detail));
     }
-  }
-
-  @Override protected void onDestroy() {
-    mDb.close();
-    super.onDestroy();
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
@@ -199,7 +185,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   }
 
   /**
-   * Adds a movie to the mDb favoritelist with its id, title, imageUrl and the current timestamp.
+   * Insert a movie to {@link PopularMoviesContract.FavoriteMovieEntry} with its id, title, imageUrl and the current timestamp.
    *
    * @param movieId movies's id
    * @param title movie's title

@@ -44,7 +44,6 @@ public class PopularMoviesContentProvider extends ContentProvider {
    * initialize a DbHelper to gain access to it.
    */
   @Override public boolean onCreate() {
-
     mDbHelper = new PopularMoviesDbHelper(getContext());
     return true;
   }
