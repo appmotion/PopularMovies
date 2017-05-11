@@ -20,7 +20,7 @@ import okhttp3.Response;
  */
 public class CallApiTaskLoader extends AsyncTaskLoader<String> {
 
-  // Name of the URL sent via Bundle to {@link CallApiTaskLoader}
+  // Name of the URL sent via Bundle to this Loader
   public final static String EXTRA_QUERY_URL = BuildConfig.APPLICATION_ID + ".query_url";
 
   // Define {@link ErrorType} Types
@@ -40,7 +40,6 @@ public class CallApiTaskLoader extends AsyncTaskLoader<String> {
   }
 
   @Override protected void onStartLoading() {
-
     // If no arguments were passed, we don't have a query to perform. Simply return.
     if (mArgs == null) {
       return;
@@ -66,7 +65,6 @@ public class CallApiTaskLoader extends AsyncTaskLoader<String> {
   }
 
   @Override public String loadInBackground() {
-
     // Extract the url query from the args using our constant
     URL queryUrl = (URL) mArgs.getSerializable(EXTRA_QUERY_URL);
 

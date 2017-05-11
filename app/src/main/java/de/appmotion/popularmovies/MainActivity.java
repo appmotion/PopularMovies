@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.v4.app.LoaderManager;
@@ -20,9 +19,9 @@ import android.view.MenuItem;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.appmotion.popularmovies.data.PopularMoviesContract;
-import de.appmotion.popularmovies.data.PopularMoviesDbHelper;
 import de.appmotion.popularmovies.data.dto.Movie;
 import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
+import de.appmotion.popularmovies.utilities.CallDbTaskLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -37,11 +36,12 @@ import org.json.JSONObject;
  * Display Movies via a grid of their corresponding movie poster thumbnails.
  */
 public class MainActivity extends BaseActivity
-    implements MovieListAdapter.ListItemClickListener, FavoriteMovieListAdapter.ListItemClickListener,
-    LoaderManager.LoaderCallbacks<String> {
+    implements MovieListAdapter.ListItemClickListener, FavoriteMovieListAdapter.ListItemClickListener {
 
   // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
+  // This number will uniquely identify CallDbTaskLoader.
+  private static final int DB_LOADER_ID = -2;
   // Constant for logging
   private static final String TAG = MainActivity.class.getSimpleName();
   // Define {@link MenuState} Types
@@ -53,18 +53,21 @@ public class MainActivity extends BaseActivity
   // Views
   // RecyclerView which shows Movies
   @BindView(android.R.id.list) RecyclerView mMoviesRecyclerView;
+  // Which page of a movie list from the server has to be downloaded. This number will uniquely identify corresponding CallApiTaskLoader, too.
+  private int mMoviePageToDownload = 1;
+  // Callback for CallApiTaskLoader
+  private LoaderManager.LoaderCallbacks<String> apiLoaderCallback;
+  // Callback for CallDbTaskLoader
+  private LoaderManager.LoaderCallbacks<Cursor> dbLoaderCallback;
   // The About Dialog
   private AlertDialog mAboutDialog;
   // RecyclerView.Adapter containing popular and top rated {@link Movie}s.
   private MovieListAdapter mMovieListAdapter;
   // RecyclerView.Adapter containing favorite {@link Movie}s.
   private FavoriteMovieListAdapter mFavoriteMovieListAdapter;
-  // Which page of a movie list from the server has to be downloaded
-  private int mMoviePageToDownload = 1;
   // Saves current selected {@link MenuState} from Options Menu
   private int mMenuState = POPULAR_MOVIES;
 
-  private SQLiteDatabase mDb;
   // An ItemTouchHelper for swiping movie items while in FAVORITE_MOVIES {@link MenuState}
   private ItemTouchHelper mMovieItemTouchHelper;
 
@@ -83,10 +86,9 @@ public class MainActivity extends BaseActivity
 
     updateValuesFromBundle(savedInstanceState);
 
-    // Create a DB helper (this will create the DB if run for the first time)
-    PopularMoviesDbHelper dbHelper = new PopularMoviesDbHelper(this);
-    // Keep a reference to the mDb until paused or killed.
-    mDb = dbHelper.getReadableDatabase();
+    // Initiate Callbacks for the Loaders
+    apiLoaderCallback = initApiLoaderCallback();
+    dbLoaderCallback = initDbLoaderCallback();
 
     // RecyclerView
     // Use setHasFixedSize to improve performance if you know that changes in content do not
@@ -141,8 +143,10 @@ public class MainActivity extends BaseActivity
     mFavoriteMovieListAdapter = new FavoriteMovieListAdapter(mRequiredImageSize, this);
     //mFavoriteMovieListAdapter.setHasStableIds(true); //TODO: Can we make the Ids stable?
 
-    // Initialize the loader with mMoviePageToDownload as the ID, null for the bundle, and this for the context
-    getSupportLoaderManager().initLoader(mMoviePageToDownload, null, this);
+    // Initialize the loader for downloading movies from themoviedb.org with mMoviePageToDownload as the ID, null for the bundle, and this for the context
+    getSupportLoaderManager().initLoader(mMoviePageToDownload, null, apiLoaderCallback);
+    // Initialize the loader for loading movies from database with DB_LOADER_ID as the ID, null for the bundle, and this for the context
+    getSupportLoaderManager().initLoader(DB_LOADER_ID, null, dbLoaderCallback);
 
     // Set title of this Activity depending on current {@link MenuState} and
     // get Movies depending on current {@link MenuState}
@@ -231,7 +235,6 @@ public class MainActivity extends BaseActivity
   @Override protected void onDestroy() {
     dismissDialog(mAboutDialog);
     mMoviesRecyclerView.clearOnScrollListeners();
-    mDb.close();
     super.onDestroy();
   }
 
@@ -291,9 +294,9 @@ public class MainActivity extends BaseActivity
     Loader<String> callApiTaskLoader = loaderManager.getLoader(0);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiTaskLoader == null) {
-      loaderManager.initLoader(0, queryBundle, this);
+      loaderManager.initLoader(0, queryBundle, apiLoaderCallback);
     } else {
-      loaderManager.restartLoader(0, queryBundle, this);
+      loaderManager.restartLoader(0, queryBundle, apiLoaderCallback);
     }
   }
 
@@ -315,9 +318,9 @@ public class MainActivity extends BaseActivity
     Loader<String> callApiTaskLoader = loaderManager.getLoader(mMoviePageToDownload);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiTaskLoader == null) {
-      loaderManager.initLoader(mMoviePageToDownload, queryBundle, this);
+      loaderManager.initLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
     } else {
-      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, this);
+      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
     }
   }
 
@@ -339,9 +342,9 @@ public class MainActivity extends BaseActivity
     Loader<String> callApiTaskLoader = loaderManager.getLoader(mMoviePageToDownload);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiTaskLoader == null) {
-      loaderManager.initLoader(mMoviePageToDownload, queryBundle, this);
+      loaderManager.initLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
     } else {
-      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, this);
+      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
     }
   }
 
@@ -349,21 +352,20 @@ public class MainActivity extends BaseActivity
    * Get Favorite Movies from local database
    */
   private void loadAndShowFavoriteMovies() {
-    // Run the getAllFavoriteMovies function and store the result in a Cursor variable
-    Cursor cursor = getAllFavoriteMovies();
-    // Update the cursor in the adapter to trigger UI to display the new list
-    mFavoriteMovieListAdapter.swapCursor(cursor);
-  }
+    // Build Uri for querying FavoriteMovieEntry table
+    Bundle queryBundle = new Bundle();
+    queryBundle.putParcelable(CallDbTaskLoader.EXTRA_QUERY_URI, PopularMoviesContract.FavoriteMovieEntry.CONTENT_URI);
 
-  /**
-   * Query the mDb and get all favorite movies from the favoritelist table
-   *
-   * @return Cursor containing the list of favorite movies
-   */
-  private Cursor getAllFavoriteMovies() {
-    // Call query on mDb passing in the table name and projection String [] order by COLUMN_TIMESTAMP
-    return mDb.query(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, null, null, null, null, null,
-        PopularMoviesContract.FavoriteMovieEntry.COLUMN_TIMESTAMP);
+    // Call getSupportLoaderManager and store it in a LoaderManager variable
+    LoaderManager loaderManager = getSupportLoaderManager();
+    // Get our Loader by calling getLoader and passing the ID we specified
+    Loader<String> callDbTaskLoader = loaderManager.getLoader(DB_LOADER_ID);
+    // If the Loader was null, initialize it. Else, restart it.
+    if (callDbTaskLoader == null) {
+      loaderManager.initLoader(DB_LOADER_ID, queryBundle, dbLoaderCallback);
+    } else {
+      loaderManager.restartLoader(DB_LOADER_ID, queryBundle, dbLoaderCallback);
+    }
   }
 
   private void showAboutDialog() {
@@ -448,8 +450,8 @@ public class MainActivity extends BaseActivity
    * @return True: if removed successfully, False: if failed
    */
   private boolean removeFavoriteMovie(long id) {
-    return mDb.delete(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, PopularMoviesContract.FavoriteMovieEntry._ID + "=" + id, null)
-        > 0;
+    //return mDb.delete(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, PopularMoviesContract.FavoriteMovieEntry._ID + "=" + id, null) > 0;
+    return false;
   }
 
   /**
@@ -480,55 +482,85 @@ public class MainActivity extends BaseActivity
   }
 
   /**
-   * Below this point are the three {@link LoaderManager.LoaderCallbacks} methods
+   * Below this point are {@link LoaderManager.LoaderCallbacks} methods
    **/
 
-  /**
-   * This is called when a new Loader needs to be created.
-   *
-   * @param id The ID whose loader is to be created.
-   * @param args Any arguments supplied by the caller.
-   * @return Return a new Loader instance that is ready to start loading.
-   */
-  @Override public Loader<String> onCreateLoader(int id, Bundle args) {
-    return new CallApiTaskLoader(this, args);
-  }
+  private LoaderManager.LoaderCallbacks<String> initApiLoaderCallback() {
+    return new LoaderManager.LoaderCallbacks<String>() {
 
-  @Override public void onLoadFinished(Loader<String> loader, String data) {
-    // When we finish loading, we want to hide the loading indicator from the user.
-    //mLoadingIndicator.setVisibility(View.INVISIBLE);
-
-    // If the results are null, we assume an error has occurred.
-    if (data == null) {
-      showErrorMessage(CallApiTaskLoader.NULL);
-    } else {
-      switch (data) {
-        case CallApiTaskLoader.API_ERROR:
-          showErrorMessage(CallApiTaskLoader.API_ERROR);
-          break;
-        case CallApiTaskLoader.OFFLINE:
-          showErrorMessage(CallApiTaskLoader.OFFLINE);
-          break;
-        case "":
-          Log.d(TAG, "Empty response from Server");
-          break;
-        default:
-          // Here we succesfully get data from server. So next time we can download the following movie page by incrementing mMoviePageToDownload.
-          parseAndShowJsonData(data);
-          mMoviePageToDownload++;
-          break;
+      /**
+       * This is called when a new Loader needs to be created.
+       *
+       * @param id The ID whose loader is to be created.
+       * @param args Any arguments supplied by the caller.
+       * @return Return a new Loader instance that is ready to start loading.
+       */
+      @Override public Loader<String> onCreateLoader(int id, Bundle args) {
+        return new CallApiTaskLoader(MainActivity.this, args);
       }
-    }
+
+      /**
+       * Called when a previously created loader has finished its load.
+       *
+       * @param loader The Loader that has finished.
+       * @param data The data generated by the Loader.
+       */
+      @Override public void onLoadFinished(Loader<String> loader, String data) {
+        // When we finish loading, we want to hide the loading indicator from the user.
+        //mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+        // If the results are null, we assume an error has occurred.
+        if (data == null) {
+          showErrorMessage(CallApiTaskLoader.NULL);
+        } else {
+          switch (data) {
+            case CallApiTaskLoader.API_ERROR:
+              showErrorMessage(CallApiTaskLoader.API_ERROR);
+              break;
+            case CallApiTaskLoader.OFFLINE:
+              showErrorMessage(CallApiTaskLoader.OFFLINE);
+              break;
+            case "":
+              Log.d(TAG, "Empty response from Server");
+              break;
+            default:
+              // Here we succesfully get data from server. So next time we can download the following movie page by incrementing mMoviePageToDownload.
+              parseAndShowJsonData(data);
+              mMoviePageToDownload++;
+              break;
+          }
+        }
+      }
+
+      /**
+       * Called when a previously created loader is being reset, and thus
+       * making its data unavailable. The application should at this point
+       * remove any references it has to the Loader's data.
+       *
+       * @param loader The Loader that is being reset.
+       */
+      @Override public void onLoaderReset(Loader<String> loader) {
+        // do nothing
+      }
+    };
   }
 
-  /**
-   * Called when a previously created loader is being reset, and thus
-   * making its data unavailable. The application should at this point
-   * remove any references it has to the Loader's data.
-   *
-   * @param loader The Loader that is being reset.
-   */
-  @Override public void onLoaderReset(Loader<String> loader) {
+  private LoaderManager.LoaderCallbacks<Cursor> initDbLoaderCallback() {
+    return new LoaderManager.LoaderCallbacks<Cursor>() {
+
+      @Override public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CallDbTaskLoader(MainActivity.this, args);
+      }
+
+      @Override public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        // Update the cursor in the adapter to trigger UI to display the new list
+        mFavoriteMovieListAdapter.swapCursor(cursor);
+      }
+
+      @Override public void onLoaderReset(Loader<Cursor> loader) {
+        // do nothing
+      }
+    };
   }
 
   /**

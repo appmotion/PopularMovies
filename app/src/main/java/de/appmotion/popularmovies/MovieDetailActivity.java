@@ -38,7 +38,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
    * This number will uniquely identify our Loader and is chosen arbitrarily. You can change this
    * to any number you like, as long as you use the same variable name.
    */
-  private static int MOVIE_DETAIL_LOADER = 1;
+  private static final int MOVIE_DETAIL_LOADER_ID = 1;
 
   // Views
   @BindView(R.id.tv_movie_title) TextView mMovieTitle;
@@ -66,8 +66,8 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
       getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
-    // Initialize the loader with MOVIE_DETAIL_LOADER as the ID, null for the bundle, and this for the context
-    getSupportLoaderManager().initLoader(MOVIE_DETAIL_LOADER, null, this);
+    // Initialize the loader with MOVIE_DETAIL_LOADER_ID as the ID, null for the bundle, and this for the context
+    getSupportLoaderManager().initLoader(MOVIE_DETAIL_LOADER_ID, null, this);
 
     // Get Movie Id from Intent, then download Movie Details.
     if (getIntent() != null) {
@@ -129,12 +129,12 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiTaskLoader = loaderManager.getLoader(MOVIE_DETAIL_LOADER);
+    Loader<String> callApiTaskLoader = loaderManager.getLoader(MOVIE_DETAIL_LOADER_ID);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiTaskLoader == null) {
-      loaderManager.initLoader(MOVIE_DETAIL_LOADER, queryBundle, this);
+      loaderManager.initLoader(MOVIE_DETAIL_LOADER_ID, queryBundle, this);
     } else {
-      loaderManager.restartLoader(MOVIE_DETAIL_LOADER, queryBundle, this);
+      loaderManager.restartLoader(MOVIE_DETAIL_LOADER_ID, queryBundle, this);
     }
   }
 
