@@ -173,6 +173,33 @@ public class PopularMoviesContentProvider extends ContentProvider {
 
   @Override
   public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
-    return 0;
+    // Get access to the database
+    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+    int match = sUriMatcher.match(uri);
+    int moviesUpdated;  // Keep track of the number of updated movies
+
+    switch (match) {
+      case FAVORITE_MOVIES_WITH_ID:
+        // using selection and selectionArgs
+        // URI: content://<authority>/favorite_movies/#
+        String id = uri.getPathSegments().get(1);
+        // Selection is the _ID column = ?, and the Selection args = the row ID from the URI
+        String mSelection = "_id=?";
+        String[] mSelectionArgs = new String[] { id };
+        moviesUpdated = db.update(PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME, values, mSelection, mSelectionArgs);
+        break;
+      default:
+        throw new UnsupportedOperationException("Unknown uri: " + uri);
+    }
+
+    // Notify the resolver of a change and return the number of items updated
+    if (moviesUpdated != 0) {
+      // A movie was updated, set notification
+      getContext().getContentResolver().notifyChange(uri, null);
+    }
+
+    // Return the number of movies updated
+    return moviesUpdated;
   }
 }
