@@ -21,8 +21,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.appmotion.popularmovies.data.PopularMoviesContract;
 import de.appmotion.popularmovies.data.dto.Movie;
-import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
-import de.appmotion.popularmovies.utilities.CallDbTaskLoader;
+import de.appmotion.popularmovies.utilities.CallApiLoader;
+import de.appmotion.popularmovies.utilities.QueryDbLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -41,7 +41,7 @@ public class MainActivity extends BaseActivity
 
   // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
-  // This number will uniquely identify CallDbTaskLoader.
+  // This number will uniquely identify QueryDbLoader.
   private static final int DB_LOADER_ID = -2;
   // Constant for logging
   private static final String TAG = MainActivity.class.getSimpleName();
@@ -54,11 +54,11 @@ public class MainActivity extends BaseActivity
   // Views
   // RecyclerView which shows Movies
   @BindView(android.R.id.list) RecyclerView mMoviesRecyclerView;
-  // Which page of a movie list from the server has to be downloaded. This number will uniquely identify corresponding CallApiTaskLoader, too.
+  // Which page of a movie list from the server has to be downloaded. This number will uniquely identify corresponding CallApiLoader, too.
   private int mMoviePageToDownload = 1;
-  // Callback for CallApiTaskLoader
+  // Callback for CallApiLoader
   private LoaderManager.LoaderCallbacks<String> apiLoaderCallback;
-  // Callback for CallDbTaskLoader
+  // Callback for QueryDbLoader
   private LoaderManager.LoaderCallbacks<Cursor> dbLoaderCallback;
   // The About Dialog
   private AlertDialog mAboutDialog;
@@ -282,17 +282,17 @@ public class MainActivity extends BaseActivity
   }
 
   private void downloadConfiguration() {
-    // Get URL for popular Configuration Download and build Bundle for {@link CallApiTaskLoader}
+    // Get URL for popular Configuration Download and build Bundle for {@link CallApiLoader}
     URL configurationUrl = NetworkUtils.buildConfigurationUrl();
     Bundle queryBundle = new Bundle();
-    queryBundle.putSerializable(CallApiTaskLoader.EXTRA_QUERY_URL, configurationUrl);
+    queryBundle.putSerializable(CallApiLoader.EXTRA_QUERY_URL, configurationUrl);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiTaskLoader = loaderManager.getLoader(0);
+    Loader<String> callApiLoader = loaderManager.getLoader(0);
     // If the Loader was null, initialize it. Else, restart it.
-    if (callApiTaskLoader == null) {
+    if (callApiLoader == null) {
       loaderManager.initLoader(0, queryBundle, apiLoaderCallback);
     } else {
       loaderManager.restartLoader(0, queryBundle, apiLoaderCallback);
@@ -306,17 +306,17 @@ public class MainActivity extends BaseActivity
    * @param region The region requested.
    */
   private void downloadAndShowPopularMovies(String language, String region) {
-    // Get URL for popular Movies Download and build Bundle for {@link CallApiTaskLoader}
+    // Get URL for popular Movies Download and build Bundle for {@link CallApiLoader}
     URL popularMoviesUrl = NetworkUtils.buildPopularMoviesUrl(language, String.valueOf(mMoviePageToDownload), region);
     Bundle queryBundle = new Bundle();
-    queryBundle.putSerializable(CallApiTaskLoader.EXTRA_QUERY_URL, popularMoviesUrl);
+    queryBundle.putSerializable(CallApiLoader.EXTRA_QUERY_URL, popularMoviesUrl);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiTaskLoader = loaderManager.getLoader(mMoviePageToDownload);
+    Loader<String> callApiLoader = loaderManager.getLoader(mMoviePageToDownload);
     // If the Loader was null, initialize it. Else, restart it.
-    if (callApiTaskLoader == null) {
+    if (callApiLoader == null) {
       loaderManager.initLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
     } else {
       loaderManager.restartLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
@@ -330,17 +330,17 @@ public class MainActivity extends BaseActivity
    * @param region The region requested.
    */
   private void downloadAndShowTopRatedMovies(String language, String region) {
-    // Get URL for top rated Movies Download and build Bundle for {@link CallApiTaskLoader}
+    // Get URL for top rated Movies Download and build Bundle for {@link CallApiLoader}
     URL topRatedMoviesUrl = NetworkUtils.buildTopRatedMoviesUrl(language, String.valueOf(mMoviePageToDownload), region);
     Bundle queryBundle = new Bundle();
-    queryBundle.putSerializable(CallApiTaskLoader.EXTRA_QUERY_URL, topRatedMoviesUrl);
+    queryBundle.putSerializable(CallApiLoader.EXTRA_QUERY_URL, topRatedMoviesUrl);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiTaskLoader = loaderManager.getLoader(mMoviePageToDownload);
+    Loader<String> callApiLoader = loaderManager.getLoader(mMoviePageToDownload);
     // If the Loader was null, initialize it. Else, restart it.
-    if (callApiTaskLoader == null) {
+    if (callApiLoader == null) {
       loaderManager.initLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
     } else {
       loaderManager.restartLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
@@ -353,14 +353,14 @@ public class MainActivity extends BaseActivity
   private void loadAndShowFavoriteMovies() {
     // Build Uri for querying FavoriteMovieEntry table
     Bundle queryBundle = new Bundle();
-    queryBundle.putParcelable(CallDbTaskLoader.EXTRA_QUERY_URI, PopularMoviesContract.FavoriteMovieEntry.CONTENT_URI);
+    queryBundle.putParcelable(QueryDbLoader.EXTRA_CONTENT_URI, PopularMoviesContract.FavoriteMovieEntry.CONTENT_URI);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callDbTaskLoader = loaderManager.getLoader(DB_LOADER_ID);
+    Loader<String> queryDbLoader = loaderManager.getLoader(DB_LOADER_ID);
     // If the Loader was null, initialize it. Else, restart it.
-    if (callDbTaskLoader == null) {
+    if (queryDbLoader == null) {
       loaderManager.initLoader(DB_LOADER_ID, queryBundle, dbLoaderCallback);
     } else {
       loaderManager.restartLoader(DB_LOADER_ID, queryBundle, dbLoaderCallback);
@@ -391,7 +391,7 @@ public class MainActivity extends BaseActivity
    * Called when Loader with ID:mMoviePageToDownload finished in onLoadFinished().
    * Parse jsonData and show in Views.
    *
-   * @param jsonData from onLoadFinished of {@link CallApiTaskLoader}.
+   * @param jsonData from onLoadFinished of {@link CallApiLoader}.
    */
   private void parseAndShowJsonData(String jsonData) {
     List<Movie> movieList = new ArrayList<>();
@@ -502,7 +502,7 @@ public class MainActivity extends BaseActivity
        * @return Return a new Loader instance that is ready to start loading.
        */
       @Override public Loader<String> onCreateLoader(int id, Bundle args) {
-        return new CallApiTaskLoader(MainActivity.this, args);
+        return new CallApiLoader(MainActivity.this, args);
       }
 
       /**
@@ -517,14 +517,14 @@ public class MainActivity extends BaseActivity
 
         // If the results are null, we assume an error has occurred.
         if (data == null) {
-          showErrorMessage(CallApiTaskLoader.NULL);
+          showErrorMessage(CallApiLoader.NULL);
         } else {
           switch (data) {
-            case CallApiTaskLoader.API_ERROR:
-              showErrorMessage(CallApiTaskLoader.API_ERROR);
+            case CallApiLoader.API_ERROR:
+              showErrorMessage(CallApiLoader.API_ERROR);
               break;
-            case CallApiTaskLoader.OFFLINE:
-              showErrorMessage(CallApiTaskLoader.OFFLINE);
+            case CallApiLoader.OFFLINE:
+              showErrorMessage(CallApiLoader.OFFLINE);
               break;
             case "":
               Log.d(TAG, "Empty response from Server");
@@ -555,7 +555,7 @@ public class MainActivity extends BaseActivity
     return new LoaderManager.LoaderCallbacks<Cursor>() {
 
       @Override public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CallDbTaskLoader(MainActivity.this, args);
+        return new QueryDbLoader(MainActivity.this, args);
       }
 
       @Override public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {

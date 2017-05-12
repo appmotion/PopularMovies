@@ -11,20 +11,20 @@ import de.appmotion.popularmovies.BuildConfig;
 import de.appmotion.popularmovies.data.PopularMoviesContract;
 
 /**
- * This loader will return database data as a Cursor or null if an error occurs.
+ * This loader will return database query data as a Cursor or null if an error occurs.
  */
-public class CallDbTaskLoader extends AsyncTaskLoader<Cursor> {
+public class QueryDbLoader extends AsyncTaskLoader<Cursor> {
 
-  // Name of the Uri sent via Bundle to this Loader
-  public final static String EXTRA_QUERY_URI = BuildConfig.APPLICATION_ID + ".query_uri";
-  private static final String TAG = CallDbTaskLoader.class.getSimpleName();
+  // Name of the Content Uri sent via Bundle to this Loader
+  public final static String EXTRA_CONTENT_URI = BuildConfig.APPLICATION_ID + ".content_uri";
+  private static final String TAG = QueryDbLoader.class.getSimpleName();
   // Arguments for this AsyncTaskLoader
   private Bundle mArgs;
 
   // Initialize a Cursor
   private Cursor mCursor = null;
 
-  public CallDbTaskLoader(Context context, Bundle args) {
+  public QueryDbLoader(Context context, Bundle args) {
     super(context);
     mArgs = args;
   }
@@ -48,18 +48,18 @@ public class CallDbTaskLoader extends AsyncTaskLoader<Cursor> {
   }
 
   @Override public Cursor loadInBackground() {
-    // Extract the uri query from the args using our constant
-    Uri queryUri = mArgs.getParcelable(EXTRA_QUERY_URI);
+    // Extract the content uri from the args using our constant
+    Uri contentUri = mArgs.getParcelable(EXTRA_CONTENT_URI);
 
     // If the uri is empty, there's nothing to search for
-    if (queryUri == null || TextUtils.isEmpty(queryUri.toString())) {
+    if (contentUri == null || TextUtils.isEmpty(contentUri.toString())) {
       return null;
     }
 
     // Query and load all data in the background; sort by timestamp
     try {
       return getContext().getContentResolver()
-          .query(queryUri, null, null, null, PopularMoviesContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC");
+          .query(contentUri, null, null, null, PopularMoviesContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC");
     } catch (Exception e) {
       Log.e(TAG, "Failed to asynchronously load data.");
       e.printStackTrace();

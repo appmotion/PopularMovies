@@ -18,7 +18,7 @@ import butterknife.ButterKnife;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.data.PopularMoviesContract;
-import de.appmotion.popularmovies.utilities.CallApiTaskLoader;
+import de.appmotion.popularmovies.utilities.CallApiLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.net.URL;
 import org.json.JSONException;
@@ -121,10 +121,10 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
    * @param language The language requested.
    */
   private void downloadMovieDetails(long movieId, String language) {
-    // Get URL for Movie details Download and build Bundle for {@link CallApiTaskLoader}
+    // Get URL for Movie details Download and build Bundle for {@link CallApiLoader}
     URL movieDetailUrl = NetworkUtils.buildMovieDetailUrl(movieId, language);
     Bundle queryBundle = new Bundle();
-    queryBundle.putSerializable(CallApiTaskLoader.EXTRA_QUERY_URL, movieDetailUrl);
+    queryBundle.putSerializable(CallApiLoader.EXTRA_QUERY_URL, movieDetailUrl);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
@@ -142,7 +142,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
    * Called when MOVIE_DETAIL_LOADER finished in onLoadFinished().
    * Parse jsonData and show in Views.
    *
-   * @param jsonData from onLoadFinished of {@link CallApiTaskLoader}.
+   * @param jsonData from onLoadFinished of {@link CallApiLoader}.
    */
   private void parseAndShowJsonData(String jsonData) {
     try {
@@ -220,7 +220,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
    **/
 
   @Override public Loader<String> onCreateLoader(int id, Bundle args) {
-    return new CallApiTaskLoader(this, args);
+    return new CallApiLoader(this, args);
   }
 
   @Override public void onLoadFinished(Loader<String> loader, String data) {
@@ -229,14 +229,14 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
 
     // If the results are null, we assume an error has occurred.
     if (data == null) {
-      showErrorMessage(CallApiTaskLoader.NULL);
+      showErrorMessage(CallApiLoader.NULL);
     } else {
       switch (data) {
-        case CallApiTaskLoader.API_ERROR:
-          showErrorMessage(CallApiTaskLoader.API_ERROR);
+        case CallApiLoader.API_ERROR:
+          showErrorMessage(CallApiLoader.API_ERROR);
           break;
-        case CallApiTaskLoader.OFFLINE:
-          showErrorMessage(CallApiTaskLoader.OFFLINE);
+        case CallApiLoader.OFFLINE:
+          showErrorMessage(CallApiLoader.OFFLINE);
           break;
         case "":
           break;
