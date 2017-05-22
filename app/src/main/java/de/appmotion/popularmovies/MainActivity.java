@@ -19,11 +19,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import de.appmotion.popularmovies.data.PopularMoviesContract;
+import de.appmotion.popularmovies.data.MovieContract;
 import de.appmotion.popularmovies.data.dto.Movie;
 import de.appmotion.popularmovies.utilities.CallApiLoader;
-import de.appmotion.popularmovies.utilities.QueryDbLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
+import de.appmotion.popularmovies.utilities.QueryDbLoader;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.URL;
@@ -353,7 +353,7 @@ public class MainActivity extends BaseActivity
   private void loadAndShowFavoriteMovies() {
     // Build Uri for querying FavoriteMovieEntry table
     Bundle queryBundle = new Bundle();
-    queryBundle.putParcelable(QueryDbLoader.EXTRA_CONTENT_URI, PopularMoviesContract.FavoriteMovieEntry.CONTENT_URI);
+    queryBundle.putParcelable(QueryDbLoader.EXTRA_CONTENT_URI, MovieContract.FavoriteMovieEntry.CONTENT_URI);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
@@ -451,7 +451,7 @@ public class MainActivity extends BaseActivity
   private void removeFavoriteMovie(long id) {
     // Build appropriate uri with String row id appended
     String stringId = String.valueOf(id);
-    Uri uri = PopularMoviesContract.FavoriteMovieEntry.CONTENT_URI;
+    Uri uri = MovieContract.FavoriteMovieEntry.CONTENT_URI;
     uri = uri.buildUpon().appendPath(stringId).build();
     // Delete a single row of data using a ContentResolver
     getContentResolver().delete(uri, null, null);

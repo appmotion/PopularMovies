@@ -1,7 +1,7 @@
 package de.appmotion.popularmovies;
 
 import android.provider.BaseColumns;
-import de.appmotion.popularmovies.data.PopularMoviesContract;
+import de.appmotion.popularmovies.data.MovieContract;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import org.junit.Test;
@@ -17,12 +17,12 @@ import static org.junit.Assert.assertTrue;
 public class ContractClassUnitTest {
 
   @Test public void inner_class_exists() throws Exception {
-    Class[] innerClasses = PopularMoviesContract.class.getDeclaredClasses();
+    Class[] innerClasses = MovieContract.class.getDeclaredClasses();
     assertEquals("There should be 1 Inner class inside the contract class", 1, innerClasses.length);
   }
 
   @Test public void inner_class_type_correct() throws Exception {
-    Class[] innerClasses = PopularMoviesContract.class.getDeclaredClasses();
+    Class[] innerClasses = MovieContract.class.getDeclaredClasses();
     assertEquals("Cannot find inner class to complete unit test", 1, innerClasses.length);
     Class entryClass = innerClasses[0];
     assertTrue("Inner class should implement the BaseColumns interface", BaseColumns.class.isAssignableFrom(entryClass));
@@ -31,7 +31,7 @@ public class ContractClassUnitTest {
   }
 
   @Test public void inner_class_members_correct() throws Exception {
-    Class[] innerClasses = PopularMoviesContract.class.getDeclaredClasses();
+    Class[] innerClasses = MovieContract.class.getDeclaredClasses();
     assertEquals("Cannot find inner class to complete unit test", 1, innerClasses.length);
     Class entryClass = innerClasses[0];
     Field[] allFields = entryClass.getDeclaredFields();

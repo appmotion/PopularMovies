@@ -5,18 +5,18 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 /**
- * Manages a local database for movies data.
+ * Manages a local database for movie data.
  */
-public class PopularMoviesDbHelper extends SQLiteOpenHelper {
+public class MovieDbHelper extends SQLiteOpenHelper {
 
   // The database name
-  private static final String DATABASE_NAME = "popularmovies.db";
+  private static final String DATABASE_NAME = "movie.db";
 
   // If you change the database schema, you must increment the database version or the onUpgrade method will not be called.
   private static final int DATABASE_VERSION = 1;
 
   // Constructor
-  public PopularMoviesDbHelper(Context context) {
+  public MovieDbHelper(Context context) {
     super(context, DATABASE_NAME, null, DATABASE_VERSION);
   }
 
@@ -39,18 +39,18 @@ public class PopularMoviesDbHelper extends SQLiteOpenHelper {
      * In other words, the purpose of AUTOINCREMENT is to prevent the reuse of _IDs from previously
      * deleted rows.
      */
-    final String SQL_CREATE_WAITLIST_TABLE = "CREATE TABLE "
-        + PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME
+    final String SQL_CREATE_FAVORITE_MOVIE_TABLE = "CREATE TABLE "
+        + MovieContract.FavoriteMovieEntry.TABLE_NAME
         + " ("
-        + PopularMoviesContract.FavoriteMovieEntry._ID
+        + MovieContract.FavoriteMovieEntry._ID
         + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-        + PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID
+        + MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_ID
         + " INTEGER NOT NULL, "
-        + PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE
+        + MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE
         + " TEXT NOT NULL, "
-        + PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL
+        + MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL
         + " TEXT, "
-        + PopularMoviesContract.FavoriteMovieEntry.COLUMN_TIMESTAMP
+        + MovieContract.FavoriteMovieEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         /*
          * To ensure this table can only contain one Movie entry per Movie ID, we declare
@@ -59,7 +59,7 @@ public class PopularMoviesDbHelper extends SQLiteOpenHelper {
          * insert another Movie entry with that ID, we replace the old Movie entry.
          */
         + " UNIQUE ("
-        + PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID
+        + MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_ID
         + ") ON CONFLICT REPLACE"
         + ");";
 
@@ -67,7 +67,7 @@ public class PopularMoviesDbHelper extends SQLiteOpenHelper {
      * After we've spelled out our SQLite table creation statement above, we actually execute
      * that SQL with the execSQL method of our SQLite database object.
      */
-    sqLiteDatabase.execSQL(SQL_CREATE_WAITLIST_TABLE);
+    sqLiteDatabase.execSQL(SQL_CREATE_FAVORITE_MOVIE_TABLE);
   }
 
   /**
@@ -83,7 +83,7 @@ public class PopularMoviesDbHelper extends SQLiteOpenHelper {
     // DATABASE_VERSION the table will be dropped.
     // In a production app, this method might be modified to ALTER the table
     // instead of dropping it, so that existing data is not deleted.
-    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + PopularMoviesContract.FavoriteMovieEntry.TABLE_NAME);
+    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.FavoriteMovieEntry.TABLE_NAME);
     onCreate(sqLiteDatabase);
   }
 }

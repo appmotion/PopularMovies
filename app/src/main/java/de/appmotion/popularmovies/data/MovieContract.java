@@ -5,9 +5,9 @@ import android.provider.BaseColumns;
 
 /**
  * Defines table and column names for the popularmovies database. Furthermore the Content provider constants for accessing data in this
- * contract are defined
+ * contract are defined.
  */
-public final class PopularMoviesContract {
+public final class MovieContract {
 
   /*
    * Content provider constants
@@ -19,22 +19,22 @@ public final class PopularMoviesContract {
   // The base content URI = "content://" + <authority>
   public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
 
-  // This is the path for the "favorite_movies" directory
-  public static final String PATH_FAVORITE_MOVIES = "favorite_movies";
+  // This is the path for the "favorite_movie" directory
+  public static final String PATH_FAVORITE_MOVIE = "favorite_movie";
 
   // To prevent someone from accidentally instantiating the contract class,
   // make the constructor private.
-  private PopularMoviesContract() {
+  private MovieContract() {
   }
 
   /* Inner class that defines the table contents */
   public static final class FavoriteMovieEntry implements BaseColumns {
 
     // FavoriteMovieEntry content URI = base content URI + path
-    public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_FAVORITE_MOVIES).build();
+    public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_FAVORITE_MOVIE).build();
 
     // Static final members for the table name and each of the db columns
-    public static final String TABLE_NAME = "favorite_movies";
+    public static final String TABLE_NAME = "favorite_movie";
     public static final String COLUMN_MOVIE_ID = "movie_id";
     public static final String COLUMN_MOVIE_TITLE = "movie_title";
     public static final String COLUMN_MOVIE_IMAGE_URL = "movie_image_url";

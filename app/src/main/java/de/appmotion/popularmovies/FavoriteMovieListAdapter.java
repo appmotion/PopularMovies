@@ -12,7 +12,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
-import de.appmotion.popularmovies.data.PopularMoviesContract;
+import de.appmotion.popularmovies.data.MovieContract;
 import de.appmotion.popularmovies.data.dto.Movie;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.lang.annotation.Retention;
@@ -117,11 +117,10 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     void bind() {
-      final long rowId = mCursor.getLong(mCursor.getColumnIndexOrThrow(PopularMoviesContract.FavoriteMovieEntry._ID));
-      final String movieTitle =
-          mCursor.getString(mCursor.getColumnIndexOrThrow(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE));
+      final long rowId = mCursor.getLong(mCursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry._ID));
+      final String movieTitle = mCursor.getString(mCursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE));
       final String movieImageUrl =
-          mCursor.getString(mCursor.getColumnIndexOrThrow(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL));
+          mCursor.getString(mCursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL));
 
       // Load Movie Image
       Picasso.with(itemView.getContext())

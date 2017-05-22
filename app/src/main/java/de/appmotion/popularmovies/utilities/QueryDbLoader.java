@@ -8,7 +8,7 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.text.TextUtils;
 import android.util.Log;
 import de.appmotion.popularmovies.BuildConfig;
-import de.appmotion.popularmovies.data.PopularMoviesContract;
+import de.appmotion.popularmovies.data.MovieContract;
 
 /**
  * This loader will return database query data as a Cursor or null if an error occurs.
@@ -59,7 +59,7 @@ public class QueryDbLoader extends AsyncTaskLoader<Cursor> {
     // Query and load all data in the background; sort by timestamp
     try {
       return getContext().getContentResolver()
-          .query(contentUri, null, null, null, PopularMoviesContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC");
+          .query(contentUri, null, null, null, MovieContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC");
     } catch (Exception e) {
       Log.e(TAG, "Failed to asynchronously load data.");
       e.printStackTrace();

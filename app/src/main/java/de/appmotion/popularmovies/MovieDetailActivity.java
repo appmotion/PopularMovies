@@ -17,7 +17,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
-import de.appmotion.popularmovies.data.PopularMoviesContract;
+import de.appmotion.popularmovies.data.MovieContract;
 import de.appmotion.popularmovies.utilities.CallApiLoader;
 import de.appmotion.popularmovies.utilities.NetworkUtils;
 import java.net.URL;
@@ -185,7 +185,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   }
 
   /**
-   * Insert a movie to {@link PopularMoviesContract.FavoriteMovieEntry} with its id, title, imageUrl and the current timestamp.
+   * Insert a movie to {@link MovieContract.FavoriteMovieEntry} with its id, title, imageUrl and the current timestamp.
    *
    * @param movieId movies's id
    * @param title movie's title
@@ -194,12 +194,12 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
    */
   private Uri addFavoriteMovie(long movieId, @NonNull String title, String imageUrl) {
     ContentValues cv = new ContentValues();
-    cv.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID, movieId);
-    cv.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE, title);
-    cv.put(PopularMoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL, imageUrl);
+    cv.put(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_ID, movieId);
+    cv.put(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE, title);
+    cv.put(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL, imageUrl);
 
     // Insert the content values via a ContentResolver
-    return getContentResolver().insert(PopularMoviesContract.FavoriteMovieEntry.CONTENT_URI, cv);
+    return getContentResolver().insert(MovieContract.FavoriteMovieEntry.CONTENT_URI, cv);
   }
 
   /**
