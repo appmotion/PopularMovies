@@ -162,8 +162,45 @@ public class MovieContentProvider extends ContentProvider {
     */
   }
 
+  /**
+   * Handles requests to insert a set of new rows.
+   *
+   * @return The number of values that were inserted.
+   */
   @Override public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
-    return super.bulkInsert(uri, values);
+    // Get access to the database
+    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+    int match = sUriMatcher.match(uri);
+
+    switch (match) {
+
+      case CODE_FAVORITE_MOVIE:
+        db.beginTransaction();
+        int rowsInserted = 0;
+        try {
+          for (ContentValues value : values) {
+            long _id = db.insert(MovieContract.FavoriteMovieEntry.TABLE_NAME, null, value);
+            if (_id != -1) {
+              rowsInserted++;
+            }
+          }
+          db.setTransactionSuccessful();
+        } finally {
+          db.endTransaction();
+        }
+
+        if (rowsInserted > 0) {
+          getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        // Return the number of rows inserted
+        return rowsInserted;
+
+      // If the URI does not match match CODE_FAVORITE_MOVIE, return the super implementation of bulkInsert
+      default:
+        return super.bulkInsert(uri, values);
+    }
   }
 
   @Override public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
@@ -173,8 +210,21 @@ public class MovieContentProvider extends ContentProvider {
     int match = sUriMatcher.match(uri);
     int moviesDeleted;  // Keep track of the number of deleted movies
 
-    // Delete a single row of data
+    /*
+     * If we pass null as the selection to SQLiteDatabase#delete, our entire table will be
+     * deleted. However, if we do pass null and delete all of the rows in the table, we won't
+     * know how many rows were deleted. According to the documentation for SQLiteDatabase,
+     * passing "1" for the selection will delete all rows and return the number of rows
+     * deleted, which is what the caller of this method expects.
+      */
+    if (null == selection) selection = "1";
+
     switch (match) {
+      // Delete ALL rows in the table
+      case CODE_FAVORITE_MOVIE:
+        moviesDeleted = db.delete(MovieContract.FavoriteMovieEntry.TABLE_NAME, selection, selectionArgs);
+
+        break;
       // Handle the single item case, recognized by the ID included in the URI path
       case CODE_FAVORITE_MOVIE_WITH_ID:
         // using selection and selectionArgs
