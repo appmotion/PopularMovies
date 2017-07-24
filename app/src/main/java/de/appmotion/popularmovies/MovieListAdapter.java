@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link Movie}.
+ * {@link RecyclerView.Adapter} that can display a {@link Movie} from a {@link List<Movie>}.
  */
 class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 

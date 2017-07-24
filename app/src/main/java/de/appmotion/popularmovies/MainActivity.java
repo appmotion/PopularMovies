@@ -142,9 +142,9 @@ public class MainActivity extends BaseActivity
     mFavoriteMovieListAdapter = new FavoriteMovieListAdapter(mRequiredImageSize, this);
     //mFavoriteMovieListAdapter.setHasStableIds(true); //TODO: Can we make the Ids stable?
 
-    // Initialize the loader for downloading movies from themoviedb.org with mMoviePageToDownload as the ID, null for the bundle, and this for the context
+    // Initialize the loader for downloading movies from themoviedb.org with mMoviePageToDownload as the ID, null for the bundle, and apiLoaderCallback
     getSupportLoaderManager().initLoader(mMoviePageToDownload, null, apiLoaderCallback);
-    // Initialize the loader for loading movies from database with DB_LOADER_ID as the ID, null for the bundle, and this for the context
+    // Initialize the loader for loading movies from database with DB_LOADER_ID as the ID, null for the bundle, and dbLoaderCallback
     getSupportLoaderManager().initLoader(DB_LOADER_ID, null, dbLoaderCallback);
 
     // Set title of this Activity depending on current {@link MenuState} and
@@ -497,11 +497,11 @@ public class MainActivity extends BaseActivity
       /**
        * This is called when a new Loader needs to be created.
        *
-       * @param id The ID whose loader is to be created.
+       * @param loaderId The ID whose loader is to be created.
        * @param args Any arguments supplied by the caller.
        * @return Return a new Loader instance that is ready to start loading.
        */
-      @Override public Loader<String> onCreateLoader(int id, Bundle args) {
+      @Override public Loader<String> onCreateLoader(int loaderId, Bundle args) {
         return new CallApiLoader(MainActivity.this, args);
       }
 
@@ -554,7 +554,7 @@ public class MainActivity extends BaseActivity
   private LoaderManager.LoaderCallbacks<Cursor> initDbLoaderCallback() {
     return new LoaderManager.LoaderCallbacks<Cursor>() {
 
-      @Override public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+      @Override public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
         return new QueryDbLoader(MainActivity.this, args);
       }
 
@@ -564,7 +564,8 @@ public class MainActivity extends BaseActivity
       }
 
       @Override public void onLoaderReset(Loader<Cursor> loader) {
-        // do nothing
+        //Since this Loader's data is now invalid, we need to clear the Adapter that is displaying the data.
+        mFavoriteMovieListAdapter.swapCursor(null);
       }
     };
   }

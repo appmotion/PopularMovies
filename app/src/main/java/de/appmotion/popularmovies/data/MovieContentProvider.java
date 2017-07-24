@@ -18,7 +18,7 @@ public class MovieContentProvider extends ContentProvider {
   public static final int CODE_FAVORITE_MOVIE_WITH_ID = 101;
 
   private static final UriMatcher sUriMatcher = buildUriMatcher();
-  // Member variable for a TaskDbHelper that's initialized in the onCreate() method
+  // Member variable for a MovieDbHelper that's initialized in the onCreate() method
   private MovieDbHelper mDbHelper;
 
   /**

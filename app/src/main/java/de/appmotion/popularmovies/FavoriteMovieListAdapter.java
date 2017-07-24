@@ -19,7 +19,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link Movie}.
+ * {@link RecyclerView.Adapter} that can display a {@link Movie} from a {@link android.database.Cursor}.
  */
 class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
