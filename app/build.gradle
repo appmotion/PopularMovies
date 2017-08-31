@@ -48,5 +48,7 @@ dependencies {
   debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5'
   releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
   testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
+  // debug-db
+  debugCompile 'com.amitshekhar.android:debug-db:1.0.1'
   testCompile 'junit:junit:4.12'
 }

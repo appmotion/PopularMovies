@@ -85,18 +85,24 @@ public class MovieContentProvider extends ContentProvider {
     int match = sUriMatcher.match(uri);
     Cursor returnCursor;
 
+    // Query Params
+    String mSelection;
+    String[] mSelectionArgs;
+    String mSortOrder;
+
     switch (match) {
       // Query for the favorite movie directory
       case CODE_FAVORITE_MOVIE:
-        returnCursor = db.query(MovieContract.FavoriteMovieEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+        mSortOrder = MovieContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC";
+        returnCursor = db.query(MovieContract.FavoriteMovieEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, mSortOrder);
         break;
       case CODE_FAVORITE_MOVIE_WITH_ID:
         // using selection and selectionArgs
         // URI: content://<authority>/favorite_movie/#
         String id = uri.getPathSegments().get(1);
         // Selection is the _ID column = ?, and the Selection args = the row ID from the URI
-        String mSelection = MovieContract.FavoriteMovieEntry._ID + " = ?";
-        String[] mSelectionArgs = new String[] { id };
+        mSelection = MovieContract.FavoriteMovieEntry._ID + " = ?";
+        mSelectionArgs = new String[] { id };
         returnCursor = db.query(MovieContract.FavoriteMovieEntry.TABLE_NAME, projection, mSelection, mSelectionArgs, null, null, sortOrder);
         break;
       default:
