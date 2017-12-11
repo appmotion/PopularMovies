@@ -1,54 +1,51 @@
 apply plugin: 'com.android.application'
 
-repositories {
-  mavenCentral()
-}
-
 android {
-  compileSdkVersion 25
-  buildToolsVersion "25.0.3"
+  compileSdkVersion 26
+  buildToolsVersion "26.0.3"
   defaultConfig {
     applicationId "de.appmotion.popularmovies"
     minSdkVersion 19
-    targetSdkVersion 25
+    targetSdkVersion 26
     versionCode 2
     versionName "1.1"
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
   }
   buildTypes {
-    release {
+    debug {
       minifyEnabled false
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
       buildConfigField "String", "MOVIE_DB_API_KEY", '"' + System.getenv("MOVIE_DB_API_KEY") + '"'
     }
-    debug {
-      debuggable true
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
       buildConfigField "String", "MOVIE_DB_API_KEY", '"' + System.getenv("MOVIE_DB_API_KEY") + '"'
     }
   }
 }
 
 dependencies {
-  compile fileTree(dir: 'libs', include: ['*.jar'])
-  androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-    exclude group: 'com.android.support', module: 'support-annotations'
-  })
-  compile 'com.android.support:appcompat-v7:25.3.1'
-  compile 'com.android.support:recyclerview-v7:25.3.1'
+  implementation fileTree(dir: 'libs', include: ['*.jar'])
+  implementation 'com.android.support:appcompat-v7:26.1.0'
+  implementation 'com.android.support:recyclerview-v7:26.1.0'
   // Picasso
-  compile 'com.squareup.picasso:picasso:2.5.2'
-  compile 'com.jakewharton.picasso:picasso2-okhttp3-downloader:1.1.0'
+  implementation 'com.squareup.picasso:picasso:2.5.2'
+  implementation 'com.jakewharton.picasso:picasso2-okhttp3-downloader:1.1.0'
   // OkHttp with Okio
-  compile 'com.squareup.okhttp3:okhttp:3.6.0'
-  compile 'com.squareup.okio:okio:1.11.0'
+  implementation 'com.squareup.okhttp3:okhttp:3.8.1'
+  implementation 'com.squareup.okio:okio:1.13.0'
   // Butterknife
-  compile 'com.jakewharton:butterknife:8.5.1'
-  annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
+  implementation 'com.jakewharton:butterknife:8.6.0'
+  annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
   // LeakCanary
-  debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5'
-  releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
-  testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
+  debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
+  releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+  testImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
   // debug-db
-  debugCompile 'com.amitshekhar.android:debug-db:1.0.1'
-  testCompile 'junit:junit:4.12'
+  debugImplementation 'com.amitshekhar.android:debug-db:1.0.1'
+  // JUnit
+  testImplementation 'junit:junit:4.12'
+  androidTestImplementation 'com.android.support.test:runner:1.0.1'
+  androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }
