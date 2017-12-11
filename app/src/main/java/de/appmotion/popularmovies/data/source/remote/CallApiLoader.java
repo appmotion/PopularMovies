@@ -73,7 +73,7 @@ public class CallApiLoader extends AsyncTaskLoader<String> {
       return null;
     }
 
-    //
+    // Use OkHttp to get response from Server
     try {
       Request request = new Request.Builder().url(queryUrl).get().build();
 
