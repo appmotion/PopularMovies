@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import de.appmotion.popularmovies.data.source.local.MovieContract;
+import de.appmotion.popularmovies.data.source.local.MovieDbHelper;
 import java.lang.reflect.Field;
 import org.junit.Before;
 import org.junit.Test;

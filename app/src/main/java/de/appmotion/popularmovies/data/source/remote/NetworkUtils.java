@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.appmotion.popularmovies.utilities;
+package de.appmotion.popularmovies.data.source.remote;
 
 import android.content.Context;
 import android.net.ConnectivityManager;

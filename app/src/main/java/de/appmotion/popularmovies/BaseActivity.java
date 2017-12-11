@@ -5,8 +5,8 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.widget.Toast;
-import de.appmotion.popularmovies.utilities.CallApiLoader;
-import de.appmotion.popularmovies.utilities.NetworkUtils;
+import de.appmotion.popularmovies.data.source.remote.CallApiLoader;
+import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import java.util.Locale;
 
 public abstract class BaseActivity extends AppCompatActivity {

@@ -1,4 +1,4 @@
-package de.appmotion.popularmovies.data;
+package de.appmotion.popularmovies.data.source.local;
 
 import android.net.Uri;
 import android.provider.BaseColumns;

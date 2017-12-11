@@ -1,7 +1,7 @@
 package de.appmotion.popularmovies;
 
 import android.provider.BaseColumns;
-import de.appmotion.popularmovies.data.MovieContract;
+import de.appmotion.popularmovies.data.source.local.MovieContract;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import org.junit.Test;

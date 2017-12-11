@@ -28,7 +28,7 @@
 
     <!-- exported = false limits access to this ContentProvider to only this app -->
     <provider
-        android:name=".data.MovieContentProvider"
+        android:name=".data.source.MovieContentProvider"
         android:authorities="de.appmotion.popularmovies"
         android:exported="false"/>
 

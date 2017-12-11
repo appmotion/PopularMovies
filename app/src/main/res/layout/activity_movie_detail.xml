@@ -52,8 +52,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_weight="0.4"
-            android:background="@android:color/transparent"
             android:adjustViewBounds="true"
+            android:background="@android:color/transparent"
             tools:src="@drawable/movie_empty"
             />
 

@@ -1,6 +1,9 @@
-package de.appmotion.popularmovies.data.dto;
+package de.appmotion.popularmovies.data;
 
-public class Movie {
+/**
+ * Immutable model class for a Movie.
+ */
+public final class Movie {
 
   private final Long id;
   private final String imageUrl;

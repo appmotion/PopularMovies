@@ -1,4 +1,4 @@
-package de.appmotion.popularmovies.data;
+package de.appmotion.popularmovies.data.source.local;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,7 +13,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
   private static final String DATABASE_NAME = "movie.db";
 
   // If you change the database schema, you must increment the database version or the onUpgrade method will not be called.
-  private static final int DATABASE_VERSION = 1;
+  private static final int DATABASE_VERSION = 2;
 
   // Constructor
   public MovieDbHelper(Context context) {

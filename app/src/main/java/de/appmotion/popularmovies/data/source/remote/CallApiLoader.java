@@ -1,4 +1,4 @@
-package de.appmotion.popularmovies.utilities;
+package de.appmotion.popularmovies.data.source.remote;
 
 import android.content.Context;
 import android.os.Bundle;

@@ -1,4 +1,4 @@
-package de.appmotion.popularmovies.utilities;
+package de.appmotion.popularmovies.data.source.local;
 
 import android.content.Context;
 import android.database.Cursor;
