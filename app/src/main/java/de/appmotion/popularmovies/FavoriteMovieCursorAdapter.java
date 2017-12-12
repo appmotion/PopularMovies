@@ -12,16 +12,16 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
-import de.appmotion.popularmovies.data.Movie;
+import de.appmotion.popularmovies.data.FavoriteMovie;
 import de.appmotion.popularmovies.data.source.local.MovieContract;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link Movie} from a {@link android.database.Cursor}.
+ * {@link RecyclerView.Adapter} that can display a {@link FavoriteMovie} from a {@link android.database.Cursor}.
  */
-class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
   // {@link ViewType} Type
   private static final int DEFAULT = 0;
@@ -30,9 +30,10 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
   // Holds on to the cursor to display the favoritelist
   private Cursor mCursor;
 
-  FavoriteMovieListAdapter(@NetworkUtils.ImageSize String requiredImageSize, ListItemClickListener listener) {
+  FavoriteMovieCursorAdapter(@NetworkUtils.ImageSize String requiredImageSize, ListItemClickListener listener) {
     mRequiredImageSize = requiredImageSize;
     mOnClickListener = listener;
+    setHasStableIds(true);
   }
 
   @Override public @ViewType int getItemViewType(int position) {
@@ -47,7 +48,7 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     View view;
     RecyclerView.ViewHolder viewHolder = null;
 
-     /* Movie View */
+    /* Movie View */
     if (DEFAULT == viewType) {
       view = inflater.inflate(layoutIdForListItem, parent, false);
       viewHolder = new ViewHolderMovieItem(view);
@@ -76,6 +77,13 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     return mCursor.getCount();
   }
 
+  @Override public long getItemId(int position) {
+    if (mCursor != null && mCursor.moveToPosition(position)) {
+      return mCursor.getLong(mCursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry._ID));
+    }
+    return super.getItemId(position);
+  }
+
   /**
    * Swaps the Cursor currently held in the adapter with a new one
    * and triggers a UI refresh
@@ -98,7 +106,7 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
    * The interface that receives onClick messages.
    */
   public interface ListItemClickListener {
-    void onListItemClick(long movieId);
+    void onListItemClick(FavoriteMovie favoriteMovie);
   }
 
   @Retention(RetentionPolicy.CLASS) @IntDef({ DEFAULT }) @interface ViewType {
@@ -117,14 +125,11 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     void bind() {
-      final long rowId = mCursor.getLong(mCursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry._ID));
-      final String movieTitle = mCursor.getString(mCursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE));
-      final String movieImageUrl =
-          mCursor.getString(mCursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL));
+      final FavoriteMovie favoriteMovie = FavoriteMovie.from(mCursor);
 
       // Load Movie Image
       Picasso.with(itemView.getContext())
-          .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, movieImageUrl))
+          .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, favoriteMovie.getImageUrl()))
           .placeholder(android.R.drawable.screen_background_light_transparent)
           .error(R.drawable.movie_empty)
           .into(movieImage, new Callback() {
@@ -134,9 +139,6 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             @Override public void onError() {
             }
           });
-
-      // Set rowId as a tag of an itemView, so we can always get the rowId from a ViewHolderMovieItem
-      itemView.setTag(rowId);
     }
 
     /**
@@ -145,7 +147,10 @@ class FavoriteMovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      * @param v The View that was clicked
      */
     @Override public void onClick(View v) {
-      mOnClickListener.onListItemClick((long) v.getTag());
+      int clickedPosition = getAdapterPosition();
+      mCursor.moveToPosition(clickedPosition);
+      final FavoriteMovie favoriteMovie = FavoriteMovie.from(mCursor);
+      mOnClickListener.onListItemClick(favoriteMovie);
     }
   }
 }

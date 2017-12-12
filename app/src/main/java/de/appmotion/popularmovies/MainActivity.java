@@ -19,6 +19,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.appmotion.popularmovies.data.FavoriteMovie;
 import de.appmotion.popularmovies.data.Movie;
 import de.appmotion.popularmovies.data.source.local.MovieContract;
 import de.appmotion.popularmovies.data.source.local.QueryDbLoader;
@@ -37,10 +38,8 @@ import org.json.JSONObject;
  * Display Movies via a grid of their corresponding movie poster thumbnails.
  */
 public class MainActivity extends BaseActivity
-    implements MovieListAdapter.ListItemClickListener, FavoriteMovieListAdapter.ListItemClickListener {
+    implements MovieListAdapter.ListItemClickListener, FavoriteMovieCursorAdapter.ListItemClickListener {
 
-  // Name of the 'Movie Id data' sent via Intent to {@link MovieDetailActivity}
-  public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
   // This number will uniquely identify QueryDbLoader.
   private static final int DB_LOADER_FAVORITE_MOVIE = 10;
   // Constant for logging
@@ -64,8 +63,8 @@ public class MainActivity extends BaseActivity
   private AlertDialog mAboutDialog;
   // RecyclerView.Adapter containing popular and top rated {@link Movie}s.
   private MovieListAdapter mMovieListAdapter;
-  // RecyclerView.Adapter containing favorite {@link Movie}s.
-  private FavoriteMovieListAdapter mFavoriteMovieListAdapter;
+  // RecyclerView.Adapter containing {@link FavoriteMovie}s.
+  private FavoriteMovieCursorAdapter mFavoriteMovieCursorAdapter;
   // Saves current selected {@link MenuState} from Options Menu
   private int mMenuState = POPULAR_MOVIES;
 
@@ -136,11 +135,9 @@ public class MainActivity extends BaseActivity
 
     // Initiate the popular and top rated movielist adapter for RecyclerView
     mMovieListAdapter = new MovieListAdapter(new ArrayList<Movie>(0), mRequiredImageSize, this);
-    mMovieListAdapter.setHasStableIds(true);
 
-    // Initiate the favorite movielist adapter for RecyclerView
-    mFavoriteMovieListAdapter = new FavoriteMovieListAdapter(mRequiredImageSize, this);
-    //mFavoriteMovieListAdapter.setHasStableIds(true); //TODO: Can we make the Ids stable?
+    // Initiate the favorite movie cursor adapter for RecyclerView
+    mFavoriteMovieCursorAdapter = new FavoriteMovieCursorAdapter(mRequiredImageSize, this);
 
     // Set title of this Activity depending on current {@link MenuState} and
     // get Movies depending on current {@link MenuState}
@@ -154,7 +151,7 @@ public class MainActivity extends BaseActivity
       downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
     } else if (mMenuState == FAVORITE_MOVIES) {
       setTitle(R.string.action_favorite_show);
-      mMoviesRecyclerView.setAdapter(mFavoriteMovieListAdapter);
+      mMoviesRecyclerView.setAdapter(mFavoriteMovieCursorAdapter);
       mMovieItemTouchHelper.attachToRecyclerView(mMoviesRecyclerView);
       queryAndShowFavoriteMovies();
     }
@@ -263,7 +260,7 @@ public class MainActivity extends BaseActivity
       case R.id.action_favorite_show:
         mMenuState = FAVORITE_MOVIES;
         setTitle(R.string.action_favorite_show);
-        mMoviesRecyclerView.setAdapter(mFavoriteMovieListAdapter);
+        mMoviesRecyclerView.setAdapter(mFavoriteMovieCursorAdapter);
         mMovieItemTouchHelper.attachToRecyclerView(mMoviesRecyclerView);
         queryAndShowFavoriteMovies();
         return true;
@@ -399,7 +396,9 @@ public class MainActivity extends BaseActivity
         if (result != null) {
           Long movieId = result.getLong("id");
           String imageUrl = result.getString("poster_path");
-          Movie movie = new Movie(movieId, imageUrl);
+          Movie movie = new Movie();
+          movie.setMovieId(movieId);
+          movie.setImageUrl(imageUrl);
           movieList.add(movie);
         }
         i++;
@@ -465,20 +464,23 @@ public class MainActivity extends BaseActivity
   @Override public void onListItemClick(Movie movie) {
     // Show Movie Detail Activity
     Intent intent = new Intent(this, MovieDetailActivity.class);
-    intent.putExtra(EXTRA_MOVIE_ID, movie.getId());
+    intent.putExtra(MovieDetailActivity.EXTRA_MOVIE_ID, movie.getMovieId());
     startActivity(intent);
   }
 
   /**
    * This is where we receive our callback from
-   * {@link FavoriteMovieListAdapter.ListItemClickListener}
+   * {@link FavoriteMovieCursorAdapter.ListItemClickListener}
    *
    * This callback is invoked when you click on an item in the list.
    *
-   * @param id of movie in the list that was clicked.
+   * @param favoriteMovie {@link FavoriteMovie} in the list that was clicked.
    */
-  @Override public void onListItemClick(long id) {
-    showMessage("Movie DB Id: " + String.valueOf(id));
+  @Override public void onListItemClick(FavoriteMovie favoriteMovie) {
+    // Show Movie Detail Activity
+    Intent intent = new Intent(this, MovieDetailActivity.class);
+    intent.putExtra(MovieDetailActivity.EXTRA_MOVIE_ID, favoriteMovie.getMovieId());
+    startActivity(intent);
   }
 
   /**
@@ -560,11 +562,11 @@ public class MainActivity extends BaseActivity
               if (cursor.moveToLast()) {
                 // Show data from ContentProvider query
                 // Update the cursor in the adapter to trigger UI to display the new list
-                mFavoriteMovieListAdapter.swapCursor(cursor);
+                mFavoriteMovieCursorAdapter.swapCursor(cursor);
               }
               // Data empty
               else {
-                mFavoriteMovieListAdapter.swapCursor(cursor);
+                mFavoriteMovieCursorAdapter.swapCursor(cursor);
               }
             }
             // Data not available
@@ -578,7 +580,7 @@ public class MainActivity extends BaseActivity
         switch (loader.getId()) {
           case DB_LOADER_FAVORITE_MOVIE:
             // Since this Loader's data is now invalid, we need to clear the Adapter that is displaying the data.
-            mFavoriteMovieListAdapter.swapCursor(null);
+            mFavoriteMovieCursorAdapter.swapCursor(null);
             break;
         }
       }

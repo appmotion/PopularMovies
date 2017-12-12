@@ -35,6 +35,7 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     mRequiredImageSize = requiredImageSize;
     mOnClickListener = listener;
     mMovieList = new ArrayList<>(0);
+    setHasStableIds(true);
   }
 
   @Override public @ViewType int getItemViewType(int position) {
@@ -77,7 +78,7 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     if (mMovieList == null) {
       return RecyclerView.NO_ID;
     }
-    return mMovieList.get(position).getId();
+    return mMovieList.get(position).getMovieId();
   }
 
   void replaceMovieList(List<Movie> newList) {

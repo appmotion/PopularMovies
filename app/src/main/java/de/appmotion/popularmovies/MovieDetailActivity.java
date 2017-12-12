@@ -29,6 +29,9 @@ import org.json.JSONObject;
  */
 public class MovieDetailActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<String> {
 
+  // Name of the 'Movie Id data' sent via Intent to this Activity
+  public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
+
   // Suggestions to Make Your Project Stand Out
   //TODO: Implement sharing functionality to allow the user to share the first trailer’s YouTube URL from the movie details screen.
   //TODO: Extend the favorites ContentProvider to store the movie poster, synopsis, user rating, and release date, and display them even when offline.
@@ -71,7 +74,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
 
     // Get Movie Id from Intent, then download Movie Details.
     if (getIntent() != null) {
-      mMovieId = getIntent().getLongExtra(MainActivity.EXTRA_MOVIE_ID, 0L);
+      mMovieId = getIntent().getLongExtra(EXTRA_MOVIE_ID, 0L);
       if (mMovieId == 0) {
         showMessage(getString(R.string.error_loading_movie_detail));
       } else {

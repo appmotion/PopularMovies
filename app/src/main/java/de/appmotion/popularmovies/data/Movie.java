@@ -1,23 +1,35 @@
 package de.appmotion.popularmovies.data;
 
 /**
- * Immutable model class for a Movie.
+ * Model class for a Movie.
  */
-public final class Movie {
+public class Movie {
 
-  private final Long id;
-  private final String imageUrl;
+  private long mMovieId;
+  private String mTitle;
+  private String mImageUrl;
 
-  public Movie(Long id, String imageUrl) {
-    this.id = id;
-    this.imageUrl = imageUrl;
+  public long getMovieId() {
+    return mMovieId;
   }
 
-  public Long getId() {
-    return id;
+  public void setMovieId(long movieId) {
+    mMovieId = movieId;
+  }
+
+  public String getTitle() {
+    return mTitle;
+  }
+
+  public void setTitle(String title) {
+    mTitle = title;
   }
 
   public String getImageUrl() {
-    return imageUrl;
+    return mImageUrl;
+  }
+
+  public void setImageUrl(String imageUrl) {
+    mImageUrl = imageUrl;
   }
 }
