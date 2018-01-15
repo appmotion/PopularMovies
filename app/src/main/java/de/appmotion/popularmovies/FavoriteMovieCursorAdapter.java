@@ -115,10 +115,7 @@ class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
       mCursor.close();
     }
     mCursor = newCursor;
-    if (newCursor != null) {
-      // Force the RecyclerView to refresh
-      notifyDataSetChanged();
-    }
+    notifyDataSetChanged();
   }
 
   /**
