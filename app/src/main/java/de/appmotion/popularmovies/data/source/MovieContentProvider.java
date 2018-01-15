@@ -90,13 +90,11 @@ public class MovieContentProvider extends ContentProvider {
     // Query Params
     String mSelection;
     String[] mSelectionArgs;
-    String mSortOrder;
 
     switch (match) {
       // Query for the favorite movie directory
       case CODE_FAVORITE_MOVIE:
-        mSortOrder = MovieContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC";
-        returnCursor = db.query(MovieContract.FavoriteMovieEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, mSortOrder);
+        returnCursor = db.query(MovieContract.FavoriteMovieEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
         break;
       case CODE_FAVORITE_MOVIE_WITH_ID:
         // using selection and selectionArgs

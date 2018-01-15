@@ -8,11 +8,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,7 +22,6 @@ import butterknife.ButterKnife;
 import de.appmotion.popularmovies.data.FavoriteMovie;
 import de.appmotion.popularmovies.data.Movie;
 import de.appmotion.popularmovies.data.source.local.MovieContract;
-import de.appmotion.popularmovies.data.source.local.QueryDbLoader;
 import de.appmotion.popularmovies.data.source.remote.CallApiLoader;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import java.lang.annotation.Retention;
@@ -37,8 +36,8 @@ import org.json.JSONObject;
 /**
  * Display Movies via a grid of their corresponding movie poster thumbnails.
  */
-public class MainActivity extends BaseActivity
-    implements MovieListAdapter.ListItemClickListener, FavoriteMovieCursorAdapter.ListItemClickListener {
+public class MainActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor>, MovieListAdapter.ListItemClickListener,
+    FavoriteMovieCursorAdapter.ListItemClickListener {
 
   // This number will uniquely identify QueryDbLoader.
   private static final int DB_LOADER_FAVORITE_MOVIE = 10;
@@ -57,8 +56,6 @@ public class MainActivity extends BaseActivity
   private int mMoviePageToDownload = 1;
   // Callback for CallApiLoader
   private LoaderManager.LoaderCallbacks<String> apiLoaderCallback;
-  // Callback for QueryDbLoader
-  private LoaderManager.LoaderCallbacks<Cursor> dbLoaderCallback;
   // The About Dialog
   private AlertDialog mAboutDialog;
   // RecyclerView.Adapter containing popular and top rated {@link Movie}s.
@@ -67,9 +64,6 @@ public class MainActivity extends BaseActivity
   private FavoriteMovieCursorAdapter mFavoriteMovieCursorAdapter;
   // Saves current selected {@link MenuState} from Options Menu
   private int mMenuState = POPULAR_MOVIES;
-
-  // An ItemTouchHelper for swiping movie items while in FAVORITE_MOVIES {@link MenuState}
-  private ItemTouchHelper mMovieItemTouchHelper;
 
   /**
    * Called when the activity is first created. This is where you should do all of your normal
@@ -88,7 +82,6 @@ public class MainActivity extends BaseActivity
 
     // Initiate Callbacks for the Loaders
     apiLoaderCallback = initApiLoaderCallback();
-    dbLoaderCallback = initDbLoaderCallback();
 
     // RecyclerView
     // Use setHasFixedSize to improve performance if you know that changes in content do not
@@ -107,24 +100,6 @@ public class MainActivity extends BaseActivity
       }
     });
 
-    // Create an item touch helper to handle swiping items off the list
-    mMovieItemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-
-      @Override public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-        //do nothing, we only care about swiping
-        return false;
-      }
-
-      // Called when a user swipes left or right on a ViewHolder
-      @Override public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipevDir) {
-        //get the id of the item being swiped
-        long id = (long) viewHolder.itemView.getTag();
-        //remove from DB
-        deleteFavoriteMovie(id);
-      }
-    });
-    mMovieItemTouchHelper.attachToRecyclerView(null);
-
     // LayoutManager
     // This value should be true if you want to reverse your layout. Generally, this is only
     // true with horizontal lists that need to support a right-to-left layout.
@@ -137,7 +112,7 @@ public class MainActivity extends BaseActivity
     mMovieListAdapter = new MovieListAdapter(new ArrayList<Movie>(0), mRequiredImageSize, this);
 
     // Initiate the favorite movie cursor adapter for RecyclerView
-    mFavoriteMovieCursorAdapter = new FavoriteMovieCursorAdapter(mRequiredImageSize, this);
+    mFavoriteMovieCursorAdapter = new FavoriteMovieCursorAdapter(this, mRequiredImageSize, this);
 
     // Set title of this Activity depending on current {@link MenuState} and
     // get Movies depending on current {@link MenuState}
@@ -152,9 +127,10 @@ public class MainActivity extends BaseActivity
     } else if (mMenuState == FAVORITE_MOVIES) {
       setTitle(R.string.action_favorite_show);
       mMoviesRecyclerView.setAdapter(mFavoriteMovieCursorAdapter);
-      mMovieItemTouchHelper.attachToRecyclerView(mMoviesRecyclerView);
-      queryAndShowFavoriteMovies();
     }
+
+    // Loader for Favorite Movies
+    getSupportLoaderManager().initLoader(DB_LOADER_FAVORITE_MOVIE, null, this);
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
@@ -236,7 +212,6 @@ public class MainActivity extends BaseActivity
   }
 
   @Override public boolean onOptionsItemSelected(MenuItem item) {
-    mMovieItemTouchHelper.attachToRecyclerView(null);
     switch (item.getItemId()) {
       // Load and show Popular Movies.
       case R.id.action_popular:
@@ -261,8 +236,6 @@ public class MainActivity extends BaseActivity
         mMenuState = FAVORITE_MOVIES;
         setTitle(R.string.action_favorite_show);
         mMoviesRecyclerView.setAdapter(mFavoriteMovieCursorAdapter);
-        mMovieItemTouchHelper.attachToRecyclerView(mMoviesRecyclerView);
-        queryAndShowFavoriteMovies();
         return true;
       // Show About Dialog.
       case R.id.action_about:
@@ -336,26 +309,6 @@ public class MainActivity extends BaseActivity
       loaderManager.initLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
     } else {
       loaderManager.restartLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
-    }
-  }
-
-  /**
-   * Get Favorite Movies from local database
-   */
-  private void queryAndShowFavoriteMovies() {
-    // Build Uri for querying FavoriteMovieEntry table
-    Bundle queryBundle = new Bundle();
-    queryBundle.putParcelable(QueryDbLoader.EXTRA_CONTENT_URI, MovieContract.FavoriteMovieEntry.CONTENT_URI);
-
-    // Call getSupportLoaderManager and store it in a LoaderManager variable
-    LoaderManager loaderManager = getSupportLoaderManager();
-    // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> queryDbLoader = loaderManager.getLoader(DB_LOADER_FAVORITE_MOVIE);
-    // If the Loader was null, initialize it. Else, restart it.
-    if (queryDbLoader == null) {
-      loaderManager.initLoader(DB_LOADER_FAVORITE_MOVIE, queryBundle, dbLoaderCallback);
-    } else {
-      loaderManager.restartLoader(DB_LOADER_FAVORITE_MOVIE, queryBundle, dbLoaderCallback);
     }
   }
 
@@ -434,23 +387,6 @@ public class MainActivity extends BaseActivity
         mMenuState = savedInstanceState.getInt(STATE_MENU_STATE, POPULAR_MOVIES);
       }
     }
-  }
-
-  /**
-   * Removes the record with the specified id
-   *
-   * @param id the DB id to be removed
-   */
-  private void deleteFavoriteMovie(long id) {
-    // Build appropriate uri with String row id appended
-    String stringId = String.valueOf(id);
-    Uri uri = MovieContract.FavoriteMovieEntry.CONTENT_URI;
-    uri = uri.buildUpon().appendPath(stringId).build();
-    // Delete a single row of data using a ContentResolver
-    getContentResolver().delete(uri, null, null);
-
-    // Restart the loader to re-query for all movies after a deletion
-    queryAndShowFavoriteMovies();
   }
 
   /**
@@ -547,44 +483,47 @@ public class MainActivity extends BaseActivity
     };
   }
 
-  private LoaderManager.LoaderCallbacks<Cursor> initDbLoaderCallback() {
-    return new LoaderManager.LoaderCallbacks<Cursor>() {
+  @Override public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
 
-      @Override public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
-        return new QueryDbLoader(MainActivity.this, args);
-      }
+    switch (loaderId) {
+      case DB_LOADER_FAVORITE_MOVIE:
+        Uri favoriteMovieQueryUri = MovieContract.FavoriteMovieEntry.CONTENT_URI;
+        String sortOrder = MovieContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC";
+        return new CursorLoader(this, favoriteMovieQueryUri, null, null, null, sortOrder);
+      default:
+        throw new RuntimeException("Loader Not Implemented: " + loaderId);
+    }
+  }
 
-      @Override public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        switch (loader.getId()) {
-          case DB_LOADER_FAVORITE_MOVIE:
-            if (cursor != null) {
-              // Data loaded
-              if (cursor.moveToLast()) {
-                // Show data from ContentProvider query
-                // Update the cursor in the adapter to trigger UI to display the new list
-                mFavoriteMovieCursorAdapter.swapCursor(cursor);
-              }
-              // Data empty
-              else {
-                mFavoriteMovieCursorAdapter.swapCursor(cursor);
-              }
-            }
-            // Data not available
-            else {
-            }
-            break;
+  @Override public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+    switch (loader.getId()) {
+      case DB_LOADER_FAVORITE_MOVIE:
+        if (cursor != null) {
+          // Data loaded
+          if (cursor.moveToLast()) {
+            // Show data from ContentProvider query
+            // Update the cursor in the adapter to trigger UI to display the new list
+            mFavoriteMovieCursorAdapter.swapCursor(cursor);
+          }
+          // Data empty
+          else {
+            mFavoriteMovieCursorAdapter.swapCursor(cursor);
+          }
         }
-      }
-
-      @Override public void onLoaderReset(Loader<Cursor> loader) {
-        switch (loader.getId()) {
-          case DB_LOADER_FAVORITE_MOVIE:
-            // Since this Loader's data is now invalid, we need to clear the Adapter that is displaying the data.
-            mFavoriteMovieCursorAdapter.swapCursor(null);
-            break;
+        // Data not available
+        else {
         }
-      }
-    };
+        break;
+    }
+  }
+
+  @Override public void onLoaderReset(Loader<Cursor> loader) {
+    switch (loader.getId()) {
+      case DB_LOADER_FAVORITE_MOVIE:
+        // Since this Loader's data is now invalid, we need to clear the Adapter that is displaying the data.
+        mFavoriteMovieCursorAdapter.swapCursor(null);
+        break;
+    }
   }
 
   /**

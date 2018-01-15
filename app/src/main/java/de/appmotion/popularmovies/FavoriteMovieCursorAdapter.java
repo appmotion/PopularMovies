@@ -2,8 +2,10 @@ package de.appmotion.popularmovies;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.support.annotation.IntDef;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,13 +29,30 @@ class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
   private static final int DEFAULT = 0;
   private final ListItemClickListener mOnClickListener;
   private final @NetworkUtils.ImageSize String mRequiredImageSize;
+  private final Context mContext;
   // Holds on to the cursor to display the favoritelist
   private Cursor mCursor;
 
-  FavoriteMovieCursorAdapter(@NetworkUtils.ImageSize String requiredImageSize, ListItemClickListener listener) {
+  // An ItemTouchHelper for swiping movie items
+  private ItemTouchHelper mMovieItemTouchHelper;
+
+  FavoriteMovieCursorAdapter(Context context, @NetworkUtils.ImageSize String requiredImageSize, ListItemClickListener listener) {
+    mContext = context;
     mRequiredImageSize = requiredImageSize;
     mOnClickListener = listener;
     setHasStableIds(true);
+  }
+
+  @Override public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+    super.onAttachedToRecyclerView(recyclerView);
+    // Create an item touch helper to handle swiping items off the list
+    mMovieItemTouchHelper = new MovieItemTouchHelper();
+    mMovieItemTouchHelper.attachToRecyclerView(recyclerView);
+  }
+
+  @Override public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+    mMovieItemTouchHelper.attachToRecyclerView(null);
+    super.onDetachedFromRecyclerView(recyclerView);
   }
 
   @Override public @ViewType int getItemViewType(int position) {
@@ -152,5 +171,38 @@ class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
       final FavoriteMovie favoriteMovie = FavoriteMovie.from(mCursor);
       mOnClickListener.onListItemClick(favoriteMovie);
     }
+  }
+
+  class MovieItemTouchHelper extends ItemTouchHelper {
+
+    MovieItemTouchHelper() {
+      super(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+        @Override public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+          //do nothing, we only care about swiping
+          return false;
+        }
+
+        // Called when a user swipes left or right on a ViewHolder
+        @Override public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+          // remove from DB
+          deleteFavoriteMovie(viewHolder.getItemId());
+        }
+      });
+    }
+  }
+
+  /**
+   * Removes the record with the specified id
+   *
+   * @param id the DB id to be removed
+   */
+  private void deleteFavoriteMovie(long id) {
+    // Build appropriate uri with String row id appended
+    String stringId = String.valueOf(id);
+    Uri uri = MovieContract.FavoriteMovieEntry.CONTENT_URI;
+    uri = uri.buildUpon().appendPath(stringId).build();
+    // Delete a single row of data using a ContentResolver
+    mContext.getContentResolver().delete(uri, null, null);
   }
 }
