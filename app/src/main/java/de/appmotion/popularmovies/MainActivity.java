@@ -130,6 +130,11 @@ public class MainActivity extends BaseActivity implements LoaderManager.LoaderCa
     }
 
     // Loader for Favorite Movies
+     /*
+     * Ensures a loader is initialized and active. If the loader doesn't already exist, one is
+     * created and (if the activity/fragment is currently started) starts the loader. Otherwise
+     * the last created loader is re-used.
+     */
     getSupportLoaderManager().initLoader(DB_LOADER_FAVORITE_MOVIE, null, this);
   }
 
@@ -512,6 +517,7 @@ public class MainActivity extends BaseActivity implements LoaderManager.LoaderCa
         }
         // Data not available
         else {
+          mFavoriteMovieCursorAdapter.swapCursor(null);
         }
         break;
     }
