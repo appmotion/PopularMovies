@@ -104,7 +104,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
           Uri uri = addFavoriteMovie(mMovieId, mTitle, mImageUrl);
           if (uri != null) {
             // Movie successfuly added to table
-            showMessage(getString(R.string.adding_movie_to_favoritelist) + "\n" + uri.toString());
+            showMessage(getString(R.string.adding_movie_to_favoritelist));
           }
         }
         // Error: Movie data is empty and so it cannot be added to table
