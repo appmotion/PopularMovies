@@ -36,10 +36,10 @@ import org.json.JSONObject;
 /**
  * Display Movies via a grid of their corresponding movie poster thumbnails.
  */
-public class MainActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor>, MovieListAdapter.ListItemClickListener,
-    FavoriteMovieCursorAdapter.ListItemClickListener {
+public class MainActivity extends BaseActivity
+    implements MovieListAdapter.ListItemClickListener, FavoriteMovieCursorAdapter.ListItemClickListener {
 
-  // This number will uniquely identify QueryDbLoader.
+  // This number will uniquely identify a CursorLoader for loading data from 'favorite_movie' DB table.
   private static final int DB_LOADER_FAVORITE_MOVIE = 10;
   // Constant for logging
   private static final String TAG = MainActivity.class.getSimpleName();
@@ -54,11 +54,13 @@ public class MainActivity extends BaseActivity implements LoaderManager.LoaderCa
   @BindView(android.R.id.list) RecyclerView mMoviesRecyclerView;
   // Which page of a movie list from the server has to be downloaded. This number will uniquely identify corresponding CallApiLoader, too.
   private int mMoviePageToDownload = 1;
-  // Callback for CallApiLoader
-  private LoaderManager.LoaderCallbacks<String> apiLoaderCallback;
+  // Callback for {@link CallApiLoader}
+  private LoaderManager.LoaderCallbacks<String> mApiLoaderCallback;
+  // Callback for {@link CursorLoader}
+  private LoaderManager.LoaderCallbacks<Cursor> mCursorLoaderCallback;
   // The About Dialog
   private AlertDialog mAboutDialog;
-  // RecyclerView.Adapter containing popular and top rated {@link Movie}s.
+  // RecyclerView.Adapter containing popular or top rated {@link Movie}s.
   private MovieListAdapter mMovieListAdapter;
   // RecyclerView.Adapter containing {@link FavoriteMovie}s.
   private FavoriteMovieCursorAdapter mFavoriteMovieCursorAdapter;
@@ -81,7 +83,8 @@ public class MainActivity extends BaseActivity implements LoaderManager.LoaderCa
     updateValuesFromBundle(savedInstanceState);
 
     // Initiate Callbacks for the Loaders
-    apiLoaderCallback = initApiLoaderCallback();
+    mApiLoaderCallback = initApiLoaderCallback();
+    mCursorLoaderCallback = initCursorLoaderCallback();
 
     // RecyclerView
     // Use setHasFixedSize to improve performance if you know that changes in content do not
@@ -135,7 +138,7 @@ public class MainActivity extends BaseActivity implements LoaderManager.LoaderCa
      * created and (if the activity/fragment is currently started) starts the loader. Otherwise
      * the last created loader is re-used.
      */
-    getSupportLoaderManager().initLoader(DB_LOADER_FAVORITE_MOVIE, null, this);
+    getSupportLoaderManager().initLoader(DB_LOADER_FAVORITE_MOVIE, null, mCursorLoaderCallback);
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
@@ -263,9 +266,9 @@ public class MainActivity extends BaseActivity implements LoaderManager.LoaderCa
     Loader<String> callApiLoader = loaderManager.getLoader(0);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiLoader == null) {
-      loaderManager.initLoader(0, queryBundle, apiLoaderCallback);
+      loaderManager.initLoader(0, queryBundle, mApiLoaderCallback);
     } else {
-      loaderManager.restartLoader(0, queryBundle, apiLoaderCallback);
+      loaderManager.restartLoader(0, queryBundle, mApiLoaderCallback);
     }
   }
 
@@ -287,9 +290,9 @@ public class MainActivity extends BaseActivity implements LoaderManager.LoaderCa
     Loader<String> callApiLoader = loaderManager.getLoader(mMoviePageToDownload);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiLoader == null) {
-      loaderManager.initLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
+      loaderManager.initLoader(mMoviePageToDownload, queryBundle, mApiLoaderCallback);
     } else {
-      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
+      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, mApiLoaderCallback);
     }
   }
 
@@ -311,9 +314,9 @@ public class MainActivity extends BaseActivity implements LoaderManager.LoaderCa
     Loader<String> callApiLoader = loaderManager.getLoader(mMoviePageToDownload);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiLoader == null) {
-      loaderManager.initLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
+      loaderManager.initLoader(mMoviePageToDownload, queryBundle, mApiLoaderCallback);
     } else {
-      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, apiLoaderCallback);
+      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, mApiLoaderCallback);
     }
   }
 
@@ -488,48 +491,53 @@ public class MainActivity extends BaseActivity implements LoaderManager.LoaderCa
     };
   }
 
-  @Override public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
+  private LoaderManager.LoaderCallbacks<Cursor> initCursorLoaderCallback() {
+    return new LoaderManager.LoaderCallbacks<Cursor>() {
 
-    switch (loaderId) {
-      case DB_LOADER_FAVORITE_MOVIE:
-        Uri favoriteMovieQueryUri = MovieContract.FavoriteMovieEntry.CONTENT_URI;
-        String sortOrder = MovieContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC";
-        return new CursorLoader(this, favoriteMovieQueryUri, null, null, null, sortOrder);
-      default:
-        throw new RuntimeException("Loader Not Implemented: " + loaderId);
-    }
-  }
+      @Override public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
 
-  @Override public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-    switch (loader.getId()) {
-      case DB_LOADER_FAVORITE_MOVIE:
-        if (cursor != null) {
-          // Data loaded
-          if (cursor.moveToLast()) {
-            // Show data from ContentProvider query
-            // Update the cursor in the adapter to trigger UI to display the new list
-            mFavoriteMovieCursorAdapter.swapCursor(cursor);
-          }
-          // Data empty
-          else {
-            mFavoriteMovieCursorAdapter.swapCursor(cursor);
-          }
+        switch (loaderId) {
+          case DB_LOADER_FAVORITE_MOVIE:
+            Uri favoriteMovieQueryUri = MovieContract.FavoriteMovieEntry.CONTENT_URI;
+            String sortOrder = MovieContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC";
+            return new CursorLoader(MainActivity.this, favoriteMovieQueryUri, null, null, null, sortOrder);
+          default:
+            throw new RuntimeException("Loader not Implemented: " + loaderId);
         }
-        // Data not available
-        else {
-          mFavoriteMovieCursorAdapter.swapCursor(null);
-        }
-        break;
-    }
-  }
+      }
 
-  @Override public void onLoaderReset(Loader<Cursor> loader) {
-    switch (loader.getId()) {
-      case DB_LOADER_FAVORITE_MOVIE:
-        // Since this Loader's data is now invalid, we need to clear the Adapter that is displaying the data.
-        mFavoriteMovieCursorAdapter.swapCursor(null);
-        break;
-    }
+      @Override public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        switch (loader.getId()) {
+          case DB_LOADER_FAVORITE_MOVIE:
+            if (cursor != null) {
+              // Data loaded
+              if (cursor.moveToLast()) {
+                // Show data from ContentProvider query
+                // Update the cursor in the adapter to trigger UI to display the new list
+                mFavoriteMovieCursorAdapter.swapCursor(cursor);
+              }
+              // Data empty
+              else {
+                mFavoriteMovieCursorAdapter.swapCursor(cursor);
+              }
+            }
+            // Data not available
+            else {
+              mFavoriteMovieCursorAdapter.swapCursor(null);
+            }
+            break;
+        }
+      }
+
+      @Override public void onLoaderReset(Loader<Cursor> loader) {
+        switch (loader.getId()) {
+          case DB_LOADER_FAVORITE_MOVIE:
+            // Since this Loader's data is now invalid, we need to clear the Adapter that is displaying the data.
+            mFavoriteMovieCursorAdapter.swapCursor(null);
+            break;
+        }
+      }
+    };
   }
 
   /**

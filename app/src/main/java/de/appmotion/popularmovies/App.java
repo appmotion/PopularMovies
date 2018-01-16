@@ -32,7 +32,7 @@ public class App extends Application {
     LeakCanary.install(this);
 
     // OkHttpClient
-    int cacheSize = 10 * 1024 * 1024; // 10 MiB
+    int cacheSize = 50 * 1024 * 1024; // 50 MiB
     Cache cache = new Cache(getCacheDir(), cacheSize);
     okHttpClient = new OkHttpClient.Builder().cache(cache).connectTimeout(2L, TimeUnit.SECONDS).readTimeout(5L, TimeUnit.SECONDS).build();
 
