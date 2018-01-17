@@ -24,7 +24,7 @@ public class NetworkLoader extends AsyncTaskLoader<String> {
   public final static String EXTRA_QUERY_URL = BuildConfig.APPLICATION_ID + ".query_url";
 
   // Define {@link ErrorType} Types
-  public static final String NULL = "null";
+  public static final String EMPTY = "empty";
   public static final String API_ERROR = "api_error";
   public static final String OFFLINE = "offline";
   // Arguments for this AsyncTaskLoader
@@ -86,7 +86,7 @@ public class NetworkLoader extends AsyncTaskLoader<String> {
           if (hasInput) {
             return scanner.next();
           } else {
-            return null;
+            return EMPTY;
           }
           // response.code() is not 200
         default:
@@ -108,6 +108,6 @@ public class NetworkLoader extends AsyncTaskLoader<String> {
     super.deliverResult(json);
   }
 
-  @Retention(RetentionPolicy.CLASS) @StringDef({ NULL, API_ERROR, OFFLINE }) public @interface ErrorType {
+  @Retention(RetentionPolicy.CLASS) @StringDef({ EMPTY, API_ERROR, OFFLINE }) public @interface ErrorType {
   }
 }

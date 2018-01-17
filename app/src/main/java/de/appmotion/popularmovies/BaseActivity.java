@@ -74,23 +74,19 @@ public abstract class BaseActivity extends AppCompatActivity {
   protected void showErrorMessage(@NetworkLoader.ErrorType String errorType) {
     String message;
     switch (errorType) {
-      case NetworkLoader.NULL:
-        message = getString(R.string.error_loading_movies);
-        break;
       case NetworkLoader.API_ERROR:
         message = getString(R.string.error_loading_movies);
         break;
       case NetworkLoader.OFFLINE:
         message = getString(R.string.error_connect_internet);
         break;
+      case NetworkLoader.EMPTY:
+        message = getString(R.string.error_empty_response);
+        break;
       default:
         message = errorType;
     }
-    if (mToast != null) {
-      mToast.cancel();
-    }
-    mToast = Toast.makeText(this, message, Toast.LENGTH_LONG);
-    mToast.show();
+    showMessage(message);
   }
 
   /**

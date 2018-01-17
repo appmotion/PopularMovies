@@ -226,9 +226,8 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
     // When we finish loading, we want to hide the loading indicator from the user.
     //mLoadingIndicator.setVisibility(View.INVISIBLE);
 
-    // If the results are null, we assume an error has occurred.
     if (data == null) {
-      showErrorMessage(NetworkLoader.NULL);
+      Log.e(TAG, "The url was empty");
     } else {
       switch (data) {
         case NetworkLoader.API_ERROR:
@@ -237,8 +236,8 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
         case NetworkLoader.OFFLINE:
           showErrorMessage(NetworkLoader.OFFLINE);
           break;
-        case "":
-          Log.d(TAG, "Empty response from Server");
+        case NetworkLoader.EMPTY:
+          showErrorMessage(NetworkLoader.EMPTY);
           break;
         default:
           parseAndShowJsonData(data);
