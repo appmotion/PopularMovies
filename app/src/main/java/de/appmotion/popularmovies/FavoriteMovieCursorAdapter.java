@@ -119,6 +119,20 @@ class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
   }
 
   /**
+   * Removes the record with the specified id
+   *
+   * @param id the DB id to be removed
+   */
+  private void deleteFavoriteMovie(long id) {
+    // Build appropriate uri with String row id appended
+    String stringId = String.valueOf(id);
+    Uri uri = MovieContract.FavoriteMovieEntry.CONTENT_URI;
+    uri = uri.buildUpon().appendPath(stringId).build();
+    // Delete a single row of data using a ContentResolver
+    mContext.getContentResolver().delete(uri, null, null);
+  }
+
+  /**
    * The interface that receives onClick messages.
    */
   public interface ListItemClickListener {
@@ -187,19 +201,5 @@ class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
       });
     }
-  }
-
-  /**
-   * Removes the record with the specified id
-   *
-   * @param id the DB id to be removed
-   */
-  private void deleteFavoriteMovie(long id) {
-    // Build appropriate uri with String row id appended
-    String stringId = String.valueOf(id);
-    Uri uri = MovieContract.FavoriteMovieEntry.CONTENT_URI;
-    uri = uri.buildUpon().appendPath(stringId).build();
-    // Delete a single row of data using a ContentResolver
-    mContext.getContentResolver().delete(uri, null, null);
   }
 }

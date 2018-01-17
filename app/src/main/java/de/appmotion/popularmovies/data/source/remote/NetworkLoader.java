@@ -18,7 +18,7 @@ import okhttp3.Response;
 /**
  * Use OkHttp inside this AsyncTaskLoader to get data from themoviedb.org.
  */
-public class CallApiLoader extends AsyncTaskLoader<String> {
+public class NetworkLoader extends AsyncTaskLoader<String> {
 
   // Name of the URL sent via Bundle to this Loader
   public final static String EXTRA_QUERY_URL = BuildConfig.APPLICATION_ID + ".query_url";
@@ -34,7 +34,7 @@ public class CallApiLoader extends AsyncTaskLoader<String> {
   // We dont need this, because OkHttp is already doing caching in a smarter way.
   private String mJson;
 
-  public CallApiLoader(Context context, Bundle args) {
+  public NetworkLoader(Context context, Bundle args) {
     super(context);
     mArgs = args;
   }

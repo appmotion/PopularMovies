@@ -5,7 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.widget.Toast;
-import de.appmotion.popularmovies.data.source.remote.CallApiLoader;
+import de.appmotion.popularmovies.data.source.remote.NetworkLoader;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import java.util.Locale;
 
@@ -69,18 +69,18 @@ public abstract class BaseActivity extends AppCompatActivity {
   /**
    * Show a Toast Error Message.
    *
-   * @param errorType the {@link CallApiLoader.ErrorType}
+   * @param errorType the {@link NetworkLoader.ErrorType}
    */
-  protected void showErrorMessage(@CallApiLoader.ErrorType String errorType) {
+  protected void showErrorMessage(@NetworkLoader.ErrorType String errorType) {
     String message;
     switch (errorType) {
-      case CallApiLoader.NULL:
+      case NetworkLoader.NULL:
         message = getString(R.string.error_loading_movies);
         break;
-      case CallApiLoader.API_ERROR:
+      case NetworkLoader.API_ERROR:
         message = getString(R.string.error_loading_movies);
         break;
-      case CallApiLoader.OFFLINE:
+      case NetworkLoader.OFFLINE:
         message = getString(R.string.error_connect_internet);
         break;
       default:

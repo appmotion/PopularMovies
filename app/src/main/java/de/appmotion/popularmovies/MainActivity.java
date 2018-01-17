@@ -22,7 +22,7 @@ import butterknife.ButterKnife;
 import de.appmotion.popularmovies.data.FavoriteMovie;
 import de.appmotion.popularmovies.data.Movie;
 import de.appmotion.popularmovies.data.source.local.MovieContract;
-import de.appmotion.popularmovies.data.source.remote.CallApiLoader;
+import de.appmotion.popularmovies.data.source.remote.NetworkLoader;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -40,7 +40,7 @@ public class MainActivity extends BaseActivity
     implements MovieListAdapter.ListItemClickListener, FavoriteMovieCursorAdapter.ListItemClickListener {
 
   // This number will uniquely identify a CursorLoader for loading data from 'favorite_movie' DB table.
-  private static final int DB_LOADER_FAVORITE_MOVIE = 10;
+  private static final int CURSOR_LOADER_FAVORITE_MOVIE = 10;
   // Constant for logging
   private static final String TAG = MainActivity.class.getSimpleName();
   // Define {@link MenuState} Types
@@ -52,10 +52,10 @@ public class MainActivity extends BaseActivity
   // Views
   // RecyclerView which shows Movies
   @BindView(android.R.id.list) RecyclerView mMoviesRecyclerView;
-  // Which page of a movie list from the server has to be downloaded. This number will uniquely identify corresponding CallApiLoader, too.
+  // Which page of a movie list from the server has to be downloaded. This number will uniquely identify corresponding NetworkLoader, too.
   private int mMoviePageToDownload = 1;
-  // Callback for {@link CallApiLoader}
-  private LoaderManager.LoaderCallbacks<String> mApiLoaderCallback;
+  // Callback for {@link NetworkLoader}
+  private LoaderManager.LoaderCallbacks<String> mNetworkLoaderCallback;
   // Callback for {@link CursorLoader}
   private LoaderManager.LoaderCallbacks<Cursor> mCursorLoaderCallback;
   // The About Dialog
@@ -83,7 +83,7 @@ public class MainActivity extends BaseActivity
     updateValuesFromBundle(savedInstanceState);
 
     // Initiate Callbacks for the Loaders
-    mApiLoaderCallback = initApiLoaderCallback();
+    mNetworkLoaderCallback = initNetworkLoaderCallback();
     mCursorLoaderCallback = initCursorLoaderCallback();
 
     // RecyclerView
@@ -138,7 +138,7 @@ public class MainActivity extends BaseActivity
      * created and (if the activity/fragment is currently started) starts the loader. Otherwise
      * the last created loader is re-used.
      */
-    getSupportLoaderManager().initLoader(DB_LOADER_FAVORITE_MOVIE, null, mCursorLoaderCallback);
+    getSupportLoaderManager().initLoader(CURSOR_LOADER_FAVORITE_MOVIE, null, mCursorLoaderCallback);
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
@@ -255,20 +255,20 @@ public class MainActivity extends BaseActivity
   }
 
   private void downloadConfiguration() {
-    // Get URL for popular Configuration Download and build Bundle for {@link CallApiLoader}
+    // Get URL for popular Configuration Download and build Bundle for {@link NetworkLoader}
     URL configurationUrl = NetworkUtils.buildConfigurationUrl();
     Bundle queryBundle = new Bundle();
-    queryBundle.putSerializable(CallApiLoader.EXTRA_QUERY_URL, configurationUrl);
+    queryBundle.putSerializable(NetworkLoader.EXTRA_QUERY_URL, configurationUrl);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiLoader = loaderManager.getLoader(0);
+    Loader<String> networkLoader = loaderManager.getLoader(0);
     // If the Loader was null, initialize it. Else, restart it.
-    if (callApiLoader == null) {
-      loaderManager.initLoader(0, queryBundle, mApiLoaderCallback);
+    if (networkLoader == null) {
+      loaderManager.initLoader(0, queryBundle, mNetworkLoaderCallback);
     } else {
-      loaderManager.restartLoader(0, queryBundle, mApiLoaderCallback);
+      loaderManager.restartLoader(0, queryBundle, mNetworkLoaderCallback);
     }
   }
 
@@ -279,20 +279,20 @@ public class MainActivity extends BaseActivity
    * @param region The region requested.
    */
   private void downloadAndShowPopularMovies(String language, String region) {
-    // Get URL for popular Movies Download and build Bundle for {@link CallApiLoader}
+    // Get URL for popular Movies Download and build Bundle for {@link NetworkLoader}
     URL popularMoviesUrl = NetworkUtils.buildPopularMoviesUrl(language, String.valueOf(mMoviePageToDownload), region);
     Bundle queryBundle = new Bundle();
-    queryBundle.putSerializable(CallApiLoader.EXTRA_QUERY_URL, popularMoviesUrl);
+    queryBundle.putSerializable(NetworkLoader.EXTRA_QUERY_URL, popularMoviesUrl);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiLoader = loaderManager.getLoader(mMoviePageToDownload);
+    Loader<String> networkLoader = loaderManager.getLoader(mMoviePageToDownload);
     // If the Loader was null, initialize it. Else, restart it.
-    if (callApiLoader == null) {
-      loaderManager.initLoader(mMoviePageToDownload, queryBundle, mApiLoaderCallback);
+    if (networkLoader == null) {
+      loaderManager.initLoader(mMoviePageToDownload, queryBundle, mNetworkLoaderCallback);
     } else {
-      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, mApiLoaderCallback);
+      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, mNetworkLoaderCallback);
     }
   }
 
@@ -303,20 +303,20 @@ public class MainActivity extends BaseActivity
    * @param region The region requested.
    */
   private void downloadAndShowTopRatedMovies(String language, String region) {
-    // Get URL for top rated Movies Download and build Bundle for {@link CallApiLoader}
+    // Get URL for top rated Movies Download and build Bundle for {@link NetworkLoader}
     URL topRatedMoviesUrl = NetworkUtils.buildTopRatedMoviesUrl(language, String.valueOf(mMoviePageToDownload), region);
     Bundle queryBundle = new Bundle();
-    queryBundle.putSerializable(CallApiLoader.EXTRA_QUERY_URL, topRatedMoviesUrl);
+    queryBundle.putSerializable(NetworkLoader.EXTRA_QUERY_URL, topRatedMoviesUrl);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiLoader = loaderManager.getLoader(mMoviePageToDownload);
+    Loader<String> networkLoader = loaderManager.getLoader(mMoviePageToDownload);
     // If the Loader was null, initialize it. Else, restart it.
-    if (callApiLoader == null) {
-      loaderManager.initLoader(mMoviePageToDownload, queryBundle, mApiLoaderCallback);
+    if (networkLoader == null) {
+      loaderManager.initLoader(mMoviePageToDownload, queryBundle, mNetworkLoaderCallback);
     } else {
-      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, mApiLoaderCallback);
+      loaderManager.restartLoader(mMoviePageToDownload, queryBundle, mNetworkLoaderCallback);
     }
   }
 
@@ -344,7 +344,7 @@ public class MainActivity extends BaseActivity
    * Called when Loader with ID:mMoviePageToDownload finished in onLoadFinished().
    * Parse jsonData and show in Views.
    *
-   * @param jsonData from onLoadFinished of {@link CallApiLoader}.
+   * @param jsonData from onLoadFinished of {@link NetworkLoader}.
    */
   private void parseAndShowJsonData(String jsonData) {
     List<Movie> movieList = new ArrayList<>();
@@ -431,7 +431,7 @@ public class MainActivity extends BaseActivity
    * Below this point are {@link LoaderManager.LoaderCallbacks} methods
    **/
 
-  private LoaderManager.LoaderCallbacks<String> initApiLoaderCallback() {
+  private LoaderManager.LoaderCallbacks<String> initNetworkLoaderCallback() {
     return new LoaderManager.LoaderCallbacks<String>() {
 
       /**
@@ -442,7 +442,7 @@ public class MainActivity extends BaseActivity
        * @return Return a new Loader instance that is ready to start loading.
        */
       @Override public Loader<String> onCreateLoader(int loaderId, Bundle args) {
-        return new CallApiLoader(MainActivity.this, args);
+        return new NetworkLoader(MainActivity.this, args);
       }
 
       /**
@@ -457,14 +457,14 @@ public class MainActivity extends BaseActivity
 
         // If the results are null, we assume an error has occurred.
         if (data == null) {
-          showErrorMessage(CallApiLoader.NULL);
+          showErrorMessage(NetworkLoader.NULL);
         } else {
           switch (data) {
-            case CallApiLoader.API_ERROR:
-              showErrorMessage(CallApiLoader.API_ERROR);
+            case NetworkLoader.API_ERROR:
+              showErrorMessage(NetworkLoader.API_ERROR);
               break;
-            case CallApiLoader.OFFLINE:
-              showErrorMessage(CallApiLoader.OFFLINE);
+            case NetworkLoader.OFFLINE:
+              showErrorMessage(NetworkLoader.OFFLINE);
               break;
             case "":
               Log.d(TAG, "Empty response from Server");
@@ -497,7 +497,7 @@ public class MainActivity extends BaseActivity
       @Override public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
 
         switch (loaderId) {
-          case DB_LOADER_FAVORITE_MOVIE:
+          case CURSOR_LOADER_FAVORITE_MOVIE:
             Uri favoriteMovieQueryUri = MovieContract.FavoriteMovieEntry.CONTENT_URI;
             String sortOrder = MovieContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC";
             return new CursorLoader(MainActivity.this, favoriteMovieQueryUri, null, null, null, sortOrder);
@@ -508,7 +508,7 @@ public class MainActivity extends BaseActivity
 
       @Override public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         switch (loader.getId()) {
-          case DB_LOADER_FAVORITE_MOVIE:
+          case CURSOR_LOADER_FAVORITE_MOVIE:
             if (cursor != null) {
               // Data loaded
               if (cursor.moveToLast()) {
@@ -531,7 +531,7 @@ public class MainActivity extends BaseActivity
 
       @Override public void onLoaderReset(Loader<Cursor> loader) {
         switch (loader.getId()) {
-          case DB_LOADER_FAVORITE_MOVIE:
+          case CURSOR_LOADER_FAVORITE_MOVIE:
             // Since this Loader's data is now invalid, we need to clear the Adapter that is displaying the data.
             mFavoriteMovieCursorAdapter.swapCursor(null);
             break;

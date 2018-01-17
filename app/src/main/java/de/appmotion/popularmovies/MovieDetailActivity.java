@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,7 +19,7 @@ import butterknife.ButterKnife;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.data.source.local.MovieContract;
-import de.appmotion.popularmovies.data.source.remote.CallApiLoader;
+import de.appmotion.popularmovies.data.source.remote.NetworkLoader;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import java.net.URL;
 import org.json.JSONException;
@@ -31,17 +32,15 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
 
   // Name of the 'Movie Id data' sent via Intent to this Activity
   public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
-
+  // Constant for logging
+  private static final String TAG = MovieDetailActivity.class.getSimpleName();
   // Suggestions to Make Your Project Stand Out
   //TODO: Implement sharing functionality to allow the user to share the first trailer’s YouTube URL from the movie details screen.
   //TODO: Extend the favorites ContentProvider to store the movie poster, synopsis, user rating, and release date, and display them even when offline.
   private static final String TRAILER_SHARE_HASHTAG = " #PopularMovieApp";
 
-  /*
-   * This number will uniquely identify our Loader and is chosen arbitrarily. You can change this
-   * to any number you like, as long as you use the same variable name.
-   */
-  private static final int MOVIE_DETAIL_LOADER_ID = 1;
+  // This number will uniquely identify a NetworkLoader for loading movie detail data from themoviedb.org.
+  private static final int NETWORK_LOADER_MOVIE_DETAIL = 1;
 
   // Views
   @BindView(R.id.tv_movie_title) TextView mMovieTitle;
@@ -68,9 +67,6 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
       getSupportActionBar().setDisplayHomeAsUpEnabled(true);
       getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
-
-    // Initialize the loader with MOVIE_DETAIL_LOADER_ID as the ID, null for the bundle, and this for the context
-    getSupportLoaderManager().initLoader(MOVIE_DETAIL_LOADER_ID, null, this);
 
     // Get Movie Id from Intent, then download Movie Details.
     if (getIntent() != null) {
@@ -124,20 +120,20 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
    * @param language The language requested.
    */
   private void downloadMovieDetails(long movieId, String language) {
-    // Get URL for Movie details Download and build Bundle for {@link CallApiLoader}
+    // Get URL for Movie details Download and build Bundle for {@link NetworkLoader}
     URL movieDetailUrl = NetworkUtils.buildMovieDetailUrl(movieId, language);
     Bundle queryBundle = new Bundle();
-    queryBundle.putSerializable(CallApiLoader.EXTRA_QUERY_URL, movieDetailUrl);
+    queryBundle.putSerializable(NetworkLoader.EXTRA_QUERY_URL, movieDetailUrl);
 
     // Call getSupportLoaderManager and store it in a LoaderManager variable
     LoaderManager loaderManager = getSupportLoaderManager();
     // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiTaskLoader = loaderManager.getLoader(MOVIE_DETAIL_LOADER_ID);
+    Loader<String> callApiTaskLoader = loaderManager.getLoader(NETWORK_LOADER_MOVIE_DETAIL);
     // If the Loader was null, initialize it. Else, restart it.
     if (callApiTaskLoader == null) {
-      loaderManager.initLoader(MOVIE_DETAIL_LOADER_ID, queryBundle, this);
+      loaderManager.initLoader(NETWORK_LOADER_MOVIE_DETAIL, queryBundle, this);
     } else {
-      loaderManager.restartLoader(MOVIE_DETAIL_LOADER_ID, queryBundle, this);
+      loaderManager.restartLoader(NETWORK_LOADER_MOVIE_DETAIL, queryBundle, this);
     }
   }
 
@@ -145,7 +141,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
    * Called when MOVIE_DETAIL_LOADER finished in onLoadFinished().
    * Parse jsonData and show in Views.
    *
-   * @param jsonData from onLoadFinished of {@link CallApiLoader}.
+   * @param jsonData from onLoadFinished of {@link NetworkLoader}.
    */
   private void parseAndShowJsonData(String jsonData) {
     try {
@@ -223,7 +219,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
    **/
 
   @Override public Loader<String> onCreateLoader(int id, Bundle args) {
-    return new CallApiLoader(this, args);
+    return new NetworkLoader(this, args);
   }
 
   @Override public void onLoadFinished(Loader<String> loader, String data) {
@@ -232,16 +228,17 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
 
     // If the results are null, we assume an error has occurred.
     if (data == null) {
-      showErrorMessage(CallApiLoader.NULL);
+      showErrorMessage(NetworkLoader.NULL);
     } else {
       switch (data) {
-        case CallApiLoader.API_ERROR:
-          showErrorMessage(CallApiLoader.API_ERROR);
+        case NetworkLoader.API_ERROR:
+          showErrorMessage(NetworkLoader.API_ERROR);
           break;
-        case CallApiLoader.OFFLINE:
-          showErrorMessage(CallApiLoader.OFFLINE);
+        case NetworkLoader.OFFLINE:
+          showErrorMessage(NetworkLoader.OFFLINE);
           break;
         case "":
+          Log.d(TAG, "Empty response from Server");
           break;
         default:
           parseAndShowJsonData(data);
