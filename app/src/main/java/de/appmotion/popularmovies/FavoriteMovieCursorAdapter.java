@@ -61,17 +61,20 @@ class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
   @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, @ViewType int viewType) {
     Context context = parent.getContext();
-    int layoutIdForListItem = R.layout.movie_item;
     LayoutInflater inflater = LayoutInflater.from(context);
 
-    View view;
-    RecyclerView.ViewHolder viewHolder = null;
+    RecyclerView.ViewHolder viewHolder;
 
-    /* Movie View */
-    if (DEFAULT == viewType) {
-      view = inflater.inflate(layoutIdForListItem, parent, false);
-      viewHolder = new ViewHolderMovieItem(view);
+    switch (viewType) {
+      case DEFAULT: {
+        final View view = inflater.inflate(R.layout.movie_item, parent, false);
+        viewHolder = new ViewHolderMovieItem(view);
+        break;
+      }
+      default:
+        throw new IllegalArgumentException("Invalid view type, value of " + viewType);
     }
+
     return viewHolder;
   }
 
@@ -82,10 +85,16 @@ class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
       return; // bail if returned null
     }
 
-    /* Movie View */
-    if (DEFAULT == getItemViewType(position)) {
-      final ViewHolderMovieItem viewHolder = (ViewHolderMovieItem) holder;
-      viewHolder.bind();
+    int viewType = getItemViewType(position);
+
+    switch (viewType) {
+      case DEFAULT: {
+        final ViewHolderMovieItem viewHolder = (ViewHolderMovieItem) holder;
+        viewHolder.bind();
+        break;
+      }
+      default:
+        throw new IllegalArgumentException("Invalid view type, value of " + viewType);
     }
   }
 
