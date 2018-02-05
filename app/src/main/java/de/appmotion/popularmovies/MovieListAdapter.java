@@ -25,7 +25,7 @@ import java.util.List;
 class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
   // {@link ViewType} Type
-  private static final int DEFAULT = 0;
+  private static final int VIEW_TYPE_DEFAULT = 0;
   private final ListItemClickListener mOnClickListener;
   private final @NetworkUtils.ImageSize String mRequiredImageSize;
   private List<Movie> mMovieList;
@@ -39,7 +39,7 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
   }
 
   @Override public @ViewType int getItemViewType(int position) {
-    return DEFAULT;
+    return VIEW_TYPE_DEFAULT;
   }
 
   @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, @ViewType int viewType) {
@@ -49,7 +49,7 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     RecyclerView.ViewHolder viewHolder;
 
     switch (viewType) {
-      case DEFAULT: {
+      case VIEW_TYPE_DEFAULT: {
         final View view = inflater.inflate(R.layout.movie_item, parent, false);
         viewHolder = new ViewHolderMovieItem(view);
         break;
@@ -66,7 +66,7 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     int viewType = getItemViewType(position);
 
     switch (viewType) {
-      case DEFAULT: {
+      case VIEW_TYPE_DEFAULT: {
         final ViewHolderMovieItem viewHolder = (ViewHolderMovieItem) holder;
         viewHolder.bind(position);
         break;
@@ -117,7 +117,7 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     void onListItemClick(Movie movie);
   }
 
-  @Retention(RetentionPolicy.CLASS) @IntDef({ DEFAULT }) @interface ViewType {
+  @Retention(RetentionPolicy.CLASS) @IntDef({ VIEW_TYPE_DEFAULT }) @interface ViewType {
   }
 
   /**

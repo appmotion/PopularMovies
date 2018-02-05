@@ -26,7 +26,7 @@ import java.lang.annotation.RetentionPolicy;
 class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
   // {@link ViewType} Type
-  private static final int DEFAULT = 0;
+  private static final int VIEW_TYPE_DEFAULT = 0;
   private final ListItemClickListener mOnClickListener;
   private final @NetworkUtils.ImageSize String mRequiredImageSize;
   private final Context mContext;
@@ -56,7 +56,7 @@ class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
   }
 
   @Override public @ViewType int getItemViewType(int position) {
-    return DEFAULT;
+    return VIEW_TYPE_DEFAULT;
   }
 
   @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, @ViewType int viewType) {
@@ -66,7 +66,7 @@ class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     RecyclerView.ViewHolder viewHolder;
 
     switch (viewType) {
-      case DEFAULT: {
+      case VIEW_TYPE_DEFAULT: {
         final View view = inflater.inflate(R.layout.movie_item, parent, false);
         viewHolder = new ViewHolderMovieItem(view);
         break;
@@ -88,7 +88,7 @@ class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     int viewType = getItemViewType(position);
 
     switch (viewType) {
-      case DEFAULT: {
+      case VIEW_TYPE_DEFAULT: {
         final ViewHolderMovieItem viewHolder = (ViewHolderMovieItem) holder;
         viewHolder.bind();
         break;
@@ -148,7 +148,7 @@ class FavoriteMovieCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     void onListItemClick(FavoriteMovie favoriteMovie);
   }
 
-  @Retention(RetentionPolicy.CLASS) @IntDef({ DEFAULT }) @interface ViewType {
+  @Retention(RetentionPolicy.CLASS) @IntDef({ VIEW_TYPE_DEFAULT }) @interface ViewType {
   }
 
   /**
