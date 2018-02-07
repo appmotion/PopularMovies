@@ -6,5 +6,5 @@
   <item android:drawable="@color/colorPrimaryLight" android:state_selected="true"/>
 
   <!-- Default state -->
-  <item android:drawable="@android:color/background_light" />
+  <item android:drawable="@android:color/background_light"/>
 </selector>
