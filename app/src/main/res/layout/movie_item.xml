@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     >
 
-  <ImageView
-      android:id="@+id/iv_movie_image"
+  <FrameLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:adjustViewBounds="true"
-      android:scaleType="fitCenter"
-      />
+      >
 
-</FrameLayout>
+    <ImageView
+        android:id="@+id/iv_movie_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/ally_movie_poster"
+        android:scaleType="fitCenter"
+        />
+
+  </FrameLayout>
+
+</layout>

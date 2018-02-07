@@ -2,6 +2,7 @@ package de.appmotion.popularmovies;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,15 +13,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.ImageView;
-import android.widget.TextView;
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.data.source.local.MovieContract;
 import de.appmotion.popularmovies.data.source.remote.NetworkLoader;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
+import de.appmotion.popularmovies.databinding.ActivityMovieDetailBinding;
 import java.net.URL;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,14 +40,6 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   // This number will uniquely identify a NetworkLoader for loading movie detail data from themoviedb.org.
   private static final int NETWORK_LOADER_MOVIE_DETAIL = 1;
 
-  // Views
-  @BindView(R.id.tv_movie_title) TextView mMovieTitle;
-  @BindView(R.id.iv_movie_image) ImageView mMovieImage;
-  @BindView(R.id.tv_movie_year) TextView mMovieYear;
-  @BindView(R.id.tv_movie_duration) TextView mMovieDuration;
-  @BindView(R.id.tv_movie_rating) TextView mMovieRating;
-  @BindView(R.id.tv_movie_overview) TextView mMovieOverview;
-
   // The Id of this movie
   private long mMovieId;
   // The tile of this movie
@@ -57,10 +47,11 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   // The image url of this movie
   private String mImageUrl;
 
+  private ActivityMovieDetailBinding mDetailBinding;
+
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_movie_detail);
-    ButterKnife.bind(this);
+    mDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_movie_detail);
 
     // add back arrow to toolbar
     if (getSupportActionBar() != null) {
@@ -154,24 +145,24 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
       mImageUrl = movieDetail.getString("poster_path");
 
       // Ttile
-      mMovieTitle.setText(mTitle);
+      mDetailBinding.tvMovieTitle.setText(mTitle);
       // Year
-      mMovieYear.setText(year);
+      mDetailBinding.tvMovieYear.setText(year);
       // Duration
       duration = duration + "min";
-      mMovieDuration.setText(duration);
+      mDetailBinding.tvMovieDuration.setText(duration);
       // Rating
       rating = rating + " / 10";
-      mMovieRating.setText(rating);
+      mDetailBinding.tvMovieRating.setText(rating);
       // Overview
-      mMovieOverview.setText(overview);
+      mDetailBinding.tvMovieOverview.setText(overview);
 
       // Load Movie Image
       Picasso.with(this)
           .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, mImageUrl))
           .placeholder(android.R.drawable.screen_background_light_transparent)
           .error(R.drawable.movie_empty)
-          .into(mMovieImage, new Callback() {
+          .into(mDetailBinding.ivMovieImage, new Callback() {
             @Override public void onSuccess() {
             }
 

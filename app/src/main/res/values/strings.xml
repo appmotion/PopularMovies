@@ -17,6 +17,14 @@
   <string name="movie_detail">Movie Detail</string>
   <string name="ok">OK</string>
 
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     - Used for Accessibility purposes (Accessibility == a11y)                            -
+     -                                                                                    -
+     - Fun Fact: Accessibility is abbreviated a11y because accessibility starts with 'a', -
+     - followed by 11 letters, and then a 'y'. It is pronounced alley, like an alley cat. -
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <string name="ally_movie_poster">Movie Poster</string>
+
   <!--By convention, "action" denotes that this String will be used as the label for an Action,-->
   <!--typically from the action bar. The ActionBar is limited real estate, so shorter is better.-->
   <string name="action_share">Share</string>

@@ -1,19 +1,18 @@
 package de.appmotion.popularmovies;
 
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.data.Movie;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
+import de.appmotion.popularmovies.databinding.MovieItemBinding;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
@@ -123,12 +122,12 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
   /**
    * ViewHolder MovieItem
    */
-  class ViewHolderMovieItem extends RecyclerView.ViewHolder implements View.OnClickListener {
-    @BindView(R.id.iv_movie_image) ImageView movieImage;
+  private class ViewHolderMovieItem extends RecyclerView.ViewHolder implements View.OnClickListener {
+    MovieItemBinding mItemBinding;
 
     ViewHolderMovieItem(View itemView) {
       super(itemView);
-      ButterKnife.bind(this, itemView);
+      mItemBinding = DataBindingUtil.bind(itemView);
       itemView.setOnClickListener(this);
     }
 
@@ -140,7 +139,7 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
           .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, movie.getImageUrl()))
           .placeholder(android.R.drawable.screen_background_light_transparent)
           .error(R.drawable.movie_empty)
-          .into(movieImage, new Callback() {
+          .into(mItemBinding.ivMovieImage, new Callback() {
             @Override public void onSuccess() {
             }
 

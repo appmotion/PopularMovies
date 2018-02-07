@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
@@ -17,13 +18,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import de.appmotion.popularmovies.data.FavoriteMovie;
 import de.appmotion.popularmovies.data.Movie;
 import de.appmotion.popularmovies.data.source.local.MovieContract;
 import de.appmotion.popularmovies.data.source.remote.NetworkLoader;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
+import de.appmotion.popularmovies.databinding.ActivityMainBinding;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.URL;
@@ -49,9 +49,6 @@ public class MainActivity extends BaseActivity
   private static final int FAVORITE_MOVIES = 2;
   // Save {@link MenuState} via onSaveInstanceState
   private static final String STATE_MENU_STATE = "menu_state";
-  // Views
-  // RecyclerView which shows Movies
-  @BindView(android.R.id.list) RecyclerView mMoviesRecyclerView;
   // Which page of a movie list from the server has to be downloaded. This number will uniquely identify corresponding NetworkLoader, too.
   private int mMoviePageToDownload = 1;
   // Callback for {@link NetworkLoader}
@@ -67,6 +64,8 @@ public class MainActivity extends BaseActivity
   // Saves current selected {@link MenuState} from Options Menu
   private int mMenuState = POPULAR_MOVIES;
 
+  private ActivityMainBinding mMainBinding;
+
   /**
    * Called when the activity is first created. This is where you should do all of your normal
    * static set up: create views, bind data to lists, etc.
@@ -77,8 +76,7 @@ public class MainActivity extends BaseActivity
    */
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
-    ButterKnife.bind(this);
+    mMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
     updateValuesFromBundle(savedInstanceState);
 
@@ -89,8 +87,8 @@ public class MainActivity extends BaseActivity
     // RecyclerView
     // Use setHasFixedSize to improve performance if you know that changes in content do not
     // change the child layout size in the RecyclerView
-    mMoviesRecyclerView.setHasFixedSize(true);
-    mMoviesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+    mMainBinding.rvMovieList.setHasFixedSize(true);
+    mMainBinding.rvMovieList.addOnScrollListener(new RecyclerView.OnScrollListener() {
       @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
         if (dy > 0 && isLastItemDisplaying(recyclerView)) {
@@ -109,7 +107,7 @@ public class MainActivity extends BaseActivity
     boolean shouldReverseLayout = false;
     RecyclerView.LayoutManager layoutManager =
         new GridLayoutManager(this, calculateNoOfColumns(), GridLayoutManager.VERTICAL, shouldReverseLayout);
-    mMoviesRecyclerView.setLayoutManager(layoutManager);
+    mMainBinding.rvMovieList.setLayoutManager(layoutManager);
 
     // Initiate the popular and top rated movielist adapter for RecyclerView
     mMovieListAdapter = new MovieListAdapter(new ArrayList<Movie>(0), mRequiredImageSize, this);
@@ -121,15 +119,15 @@ public class MainActivity extends BaseActivity
     // get Movies depending on current {@link MenuState}
     if (mMenuState == POPULAR_MOVIES) {
       setTitle(R.string.action_popular);
-      mMoviesRecyclerView.setAdapter(mMovieListAdapter);
+      mMainBinding.rvMovieList.setAdapter(mMovieListAdapter);
       downloadAndShowPopularMovies(mDefaultLanguage, mDefaultCountry);
     } else if (mMenuState == TOP_RATED_MOVIES) {
       setTitle(R.string.action_top);
-      mMoviesRecyclerView.setAdapter(mMovieListAdapter);
+      mMainBinding.rvMovieList.setAdapter(mMovieListAdapter);
       downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
     } else if (mMenuState == FAVORITE_MOVIES) {
       setTitle(R.string.action_favorite_show);
-      mMoviesRecyclerView.setAdapter(mFavoriteMovieCursorAdapter);
+      mMainBinding.rvMovieList.setAdapter(mFavoriteMovieCursorAdapter);
     }
 
     // Loader for Favorite Movies
@@ -209,7 +207,7 @@ public class MainActivity extends BaseActivity
    */
   @Override protected void onDestroy() {
     dismissDialog(mAboutDialog);
-    mMoviesRecyclerView.clearOnScrollListeners();
+    mMainBinding.rvMovieList.clearOnScrollListeners();
     super.onDestroy();
   }
 
@@ -227,7 +225,7 @@ public class MainActivity extends BaseActivity
         setTitle(R.string.action_popular);
         mMovieListAdapter.clearMovieList();
         mMoviePageToDownload = 1;
-        mMoviesRecyclerView.setAdapter(mMovieListAdapter);
+        mMainBinding.rvMovieList.setAdapter(mMovieListAdapter);
         downloadAndShowPopularMovies(mDefaultLanguage, mDefaultCountry);
         return true;
       // Load and show To Rated Movies.
@@ -236,14 +234,14 @@ public class MainActivity extends BaseActivity
         setTitle(R.string.action_top);
         mMovieListAdapter.clearMovieList();
         mMoviePageToDownload = 1;
-        mMoviesRecyclerView.setAdapter(mMovieListAdapter);
+        mMainBinding.rvMovieList.setAdapter(mMovieListAdapter);
         downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
         return true;
       // Load local saved favorite Movies.
       case R.id.action_favorite_show:
         mMenuState = FAVORITE_MOVIES;
         setTitle(R.string.action_favorite_show);
-        mMoviesRecyclerView.setAdapter(mFavoriteMovieCursorAdapter);
+        mMainBinding.rvMovieList.setAdapter(mFavoriteMovieCursorAdapter);
         return true;
       // Show About Dialog.
       case R.id.action_about:
@@ -364,7 +362,7 @@ public class MainActivity extends BaseActivity
         }
         i++;
       }
-      if (mMoviesRecyclerView != null) {
+      if (mMainBinding.rvMovieList != null) {
         // Add new downloaded Movies to adapter
         mMovieListAdapter.addMovieList(movieList);
       }
