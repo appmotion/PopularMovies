@@ -33,10 +33,10 @@
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:orientation="vertical"
+          android:paddingBottom="@dimen/activity_vertical_margin"
           android:paddingLeft="@dimen/activity_horizontal_margin"
           android:paddingRight="@dimen/activity_horizontal_margin"
           android:paddingTop="@dimen/activity_vertical_margin"
-          android:paddingBottom="@dimen/activity_vertical_margin"
           >
 
         <!-- Container for Movie Image and General Movie Description  -->
@@ -69,32 +69,80 @@
               android:paddingLeft="16dp"
               >
 
-            <TextView
-                android:id="@+id/tv_movie_year"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                tools:text="Year"
-                />
+                android:orientation="horizontal"
+                >
 
-            <TextView
-                android:id="@+id/tv_movie_duration"
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginEnd="8dp"
+                  android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                  tools:text="Year"
+                  />
+
+              <TextView
+                  android:id="@+id/tv_movie_year"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                  tools:text="24.12.2012"
+                  />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:layout_marginTop="8dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:textStyle="italic"
-                tools:text="Duration"
-                />
+                android:orientation="horizontal"
+                >
 
-            <TextView
-                android:id="@+id/tv_movie_rating"
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginEnd="8dp"
+                  android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                  tools:text="Duration"
+                  />
+
+              <TextView
+                  android:id="@+id/tv_movie_duration"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                  android:textStyle="italic"
+                  tools:text="120 min"
+                  />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                tools:text="Rating"
-                />
+                android:orientation="horizontal"
+                >
+
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginEnd="8dp"
+                  android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                  tools:text="Rating"
+                  />
+
+              <TextView
+                  android:id="@+id/tv_movie_rating"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                  tools:text="7.0 / 10"
+                  />
+
+            </LinearLayout>
 
           </LinearLayout>
 
