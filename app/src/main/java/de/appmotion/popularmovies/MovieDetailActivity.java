@@ -175,7 +175,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   }
 
   /**
-   * Insert a movie to {@link MovieContract.FavoriteMovieEntry} with its id, title, imageUrl and the current timestamp.
+   * Insert a movie to {@link MovieContract.FavoriteMovieEntry} with its id, title and imageUrl.
    *
    * @param movieId movies's id
    * @param title movie's title
@@ -206,14 +206,14 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   }
 
   /**
-   * Below this point are the three {@link LoaderManager.LoaderCallbacks} methods
+   * Below this point are {@link LoaderManager.LoaderCallbacks} methods
    **/
 
-  @Override public Loader<String> onCreateLoader(int id, Bundle args) {
+  @NonNull @Override public Loader<String> onCreateLoader(int id, Bundle args) {
     return new NetworkLoader(this, args);
   }
 
-  @Override public void onLoadFinished(Loader<String> loader, String data) {
+  @Override public void onLoadFinished(@NonNull Loader<String> loader, String data) {
     // When we finish loading, we want to hide the loading indicator from the user.
     //mLoadingIndicator.setVisibility(View.INVISIBLE);
 
@@ -238,6 +238,6 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   }
 
   // Override onLoaderReset as it is part of the interface we implement, but don't do anything in this method
-  @Override public void onLoaderReset(Loader<String> loader) {
+  @Override public void onLoaderReset(@NonNull Loader<String> loader) {
   }
 }

@@ -16,8 +16,9 @@ public class MovieContentProvider extends ContentProvider {
 
   // It's convention to use 100, 200, 300, etc for directories,
   // and related ints (101, 102, ..) for items in that directory.
-  public static final int CODE_FAVORITE_MOVIE = 100;
-  public static final int CODE_FAVORITE_MOVIE_WITH_ID = 101;
+  public static final int CODE_MOVIE = 100;
+  public static final int CODE_FAVORITE_MOVIE = 200;
+  public static final int CODE_FAVORITE_MOVIE_WITH_ID = 201;
 
   private static final UriMatcher sUriMatcher = buildUriMatcher();
   // Member variable for a MovieDbHelper that's initialized in the onCreate() method
@@ -43,6 +44,7 @@ public class MovieContentProvider extends ContentProvider {
       For each kind of uri you may want to access, add the corresponding match with addURI.
       The two calls below add matches for the favorite movie directory and a single item by ID.
      */
+    uriMatcher.addURI(MovieContract.AUTHORITY, MovieContract.PATH_MOVIE, CODE_MOVIE);
     uriMatcher.addURI(MovieContract.AUTHORITY, MovieContract.PATH_FAVORITE_MOVIE, CODE_FAVORITE_MOVIE);
     // The "/#" signifies to the UriMatcher that if PATH_FAVORITE_MOVIE is followed by ANY number, that it should return the CODE_FAVORITE_MOVIE_WITH_ID code
     uriMatcher.addURI(MovieContract.AUTHORITY, MovieContract.PATH_FAVORITE_MOVIE + "/#", CODE_FAVORITE_MOVIE_WITH_ID);
@@ -92,6 +94,10 @@ public class MovieContentProvider extends ContentProvider {
     String[] mSelectionArgs;
 
     switch (match) {
+      // Query for the movie directory
+      case CODE_MOVIE:
+        returnCursor = db.query(MovieContract.MovieEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+        break;
       // Query for the favorite movie directory
       case CODE_FAVORITE_MOVIE:
         returnCursor = db.query(MovieContract.FavoriteMovieEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
@@ -129,12 +135,22 @@ public class MovieContentProvider extends ContentProvider {
 
     // Write URI matching code to identify the match for the favorite movie directory
     int match = sUriMatcher.match(uri);
+    long id; // DB Id of inserted ContentValues
     Uri returnUri; // URI to be returned
 
     switch (match) {
+      case CODE_MOVIE:
+        // Inserting values into movie table
+        id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, values);
+        if (id > 0) {
+          returnUri = ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI, id);
+        } else {
+          throw new android.database.SQLException("Failed to insert row into " + uri);
+        }
+        break;
       case CODE_FAVORITE_MOVIE:
         // Inserting values into favorite movie table
-        long id = db.insert(MovieContract.FavoriteMovieEntry.TABLE_NAME, null, values);
+        id = db.insert(MovieContract.FavoriteMovieEntry.TABLE_NAME, null, values);
         if (id > 0) {
           returnUri = ContentUris.withAppendedId(MovieContract.FavoriteMovieEntry.CONTENT_URI, id);
         } else {
@@ -178,12 +194,33 @@ public class MovieContentProvider extends ContentProvider {
     final SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
     int match = sUriMatcher.match(uri);
+    int rowsInserted = 0;
 
     switch (match) {
 
+      case CODE_MOVIE:
+        db.beginTransaction();
+        try {
+          for (ContentValues value : values) {
+            long _id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, value);
+            if (_id != -1) {
+              rowsInserted++;
+            }
+          }
+          db.setTransactionSuccessful();
+        } finally {
+          db.endTransaction();
+        }
+
+        if (rowsInserted > 0) {
+          getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        // Return the number of rows inserted
+        return rowsInserted;
+
       case CODE_FAVORITE_MOVIE:
         db.beginTransaction();
-        int rowsInserted = 0;
         try {
           for (ContentValues value : values) {
             long _id = db.insert(MovieContract.FavoriteMovieEntry.TABLE_NAME, null, value);

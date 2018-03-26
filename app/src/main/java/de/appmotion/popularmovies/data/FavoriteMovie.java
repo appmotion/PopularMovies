@@ -8,8 +8,6 @@ import de.appmotion.popularmovies.data.source.local.MovieContract;
  */
 public final class FavoriteMovie extends Movie {
 
-  private long mId;
-
   /**
    * Use this constructor to return a FavoriteMovie from a Cursor
    *
@@ -22,13 +20,5 @@ public final class FavoriteMovie extends Movie {
     favoriteMovie.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE)));
     favoriteMovie.setImageUrl(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL)));
     return favoriteMovie;
-  }
-
-  public long getId() {
-    return mId;
-  }
-
-  public void setId(long id) {
-    mId = id;
   }
 }

@@ -28,7 +28,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
    */
   @Override public void onCreate(SQLiteDatabase sqLiteDatabase) {
 
-    /* Create a table to hold Favoritelist data
+    /* Create a table to hold movie data
      *
      * If the INTEGER PRIMARY KEY column is not explicitly given a value, then it will be filled
      * automatically with an unused integer, usually one more than the largest _ID currently in
@@ -38,6 +38,40 @@ public class MovieDbHelper extends SQLiteOpenHelper {
      * _ID assignment algorithm to prevent the reuse of _IDs over the lifetime of the database.
      * In other words, the purpose of AUTOINCREMENT is to prevent the reuse of _IDs from previously
      * deleted rows.
+     */
+    final String SQL_CREATE_MOVIE_TABLE = "CREATE TABLE "
+        + MovieContract.MovieEntry.TABLE_NAME
+        + " ("
+        + MovieContract.MovieEntry._ID
+        + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
+        + " INTEGER NOT NULL, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_TITLE
+        + " TEXT NOT NULL, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
+        + " TEXT, "
+        + MovieContract.MovieEntry.COLUMN_TIMESTAMP
+        + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        /*
+         * To ensure this table can only contain one Movie entry per Movie ID, we declare
+         * the ID column to be unique. We also specify "ON CONFLICT REPLACE". This tells
+         * SQLite that if we have a Movie entry for a certain ID and we attempt to
+         * insert another Movie entry with that ID, we replace the old Movie entry.
+         */
+        + " UNIQUE ("
+        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
+        + ") ON CONFLICT REPLACE"
+        + ");";
+
+    /*
+     * After we've spelled out our SQLite table creation statement above, we actually execute
+     * that SQL with the execSQL method of our SQLite database object.
+     */
+    sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TABLE);
+
+
+    /*
+     * Create a table to hold favorite movie data
      */
     final String SQL_CREATE_FAVORITE_MOVIE_TABLE = "CREATE TABLE "
         + MovieContract.FavoriteMovieEntry.TABLE_NAME
@@ -52,21 +86,11 @@ public class MovieDbHelper extends SQLiteOpenHelper {
         + " TEXT, "
         + MovieContract.FavoriteMovieEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-        /*
-         * To ensure this table can only contain one Movie entry per Movie ID, we declare
-         * the ID column to be unique. We also specify "ON CONFLICT REPLACE". This tells
-         * SQLite that if we have a Movie entry for a certain ID and we attempt to
-         * insert another Movie entry with that ID, we replace the old Movie entry.
-         */
         + " UNIQUE ("
         + MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_ID
         + ") ON CONFLICT REPLACE"
         + ");";
 
-    /*
-     * After we've spelled out our SQLite table creation statement above, we actually execute
-     * that SQL with the execSQL method of our SQLite database object.
-     */
     sqLiteDatabase.execSQL(SQL_CREATE_FAVORITE_MOVIE_TABLE);
   }
 
@@ -79,10 +103,11 @@ public class MovieDbHelper extends SQLiteOpenHelper {
    * @param newVersion The new database version
    */
   @Override public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-    // For now simply drop the table and create a new one. This means if you change the
-    // DATABASE_VERSION the table will be dropped.
-    // In a production app, this method might be modified to ALTER the table
-    // instead of dropping it, so that existing data is not deleted.
+    // For now simply drop the tables and create new ones. This means if you change the
+    // DATABASE_VERSION the tables will be dropped.
+    // In a production app, this method might be modified to ALTER the tables
+    // instead of dropping them, so that existing data is not deleted.
+    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.TABLE_NAME);
     sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.FavoriteMovieEntry.TABLE_NAME);
     onCreate(sqLiteDatabase);
   }
