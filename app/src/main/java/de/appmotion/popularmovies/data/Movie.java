@@ -4,14 +4,16 @@ import android.database.Cursor;
 import de.appmotion.popularmovies.data.source.local.MovieContract;
 
 /**
- * Model class for a Movie.
+ * Immutable model class for a Movie.
  */
-public class Movie {
+public final class Movie {
 
   private long mId;
   private long mMovieId;
   private String mTitle;
   private String mImageUrl;
+  private double mPopularity;
+  private double mVoteAverage;
 
   /**
    * Use this constructor to return a Movie from a Cursor
@@ -20,10 +22,12 @@ public class Movie {
    */
   public static Movie from(Cursor cursor) {
     final Movie movie = new Movie();
-    movie.setId(cursor.getLong(cursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry._ID)));
-    movie.setMovieId(cursor.getLong(cursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_ID)));
-    movie.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE)));
-    movie.setImageUrl(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL)));
+    movie.setId(cursor.getLong(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry._ID)));
+    movie.setMovieId(cursor.getLong(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_ID)));
+    movie.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE)));
+    movie.setImageUrl(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL)));
+    movie.setPopularity(cursor.getDouble(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY)));
+    movie.setVoteAverage(cursor.getDouble(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE)));
     return movie;
   }
 
@@ -57,5 +61,21 @@ public class Movie {
 
   public void setImageUrl(String imageUrl) {
     mImageUrl = imageUrl;
+  }
+
+  public double getPopularity() {
+    return mPopularity;
+  }
+
+  public void setPopularity(double popularity) {
+    mPopularity = popularity;
+  }
+
+  public double getVoteAverage() {
+    return mVoteAverage;
+  }
+
+  public void setVoteAverage(double voteAverage) {
+    mVoteAverage = voteAverage;
   }
 }

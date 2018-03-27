@@ -21,7 +21,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import de.appmotion.popularmovies.data.FavoriteMovie;
 import de.appmotion.popularmovies.data.Movie;
 import de.appmotion.popularmovies.data.source.local.MovieContract;
 import de.appmotion.popularmovies.data.source.remote.NetworkLoader;
@@ -40,16 +39,21 @@ import org.json.JSONObject;
  * Display Movies via a grid of their corresponding movie poster thumbnails.
  */
 public class MainActivity extends BaseActivity
-    implements MovieListAdapter.ListItemClickListener, FavoriteMovieCursorAdapter.ListItemClickListener {
+    implements MoviePopularCursorAdapter.ListItemClickListener, MovieTopRatedCursorAdapter.ListItemClickListener,
+    MovieFavoriteCursorAdapter.ListItemClickListener {
 
-  // This number will uniquely identify a CursorLoader for loading data from 'favorite_movie' DB table.
-  private static final int CURSOR_LOADER_FAVORITE_MOVIE = 10;
+  // This number will uniquely identify a CursorLoader for loading data from 'movie_popular' DB table.
+  private static final int CURSOR_LOADER_MOVIE_POPULAR = 10;
+  // This number will uniquely identify a CursorLoader for loading data from 'movie_top_rated' DB table.
+  private static final int CURSOR_LOADER_MOVIE_TOP_RATED = 20;
+  // This number will uniquely identify a CursorLoader for loading data from 'movie_favorite' DB table.
+  private static final int CURSOR_LOADER_MOVIE_FAVORITE = 30;
   // Constant for logging
   private static final String TAG = MainActivity.class.getSimpleName();
   // Define {@link MenuState} Types
-  private static final int POPULAR_MOVIES = 0;
-  private static final int TOP_RATED_MOVIES = 1;
-  private static final int FAVORITE_MOVIES = 2;
+  private static final int MOVIE_POPULAR = 0;
+  private static final int MOVIE_TOP_RATED = 1;
+  private static final int MOVIE_FAVORITE = 2;
   // Save {@link MenuState} via onSaveInstanceState
   private static final String STATE_MENU_STATE = "menu_state";
   // Which page of a movie list from the server has to be downloaded. This number will uniquely identify corresponding NetworkLoader, too.
@@ -60,12 +64,14 @@ public class MainActivity extends BaseActivity
   private LoaderManager.LoaderCallbacks<Cursor> mCursorLoaderCallback;
   // The About Dialog
   private AlertDialog mAboutDialog;
-  // RecyclerView.Adapter containing popular or top rated {@link Movie}s.
-  private MovieListAdapter mMovieListAdapter;
+  // RecyclerView.Adapter containing popular {@link Movie}s.
+  private MoviePopularCursorAdapter mMoviePopularCursorAdapter;
+  // RecyclerView.Adapter containing top rated {@link Movie}s.
+  private MovieTopRatedCursorAdapter mMovieTopRatedCursorAdapter;
   // RecyclerView.Adapter containing {@link FavoriteMovie}s.
-  private FavoriteMovieCursorAdapter mFavoriteMovieCursorAdapter;
+  private MovieFavoriteCursorAdapter mMovieFavoriteCursorAdapter;
   // Saves current selected {@link MenuState} from Options Menu
-  private int mMenuState = POPULAR_MOVIES;
+  private int mMenuState = MOVIE_POPULAR;
 
   private ActivityMainBinding mMainBinding;
 
@@ -95,9 +101,9 @@ public class MainActivity extends BaseActivity
       @Override public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
         if (dy > 0 && isLastItemDisplaying(recyclerView)) {
-          if (mMenuState == POPULAR_MOVIES) {
+          if (mMenuState == MOVIE_POPULAR) {
             downloadAndShowPopularMovies(mDefaultLanguage, mDefaultCountry);
-          } else if (mMenuState == TOP_RATED_MOVIES) {
+          } else if (mMenuState == MOVIE_TOP_RATED) {
             downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
           }
         }
@@ -112,34 +118,40 @@ public class MainActivity extends BaseActivity
         new GridLayoutManager(this, calculateNoOfColumns(), GridLayoutManager.VERTICAL, shouldReverseLayout);
     mMainBinding.rvMovieList.setLayoutManager(layoutManager);
 
-    // Initiate the popular and top rated movielist adapter for RecyclerView
-    mMovieListAdapter = new MovieListAdapter(new ArrayList<Movie>(0), mRequiredImageSize, this);
-
+    // Initiate the popular movie cursor adapter for RecyclerView
+    mMoviePopularCursorAdapter = new MoviePopularCursorAdapter(this, mRequiredImageSize, this);
+    // Initiate the top rated movie cursor adapter for RecyclerView
+    mMovieTopRatedCursorAdapter = new MovieTopRatedCursorAdapter(this, mRequiredImageSize, this);
     // Initiate the favorite movie cursor adapter for RecyclerView
-    mFavoriteMovieCursorAdapter = new FavoriteMovieCursorAdapter(this, mRequiredImageSize, this);
+    mMovieFavoriteCursorAdapter = new MovieFavoriteCursorAdapter(this, mRequiredImageSize, this);
 
-    // Set title of this Activity depending on current {@link MenuState} and
-    // get Movies depending on current {@link MenuState}
-    if (mMenuState == POPULAR_MOVIES) {
-      setTitle(R.string.action_popular);
-      mMainBinding.rvMovieList.setAdapter(mMovieListAdapter);
-      downloadAndShowPopularMovies(mDefaultLanguage, mDefaultCountry);
-    } else if (mMenuState == TOP_RATED_MOVIES) {
-      setTitle(R.string.action_top);
-      mMainBinding.rvMovieList.setAdapter(mMovieListAdapter);
-      downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
-    } else if (mMenuState == FAVORITE_MOVIES) {
-      setTitle(R.string.action_favorite_show);
-      mMainBinding.rvMovieList.setAdapter(mFavoriteMovieCursorAdapter);
-    }
-
-    // Loader for Favorite Movies
-     /*
+    /*
      * Ensures a loader is initialized and active. If the loader doesn't already exist, one is
      * created and (if the activity/fragment is currently started) starts the loader. Otherwise
      * the last created loader is re-used.
      */
-    getSupportLoaderManager().initLoader(CURSOR_LOADER_FAVORITE_MOVIE, null, mCursorLoaderCallback);
+
+    // Loader for Popular Movies
+    getSupportLoaderManager().initLoader(CURSOR_LOADER_MOVIE_POPULAR, null, mCursorLoaderCallback);
+    // Loader for Top Rated Movies
+    getSupportLoaderManager().initLoader(CURSOR_LOADER_MOVIE_TOP_RATED, null, mCursorLoaderCallback);
+    // Loader for Favorite Movies
+    getSupportLoaderManager().initLoader(CURSOR_LOADER_MOVIE_FAVORITE, null, mCursorLoaderCallback);
+
+    // Set title of this Activity depending on current {@link MenuState} and
+    // get Movies depending on current {@link MenuState}
+    if (mMenuState == MOVIE_POPULAR) {
+      setTitle(R.string.action_popular);
+      mMainBinding.rvMovieList.setAdapter(mMoviePopularCursorAdapter);
+      downloadAndShowPopularMovies(mDefaultLanguage, mDefaultCountry);
+    } else if (mMenuState == MOVIE_TOP_RATED) {
+      setTitle(R.string.action_top);
+      mMainBinding.rvMovieList.setAdapter(mMovieTopRatedCursorAdapter);
+      downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
+    } else if (mMenuState == MOVIE_FAVORITE) {
+      setTitle(R.string.action_favorite_show);
+      mMainBinding.rvMovieList.setAdapter(mMovieFavoriteCursorAdapter);
+    }
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
@@ -224,27 +236,25 @@ public class MainActivity extends BaseActivity
     switch (item.getItemId()) {
       // Load and show Popular Movies.
       case R.id.action_popular:
-        mMenuState = POPULAR_MOVIES;
+        mMenuState = MOVIE_POPULAR;
         setTitle(R.string.action_popular);
-        mMovieListAdapter.clearMovieList();
         mMoviePageToDownload = 1;
-        mMainBinding.rvMovieList.setAdapter(mMovieListAdapter);
+        mMainBinding.rvMovieList.setAdapter(mMoviePopularCursorAdapter);
         downloadAndShowPopularMovies(mDefaultLanguage, mDefaultCountry);
         return true;
       // Load and show To Rated Movies.
       case R.id.action_top:
-        mMenuState = TOP_RATED_MOVIES;
+        mMenuState = MOVIE_TOP_RATED;
         setTitle(R.string.action_top);
-        mMovieListAdapter.clearMovieList();
         mMoviePageToDownload = 1;
-        mMainBinding.rvMovieList.setAdapter(mMovieListAdapter);
+        mMainBinding.rvMovieList.setAdapter(mMovieTopRatedCursorAdapter);
         downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
         return true;
       // Load local saved favorite Movies.
       case R.id.action_favorite_show:
-        mMenuState = FAVORITE_MOVIES;
+        mMenuState = MOVIE_FAVORITE;
         setTitle(R.string.action_favorite_show);
-        mMainBinding.rvMovieList.setAdapter(mFavoriteMovieCursorAdapter);
+        mMainBinding.rvMovieList.setAdapter(mMovieFavoriteCursorAdapter);
         return true;
       // Show About Dialog.
       case R.id.action_about:
@@ -343,7 +353,7 @@ public class MainActivity extends BaseActivity
 
   /**
    * Called when Loader with ID:mMoviePageToDownload finished in onLoadFinished().
-   * Parse jsonData and show in Views.
+   * Parse jsonData and save it in DB.
    *
    * @param jsonData from onLoadFinished of {@link NetworkLoader}.
    */
@@ -356,29 +366,29 @@ public class MainActivity extends BaseActivity
       while (results != null && !results.isNull(i)) {
         JSONObject result = results.getJSONObject(i);
         if (result != null) {
-          Long movieId = result.getLong("id");
-          String imageUrl = result.getString("poster_path");
+          Long movieId = result.optLong("id", -1L);
+          String title = result.optString("title");
+          String imageUrl = result.optString("poster_path");
+          double popularity = result.optDouble("popularity", 0);
+          double voteAverage = result.optDouble("vote_average", 0);
           Movie movie = new Movie();
           movie.setMovieId(movieId);
+          movie.setTitle(title);
           movie.setImageUrl(imageUrl);
+          movie.setPopularity(popularity);
+          movie.setVoteAverage(voteAverage);
           movieList.add(movie);
         }
         i++;
       }
       insertMovieList(movieList);
-      /*
-      if (mMainBinding.rvMovieList != null) {
-        // Add new downloaded Movies to adapter
-        mMovieListAdapter.addMovieList(movieList);
-      }
-      */
     } catch (JSONException e) {
       e.printStackTrace();
     }
   }
 
   /**
-   * Insert a movie list to {@link MovieContract.MovieEntry}.
+   * Insert a movie list to {@link MovieContract.MoviePopularEntry} or {@link MovieContract.MovieTopRatedEntry}.
    *
    * @param movieList List of downloaded Movies
    * @return the number of newly created rows.
@@ -388,15 +398,25 @@ public class MainActivity extends BaseActivity
       return 0;
     }
     ContentValues[] cvArray = new ContentValues[movieList.size()];
+
     for (int i = 0; i < movieList.size(); i++) {
       Movie movie = movieList.get(i);
       ContentValues cv = new ContentValues();
       cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, movie.getMovieId());
       cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, movie.getTitle());
       cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL, movie.getImageUrl());
+      cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY, movie.getPopularity());
+      cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE, movie.getVoteAverage());
       cvArray[i] = cv;
     }
-    return getContentResolver().bulkInsert(MovieContract.MovieEntry.CONTENT_URI, cvArray);
+
+    if (mMenuState == MOVIE_POPULAR) {
+      return getContentResolver().bulkInsert(MovieContract.MoviePopularEntry.CONTENT_URI, cvArray);
+    } else if (mMenuState == MOVIE_TOP_RATED) {
+      return getContentResolver().bulkInsert(MovieContract.MovieTopRatedEntry.CONTENT_URI, cvArray);
+    } else {
+      return 0;
+    }
   }
 
   /**
@@ -408,9 +428,7 @@ public class MainActivity extends BaseActivity
   private boolean isLastItemDisplaying(RecyclerView recyclerView) {
     if (recyclerView.getAdapter().getItemCount() != 0) {
       int lastVisibleItemPosition = ((GridLayoutManager) recyclerView.getLayoutManager()).findLastVisibleItemPosition();
-      if (lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == recyclerView.getAdapter().getItemCount() - 1) {
-        return true;
-      }
+      return lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == recyclerView.getAdapter().getItemCount() - 1;
     }
     return false;
   }
@@ -418,14 +436,16 @@ public class MainActivity extends BaseActivity
   private void updateValuesFromBundle(Bundle savedInstanceState) {
     if (savedInstanceState != null) {
       if (savedInstanceState.keySet().contains(STATE_MENU_STATE)) {
-        mMenuState = savedInstanceState.getInt(STATE_MENU_STATE, POPULAR_MOVIES);
+        mMenuState = savedInstanceState.getInt(STATE_MENU_STATE, MOVIE_POPULAR);
       }
     }
   }
 
   /**
    * This is where we receive our callback from
-   * {@link MovieListAdapter.ListItemClickListener}
+   * {@link MoviePopularCursorAdapter.ListItemClickListener} or
+   * {@link MovieTopRatedCursorAdapter.ListItemClickListener} or
+   * {@link MovieFavoriteCursorAdapter.ListItemClickListener}
    *
    * This callback is invoked when you click on an item in the list.
    *
@@ -435,21 +455,6 @@ public class MainActivity extends BaseActivity
     // Show Movie Detail Activity
     Intent intent = new Intent(this, MovieDetailActivity.class);
     intent.putExtra(MovieDetailActivity.EXTRA_MOVIE_ID, movie.getMovieId());
-    startActivity(intent);
-  }
-
-  /**
-   * This is where we receive our callback from
-   * {@link FavoriteMovieCursorAdapter.ListItemClickListener}
-   *
-   * This callback is invoked when you click on an item in the list.
-   *
-   * @param favoriteMovie {@link FavoriteMovie} in the list that was clicked.
-   */
-  @Override public void onListItemClick(FavoriteMovie favoriteMovie) {
-    // Show Movie Detail Activity
-    Intent intent = new Intent(this, MovieDetailActivity.class);
-    intent.putExtra(MovieDetailActivity.EXTRA_MOVIE_ID, favoriteMovie.getMovieId());
     startActivity(intent);
   }
 
@@ -519,12 +524,23 @@ public class MainActivity extends BaseActivity
   private LoaderManager.LoaderCallbacks<Cursor> initCursorLoaderCallback() {
     return new LoaderManager.LoaderCallbacks<Cursor>() {
 
+      String selection = null;
+      String sortOrder = null;
+
       @NonNull @Override public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
 
         switch (loaderId) {
-          case CURSOR_LOADER_FAVORITE_MOVIE:
-            Uri favoriteMovieQueryUri = MovieContract.FavoriteMovieEntry.CONTENT_URI;
-            String sortOrder = MovieContract.FavoriteMovieEntry.COLUMN_TIMESTAMP + " DESC";
+          case CURSOR_LOADER_MOVIE_POPULAR:
+            Uri popularMovieQueryUri = MovieContract.MoviePopularEntry.CONTENT_URI;
+            sortOrder = MovieContract.MoviePopularEntry.COLUMN_MOVIE_POPULARITY + " DESC";
+            return new CursorLoader(MainActivity.this, popularMovieQueryUri, null, null, null, sortOrder);
+          case CURSOR_LOADER_MOVIE_TOP_RATED:
+            Uri topRatedMovieQueryUri = MovieContract.MovieTopRatedEntry.CONTENT_URI;
+            sortOrder = MovieContract.MovieTopRatedEntry.COLUMN_MOVIE_VOTE_AVERAGE + " DESC";
+            return new CursorLoader(MainActivity.this, topRatedMovieQueryUri, null, null, null, sortOrder);
+          case CURSOR_LOADER_MOVIE_FAVORITE:
+            Uri favoriteMovieQueryUri = MovieContract.MovieFavoriteEntry.CONTENT_URI;
+            sortOrder = MovieContract.MovieFavoriteEntry.COLUMN_TIMESTAMP + " DESC";
             return new CursorLoader(MainActivity.this, favoriteMovieQueryUri, null, null, null, sortOrder);
           default:
             throw new RuntimeException("Loader not Implemented: " + loaderId);
@@ -533,22 +549,58 @@ public class MainActivity extends BaseActivity
 
       @Override public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
         switch (loader.getId()) {
-          case CURSOR_LOADER_FAVORITE_MOVIE:
+          case CURSOR_LOADER_MOVIE_POPULAR:
             if (cursor != null) {
               // Data loaded
               if (cursor.moveToLast()) {
                 // Show data from ContentProvider query
                 // Update the cursor in the adapter to trigger UI to display the new list
-                mFavoriteMovieCursorAdapter.swapCursor(cursor);
+                mMoviePopularCursorAdapter.swapCursor(cursor);
               }
               // Data empty
               else {
-                mFavoriteMovieCursorAdapter.swapCursor(cursor);
+                mMoviePopularCursorAdapter.swapCursor(cursor);
               }
             }
             // Data not available
             else {
-              mFavoriteMovieCursorAdapter.swapCursor(null);
+              mMoviePopularCursorAdapter.swapCursor(null);
+            }
+            break;
+          case CURSOR_LOADER_MOVIE_TOP_RATED:
+            if (cursor != null) {
+              // Data loaded
+              if (cursor.moveToLast()) {
+                // Show data from ContentProvider query
+                // Update the cursor in the adapter to trigger UI to display the new list
+                mMovieTopRatedCursorAdapter.swapCursor(cursor);
+              }
+              // Data empty
+              else {
+                mMovieTopRatedCursorAdapter.swapCursor(cursor);
+              }
+            }
+            // Data not available
+            else {
+              mMovieTopRatedCursorAdapter.swapCursor(null);
+            }
+            break;
+          case CURSOR_LOADER_MOVIE_FAVORITE:
+            if (cursor != null) {
+              // Data loaded
+              if (cursor.moveToLast()) {
+                // Show data from ContentProvider query
+                // Update the cursor in the adapter to trigger UI to display the new list
+                mMovieFavoriteCursorAdapter.swapCursor(cursor);
+              }
+              // Data empty
+              else {
+                mMovieFavoriteCursorAdapter.swapCursor(cursor);
+              }
+            }
+            // Data not available
+            else {
+              mMovieFavoriteCursorAdapter.swapCursor(null);
             }
             break;
         }
@@ -556,9 +608,17 @@ public class MainActivity extends BaseActivity
 
       @Override public void onLoaderReset(@NonNull Loader<Cursor> loader) {
         switch (loader.getId()) {
-          case CURSOR_LOADER_FAVORITE_MOVIE:
+          case CURSOR_LOADER_MOVIE_POPULAR:
             // Since this Loader's data is now invalid, we need to clear the Adapter that is displaying the data.
-            mFavoriteMovieCursorAdapter.swapCursor(null);
+            mMoviePopularCursorAdapter.swapCursor(null);
+            break;
+          case CURSOR_LOADER_MOVIE_TOP_RATED:
+            // Since this Loader's data is now invalid, we need to clear the Adapter that is displaying the data.
+            mMovieTopRatedCursorAdapter.swapCursor(null);
+            break;
+          case CURSOR_LOADER_MOVIE_FAVORITE:
+            // Since this Loader's data is now invalid, we need to clear the Adapter that is displaying the data.
+            mMovieFavoriteCursorAdapter.swapCursor(null);
             break;
         }
       }
@@ -566,8 +626,8 @@ public class MainActivity extends BaseActivity
   }
 
   /**
-   * Logical type which value must be one of explicitly named constants: POPULAR_MOVIES, TOP_RATED_MOVIES or FAVORITE_MOVIES
+   * Logical type which value must be one of explicitly named constants: MOVIE_POPULAR, MOVIE_TOP_RATED or MOVIE_FAVORITE
    **/
-  @Retention(RetentionPolicy.CLASS) @IntDef({ POPULAR_MOVIES, TOP_RATED_MOVIES, FAVORITE_MOVIES }) public @interface MenuState {
+  @Retention(RetentionPolicy.CLASS) @IntDef({ MOVIE_POPULAR, MOVIE_TOP_RATED, MOVIE_FAVORITE }) public @interface MenuState {
   }
 }

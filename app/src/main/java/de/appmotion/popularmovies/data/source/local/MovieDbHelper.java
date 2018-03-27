@@ -28,7 +28,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
    */
   @Override public void onCreate(SQLiteDatabase sqLiteDatabase) {
 
-    /* Create a table to hold movie data
+    /* Create a table to hold popular movie data
      *
      * If the INTEGER PRIMARY KEY column is not explicitly given a value, then it will be filled
      * automatically with an unused integer, usually one more than the largest _ID currently in
@@ -39,8 +39,8 @@ public class MovieDbHelper extends SQLiteOpenHelper {
      * In other words, the purpose of AUTOINCREMENT is to prevent the reuse of _IDs from previously
      * deleted rows.
      */
-    final String SQL_CREATE_MOVIE_TABLE = "CREATE TABLE "
-        + MovieContract.MovieEntry.TABLE_NAME
+    final String SQL_CREATE_MOVIE_POPULAR_TABLE = "CREATE TABLE "
+        + MovieContract.MoviePopularEntry.TABLE_NAME
         + " ("
         + MovieContract.MovieEntry._ID
         + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -50,6 +50,10 @@ public class MovieDbHelper extends SQLiteOpenHelper {
         + " TEXT NOT NULL, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
         + " TEXT, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY
+        + " REAL, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
+        + " REAL, "
         + MovieContract.MovieEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         /*
@@ -67,31 +71,62 @@ public class MovieDbHelper extends SQLiteOpenHelper {
      * After we've spelled out our SQLite table creation statement above, we actually execute
      * that SQL with the execSQL method of our SQLite database object.
      */
-    sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TABLE);
+    sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_POPULAR_TABLE);
+
+    /*
+     * Create a table to hold top rated movie data
+     */
+    final String SQL_CREATE_MOVIE_TOP_RATED_TABLE = "CREATE TABLE "
+        + MovieContract.MovieTopRatedEntry.TABLE_NAME
+        + " ("
+        + MovieContract.MovieEntry._ID
+        + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
+        + " INTEGER NOT NULL, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_TITLE
+        + " TEXT NOT NULL, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
+        + " TEXT, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY
+        + " REAL, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
+        + " REAL, "
+        + MovieContract.MovieEntry.COLUMN_TIMESTAMP
+        + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        + " UNIQUE ("
+        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
+        + ") ON CONFLICT REPLACE"
+        + ");";
+
+    sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TOP_RATED_TABLE);
 
 
     /*
      * Create a table to hold favorite movie data
      */
-    final String SQL_CREATE_FAVORITE_MOVIE_TABLE = "CREATE TABLE "
-        + MovieContract.FavoriteMovieEntry.TABLE_NAME
+    final String SQL_CREATE_MOVIE_FAVORITE_TABLE = "CREATE TABLE "
+        + MovieContract.MovieFavoriteEntry.TABLE_NAME
         + " ("
-        + MovieContract.FavoriteMovieEntry._ID
+        + MovieContract.MovieEntry._ID
         + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-        + MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_ID
+        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
         + " INTEGER NOT NULL, "
-        + MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE
+        + MovieContract.MovieEntry.COLUMN_MOVIE_TITLE
         + " TEXT NOT NULL, "
-        + MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL
+        + MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
         + " TEXT, "
-        + MovieContract.FavoriteMovieEntry.COLUMN_TIMESTAMP
+        + MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY
+        + " REAL, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
+        + " REAL, "
+        + MovieContract.MovieEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         + " UNIQUE ("
-        + MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_ID
+        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
         + ") ON CONFLICT REPLACE"
         + ");";
 
-    sqLiteDatabase.execSQL(SQL_CREATE_FAVORITE_MOVIE_TABLE);
+    sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_FAVORITE_TABLE);
   }
 
   /**
@@ -107,8 +142,9 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     // DATABASE_VERSION the tables will be dropped.
     // In a production app, this method might be modified to ALTER the tables
     // instead of dropping them, so that existing data is not deleted.
-    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.TABLE_NAME);
-    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.FavoriteMovieEntry.TABLE_NAME);
+    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MoviePopularEntry.TABLE_NAME);
+    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieTopRatedEntry.TABLE_NAME);
+    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieFavoriteEntry.TABLE_NAME);
     onCreate(sqLiteDatabase);
   }
 }

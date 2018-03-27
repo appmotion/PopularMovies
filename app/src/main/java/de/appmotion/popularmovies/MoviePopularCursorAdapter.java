@@ -1,9 +1,10 @@
 package de.appmotion.popularmovies;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.support.annotation.IntDef;
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,29 +12,29 @@ import android.view.ViewGroup;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.data.Movie;
+import de.appmotion.popularmovies.data.source.local.MovieContract;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import de.appmotion.popularmovies.databinding.MovieItemBinding;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link Movie} from a {@link List<Movie>}.
+ * {@link RecyclerView.Adapter} that can display a {@link Movie} from a {@link Cursor}.
  */
-class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+class MoviePopularCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
   // {@link ViewType} Type
   private static final int VIEW_TYPE_DEFAULT = 0;
   private final ListItemClickListener mOnClickListener;
   private final @NetworkUtils.ImageSize String mRequiredImageSize;
-  private List<Movie> mMovieList;
+  private final Context mContext;
+  // Holds on to the cursor to display the movie list
+  private Cursor mCursor;
 
-  MovieListAdapter(@Nullable List<Movie> movieList, @NetworkUtils.ImageSize String requiredImageSize, ListItemClickListener listener) {
-    mMovieList = movieList;
+  MoviePopularCursorAdapter(Context context, @NetworkUtils.ImageSize String requiredImageSize, ListItemClickListener listener) {
+    mContext = context;
     mRequiredImageSize = requiredImageSize;
     mOnClickListener = listener;
-    mMovieList = new ArrayList<>(0);
     setHasStableIds(true);
   }
 
@@ -41,7 +42,7 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     return VIEW_TYPE_DEFAULT;
   }
 
-  @Override public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, @ViewType int viewType) {
+  @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, @ViewType int viewType) {
     Context context = parent.getContext();
     LayoutInflater inflater = LayoutInflater.from(context);
 
@@ -61,13 +62,18 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
   }
 
   // Replace the contents of a view (invoked by the layout manager)
-  @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+  @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    // Move the mCursor to the position of the item to be displayed
+    if (!mCursor.moveToPosition(position)) {
+      return; // bail if returned null
+    }
+
     int viewType = getItemViewType(position);
 
     switch (viewType) {
       case VIEW_TYPE_DEFAULT: {
         final ViewHolderMovieItem viewHolder = (ViewHolderMovieItem) holder;
-        viewHolder.bind(position);
+        viewHolder.bind();
         break;
       }
       default:
@@ -76,37 +82,28 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
   }
 
   @Override public int getItemCount() {
-    if (mMovieList == null) {
+    if (mCursor == null) {
       return 0;
     }
-    return mMovieList.size();
+    return mCursor.getCount();
   }
 
   @Override public long getItemId(int position) {
-    if (mMovieList == null) {
-      return RecyclerView.NO_ID;
+    if (mCursor != null && mCursor.moveToPosition(position)) {
+      return mCursor.getLong(mCursor.getColumnIndexOrThrow(MovieContract.MoviePopularEntry._ID));
     }
-    return mMovieList.get(position).getMovieId();
+    return super.getItemId(position);
   }
 
-  void replaceMovieList(List<Movie> newList) {
-    mMovieList = newList;
+  /**
+   * Swaps the Cursor currently held in the adapter with a new one
+   * and triggers a UI refresh
+   *
+   * @param newCursor the new cursor that will replace the existing one
+   */
+  public void swapCursor(Cursor newCursor) {
+    mCursor = newCursor;
     notifyDataSetChanged();
-  }
-
-  void addMovieList(List<Movie> newList) {
-    if (mMovieList == null) {
-      mMovieList = new ArrayList<>(0);
-    }
-    mMovieList.addAll(newList);
-    notifyDataSetChanged();
-  }
-
-  void clearMovieList() {
-    if (mMovieList != null) {
-      mMovieList.clear();
-      notifyDataSetChanged();
-    }
   }
 
   /**
@@ -131,8 +128,8 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
       itemView.setOnClickListener(this);
     }
 
-    void bind(int listIndex) {
-      final Movie movie = mMovieList.get(listIndex);
+    void bind() {
+      final Movie movie = Movie.from(mCursor);
 
       // Load Movie Image
       Picasso.with(itemView.getContext())
@@ -155,7 +152,9 @@ class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      */
     @Override public void onClick(View v) {
       int clickedPosition = getAdapterPosition();
-      mOnClickListener.onListItemClick(mMovieList.get(clickedPosition));
+      mCursor.moveToPosition(clickedPosition);
+      final Movie movie = Movie.from(mCursor);
+      mOnClickListener.onListItemClick(movie);
     }
   }
 }

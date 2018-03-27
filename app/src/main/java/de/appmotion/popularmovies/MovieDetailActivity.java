@@ -175,7 +175,7 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   }
 
   /**
-   * Insert a movie to {@link MovieContract.FavoriteMovieEntry} with its id, title and imageUrl.
+   * Insert a movie to {@link MovieContract.MovieFavoriteEntry} with its id, title and imageUrl.
    *
    * @param movieId movies's id
    * @param title movie's title
@@ -184,12 +184,12 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
    */
   private Uri addFavoriteMovie(long movieId, @NonNull String title, String imageUrl) {
     ContentValues cv = new ContentValues();
-    cv.put(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_ID, movieId);
-    cv.put(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_TITLE, title);
-    cv.put(MovieContract.FavoriteMovieEntry.COLUMN_MOVIE_IMAGE_URL, imageUrl);
+    cv.put(MovieContract.MovieFavoriteEntry.COLUMN_MOVIE_ID, movieId);
+    cv.put(MovieContract.MovieFavoriteEntry.COLUMN_MOVIE_TITLE, title);
+    cv.put(MovieContract.MovieFavoriteEntry.COLUMN_MOVIE_IMAGE_URL, imageUrl);
 
     // Insert the content values via a ContentResolver
-    return getContentResolver().insert(MovieContract.FavoriteMovieEntry.CONTENT_URI, cv);
+    return getContentResolver().insert(MovieContract.MovieFavoriteEntry.CONTENT_URI, cv);
   }
 
   /**
