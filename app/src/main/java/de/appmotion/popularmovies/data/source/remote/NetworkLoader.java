@@ -27,21 +27,27 @@ public class NetworkLoader extends AsyncTaskLoader<String> {
   public static final String EMPTY = "empty";
   public static final String API_ERROR = "api_error";
   public static final String OFFLINE = "offline";
-  // Arguments for this AsyncTaskLoader
-  private Bundle mArgs;
+  // Url for this AsyncTaskLoader
+  private URL mUrl;
 
   // Caching: This String will contain the raw JSON from the server results
   // We dont need this, because OkHttp is already doing caching in a smarter way.
   private String mJson;
 
-  public NetworkLoader(Context context, Bundle args) {
+  /**
+   * Load Data from Network
+   *
+   * @param context current context
+   * @param url the URL to which this Loader should connect.
+   */
+  public NetworkLoader(Context context, URL url) {
     super(context);
-    mArgs = args;
+    mUrl = url;
   }
 
   @Override protected void onStartLoading() {
-    // If no arguments were passed, we don't have a query to perform. Simply return.
-    if (mArgs == null) {
+    // If no URL was passed, we don't have a query to perform. Simply return.
+    if (mUrl == null) {
       return;
     }
 
@@ -65,17 +71,14 @@ public class NetworkLoader extends AsyncTaskLoader<String> {
   }
 
   @Override public String loadInBackground() {
-    // Extract the url query from the args using our constant
-    URL queryUrl = (URL) mArgs.getSerializable(EXTRA_QUERY_URL);
-
-    // If the url is empty, there's nothing to search for
-    if (queryUrl == null || TextUtils.isEmpty(queryUrl.toString())) {
+    // If the URL is empty, there's nothing to search for
+    if (mUrl == null || TextUtils.isEmpty(mUrl.toString())) {
       return null;
     }
 
     // Use OkHttp to get response from Server
     try {
-      Request request = new Request.Builder().url(queryUrl).get().build();
+      Request request = new Request.Builder().url(mUrl).get().build();
 
       Response response = App.getInstance().getOkHttpClient().newCall(request).execute();
       switch (response.code()) {

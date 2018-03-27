@@ -9,12 +9,15 @@
   <string name="error_connect_internet">Please connect to the Internet</string>
   <string name="error_empty_response">Empty response from Server</string>
   <string name="error_loading_movies">Error loading Movies</string>
-  <string name="error_loading_movie_detail">Sorry, no Movie Details</string>
+  <string name="error_showing_movie_detail">Sorry, no Movie Details</string>
   <string name="error_adding_movie_to_favoritelist">Sorry, the Movie cannot be added to your favorite list</string>
   <string name="error_adding_duplicate_movie_to_favoritelist">The Movie is already in your favorite list</string>
   <string name="error_adding_empty_movie_to_favoritelist">Sorry, no Movie available which can be added to your favorite list</string>
   <string name="adding_movie_to_favoritelist">The Movie was added to your favorite list</string>
   <string name="movie_detail">Movie Detail</string>
+  <string name="year">Year</string>
+  <string name="runtime">Runtime</string>
+  <string name="rating">Rating</string>
   <string name="ok">OK</string>
 
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

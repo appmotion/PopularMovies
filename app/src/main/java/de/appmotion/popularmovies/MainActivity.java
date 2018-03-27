@@ -357,7 +357,7 @@ public class MainActivity extends BaseActivity
    *
    * @param jsonData from onLoadFinished of {@link NetworkLoader}.
    */
-  private void parseAndShowJsonData(String jsonData) {
+  private void parseJson(String jsonData) {
     List<Movie> movieList = new ArrayList<>();
     try {
       JSONObject popular = new JSONObject(jsonData);
@@ -454,7 +454,7 @@ public class MainActivity extends BaseActivity
   @Override public void onListItemClick(Movie movie) {
     // Show Movie Detail Activity
     Intent intent = new Intent(this, MovieDetailActivity.class);
-    intent.putExtra(MovieDetailActivity.EXTRA_MOVIE_ID, movie.getMovieId());
+    intent.putExtra(MovieDetailActivity.EXTRA_MOVIE_OBJECT, movie);
     startActivity(intent);
   }
 
@@ -473,7 +473,9 @@ public class MainActivity extends BaseActivity
        * @return Return a new Loader instance that is ready to start loading.
        */
       @NonNull @Override public Loader<String> onCreateLoader(int loaderId, Bundle args) {
-        return new NetworkLoader(MainActivity.this, args);
+        // Extract the url query from the args using our constant
+        URL queryUrl = (URL) args.getSerializable(NetworkLoader.EXTRA_QUERY_URL);
+        return new NetworkLoader(MainActivity.this, queryUrl);
       }
 
       /**
@@ -501,7 +503,7 @@ public class MainActivity extends BaseActivity
               break;
             default:
               // Here we succesfully get data from server. So next time we can download the following movie page by incrementing mMoviePageToDownload.
-              parseAndShowJsonData(data);
+              parseJson(data);
               mMoviePageToDownload++;
               break;
           }
@@ -524,7 +526,6 @@ public class MainActivity extends BaseActivity
   private LoaderManager.LoaderCallbacks<Cursor> initCursorLoaderCallback() {
     return new LoaderManager.LoaderCallbacks<Cursor>() {
 
-      String selection = null;
       String sortOrder = null;
 
       @NonNull @Override public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {

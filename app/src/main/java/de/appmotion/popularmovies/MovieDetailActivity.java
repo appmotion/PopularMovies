@@ -1,11 +1,11 @@
 package de.appmotion.popularmovies;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.Loader;
@@ -15,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import de.appmotion.popularmovies.data.Movie;
 import de.appmotion.popularmovies.data.source.local.MovieContract;
 import de.appmotion.popularmovies.data.source.remote.NetworkLoader;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
@@ -26,10 +27,10 @@ import org.json.JSONObject;
 /**
  * Display the details for a movie.
  */
-public class MovieDetailActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<String> {
+public class MovieDetailActivity extends BaseActivity {
 
   // Name of the 'Movie Id data' sent via Intent to this Activity
-  public final static String EXTRA_MOVIE_ID = BuildConfig.APPLICATION_ID + ".movie_id";
+  public final static String EXTRA_MOVIE_OBJECT = BuildConfig.APPLICATION_ID + ".movie_object";
   // Constant for logging
   private static final String TAG = MovieDetailActivity.class.getSimpleName();
   // Suggestions to Make Your Project Stand Out
@@ -40,12 +41,11 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   // This number will uniquely identify a NetworkLoader for loading movie detail data from themoviedb.org.
   private static final int NETWORK_LOADER_MOVIE_DETAIL = 1;
 
-  // The Id of this movie
-  private long mMovieId;
-  // The tile of this movie
-  private String mTitle;
-  // The image url of this movie
-  private String mImageUrl;
+  // Callback for {@link NetworkLoader}
+  private LoaderManager.LoaderCallbacks<String> mNetworkLoaderCallback;
+
+  // The Movie which will be shown
+  private Movie mMovie;
 
   private ActivityMovieDetailBinding mDetailBinding;
 
@@ -59,17 +59,23 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
       getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
-    // Get Movie Id from Intent, then download Movie Details.
+    // Get Movie from Intent
     if (getIntent() != null) {
-      mMovieId = getIntent().getLongExtra(EXTRA_MOVIE_ID, 0L);
-      if (mMovieId == 0) {
-        showMessage(getString(R.string.error_loading_movie_detail));
-      } else {
-        downloadMovieDetails(mMovieId, mDefaultLanguage);
+      mMovie = getIntent().getParcelableExtra(EXTRA_MOVIE_OBJECT);
+      if (mMovie == null) {
+        showMessage(getString(R.string.error_showing_movie_detail));
       }
     } else {
-      showMessage(getString(R.string.error_loading_movie_detail));
+      showMessage(getString(R.string.error_showing_movie_detail));
     }
+
+    showMovieData(mMovie, null);
+
+    // Initiate Callbacks for the Loader
+    mNetworkLoaderCallback = initNetworkLoaderCallback();
+
+    // Loader for Movie Details
+    getSupportLoaderManager().initLoader(NETWORK_LOADER_MOVIE_DETAIL, null, mNetworkLoaderCallback);
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
@@ -87,8 +93,8 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
         return true;
       // Add the currently shown Movie to favorite movie table in DB.
       case R.id.action_favorite_add:
-        if (mMovieId != 0L && mTitle != null && mTitle.length() > 0) {
-          Uri uri = addFavoriteMovie(mMovieId, mTitle, mImageUrl);
+        if (mMovie != null) {
+          Uri uri = addFavoriteMovie(mMovie);
           if (uri != null) {
             // Movie successfuly added to table
             showMessage(getString(R.string.adding_movie_to_favoritelist));
@@ -105,91 +111,63 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
   }
 
   /**
-   * Get Detail of a Movie from themoviedb.org
-   *
-   * @param movieId The ID of Movie requested.
-   * @param language The language requested.
-   */
-  private void downloadMovieDetails(long movieId, String language) {
-    // Get URL for Movie details Download and build Bundle for {@link NetworkLoader}
-    URL movieDetailUrl = NetworkUtils.buildMovieDetailUrl(movieId, language);
-    Bundle queryBundle = new Bundle();
-    queryBundle.putSerializable(NetworkLoader.EXTRA_QUERY_URL, movieDetailUrl);
-
-    // Call getSupportLoaderManager and store it in a LoaderManager variable
-    LoaderManager loaderManager = getSupportLoaderManager();
-    // Get our Loader by calling getLoader and passing the ID we specified
-    Loader<String> callApiTaskLoader = loaderManager.getLoader(NETWORK_LOADER_MOVIE_DETAIL);
-    // If the Loader was null, initialize it. Else, restart it.
-    if (callApiTaskLoader == null) {
-      loaderManager.initLoader(NETWORK_LOADER_MOVIE_DETAIL, queryBundle, this);
-    } else {
-      loaderManager.restartLoader(NETWORK_LOADER_MOVIE_DETAIL, queryBundle, this);
-    }
-  }
-
-  /**
-   * Called when MOVIE_DETAIL_LOADER finished in onLoadFinished().
+   * Called when NETWORK_LOADER_MOVIE_DETAIL finished in onLoadFinished().
    * Parse jsonData and show in Views.
    *
    * @param jsonData from onLoadFinished of {@link NetworkLoader}.
    */
-  private void parseAndShowJsonData(String jsonData) {
+  private void parseJson(String jsonData) {
     try {
       JSONObject movieDetail = new JSONObject(jsonData);
-      mTitle = movieDetail.getString("title");
-      String year = movieDetail.getString("release_date");
-      String duration = movieDetail.getString("runtime");
-      String rating = movieDetail.getString("vote_average");
-      String overview = movieDetail.getString("overview");
-      mImageUrl = movieDetail.getString("poster_path");
+      String runtime = movieDetail.getString("runtime");
 
-      // Ttile
-      mDetailBinding.tvMovieTitle.setText(mTitle);
-      // Year
-      mDetailBinding.tvMovieYear.setText(year);
-      // Duration
-      duration = duration + "min";
-      mDetailBinding.tvMovieDuration.setText(duration);
-      // Rating
-      rating = rating + " / 10";
-      mDetailBinding.tvMovieRating.setText(rating);
-      // Overview
-      mDetailBinding.tvMovieOverview.setText(overview);
-
-      // Load Movie Image
-      Picasso.with(this)
-          .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, mImageUrl))
-          .placeholder(android.R.drawable.screen_background_light_transparent)
-          .error(R.drawable.movie_empty)
-          .into(mDetailBinding.ivMovieImage, new Callback() {
-            @Override public void onSuccess() {
-            }
-
-            @Override public void onError() {
-            }
-          });
+      showMovieData(mMovie, runtime);
     } catch (JSONException e) {
       e.printStackTrace();
     }
   }
 
+  private void showMovieData(Movie movie, @Nullable String runtime) {
+    // Ttile
+    mDetailBinding.tvMovieTitle.setText(movie.getTitle());
+    // Year
+    //mDetailBinding.tvMovieYear.setText(movie.getReleaseDate());
+    // Runtime
+    if (runtime != null) {
+      runtime = runtime + "min";
+      mDetailBinding.tvMovieRuntime.setText(runtime);
+    } else {
+      mDetailBinding.tvMovieRuntime.setText("");
+    }
+    // Rating
+    String voteAverage = movie.getVoteAverage() + " / 10";
+    mDetailBinding.tvMovieRating.setText(voteAverage);
+    // Overview
+    //mDetailBinding.tvMovieOverview.setText(movie.getOverview());
+
+    // Load Movie Image
+    Picasso.with(this)
+        .load(NetworkUtils.buildMovieImageUri(mRequiredImageSize, movie.getImageUrl()))
+        .placeholder(android.R.drawable.screen_background_light_transparent)
+        .error(R.drawable.movie_empty)
+        .into(mDetailBinding.ivMovieImage, new Callback() {
+          @Override public void onSuccess() {
+          }
+
+          @Override public void onError() {
+          }
+        });
+  }
+
   /**
-   * Insert a movie to {@link MovieContract.MovieFavoriteEntry} with its id, title and imageUrl.
+   * Insert a movie to {@link MovieContract.MovieFavoriteEntry}.
    *
-   * @param movieId movies's id
-   * @param title movie's title
-   * @param imageUrl url to an image
+   * @param movie The movie to add to favorite movie table
    * @return {@link Uri} of new record added
    */
-  private Uri addFavoriteMovie(long movieId, @NonNull String title, String imageUrl) {
-    ContentValues cv = new ContentValues();
-    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, movieId);
-    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, title);
-    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL, imageUrl);
-
+  private Uri addFavoriteMovie(Movie movie) {
     // Insert the content values via a ContentResolver
-    return getContentResolver().insert(MovieContract.MovieFavoriteEntry.CONTENT_URI, cv);
+    return getContentResolver().insert(MovieContract.MovieFavoriteEntry.CONTENT_URI, Movie.from(movie));
   }
 
   /**
@@ -209,35 +187,48 @@ public class MovieDetailActivity extends BaseActivity implements LoaderManager.L
    * Below this point are {@link LoaderManager.LoaderCallbacks} methods
    **/
 
-  @NonNull @Override public Loader<String> onCreateLoader(int id, Bundle args) {
-    return new NetworkLoader(this, args);
-  }
+  private LoaderManager.LoaderCallbacks<String> initNetworkLoaderCallback() {
+    return new LoaderManager.LoaderCallbacks<String>() {
 
-  @Override public void onLoadFinished(@NonNull Loader<String> loader, String data) {
-    // When we finish loading, we want to hide the loading indicator from the user.
-    //mLoadingIndicator.setVisibility(View.INVISIBLE);
-
-    if (data == null) {
-      Log.e(TAG, "The url was empty");
-    } else {
-      switch (data) {
-        case NetworkLoader.API_ERROR:
-          showErrorMessage(NetworkLoader.API_ERROR);
-          break;
-        case NetworkLoader.OFFLINE:
-          showErrorMessage(NetworkLoader.OFFLINE);
-          break;
-        case NetworkLoader.EMPTY:
-          showErrorMessage(NetworkLoader.EMPTY);
-          break;
-        default:
-          parseAndShowJsonData(data);
-          break;
+      @NonNull @Override public Loader<String> onCreateLoader(int loaderId, Bundle args) {
+        switch (loaderId) {
+          case NETWORK_LOADER_MOVIE_DETAIL:
+            // Get URL for Movie details Download
+            URL movieDetailUrl = NetworkUtils.buildMovieDetailUrl(mMovie.getMovieId(), mDefaultLanguage);
+            return new NetworkLoader(MovieDetailActivity.this, movieDetailUrl);
+          default:
+            throw new RuntimeException("Loader not Implemented: " + loaderId);
+        }
       }
-    }
-  }
 
-  // Override onLoaderReset as it is part of the interface we implement, but don't do anything in this method
-  @Override public void onLoaderReset(@NonNull Loader<String> loader) {
+      @Override public void onLoadFinished(@NonNull Loader<String> loader, String data) {
+        switch (loader.getId()) {
+          case NETWORK_LOADER_MOVIE_DETAIL:
+            if (data == null) {
+              Log.e(TAG, "Null response from Movie Detail Loader");
+            } else {
+              switch (data) {
+                case NetworkLoader.API_ERROR:
+                  showErrorMessage(NetworkLoader.API_ERROR);
+                  break;
+                case NetworkLoader.OFFLINE:
+                  showErrorMessage(NetworkLoader.OFFLINE);
+                  break;
+                case NetworkLoader.EMPTY:
+                  showErrorMessage(NetworkLoader.EMPTY);
+                  break;
+                default:
+                  parseJson(data);
+                  break;
+              }
+            }
+            break;
+        }
+      }
+
+      // Override onLoaderReset as it is part of the interface we implement, but don't do anything in this method
+      @Override public void onLoaderReset(@NonNull Loader<String> loader) {
+      }
+    };
   }
 }

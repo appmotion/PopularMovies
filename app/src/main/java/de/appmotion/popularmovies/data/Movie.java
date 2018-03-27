@@ -1,12 +1,15 @@
 package de.appmotion.popularmovies.data;
 
+import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Parcel;
+import android.os.Parcelable;
 import de.appmotion.popularmovies.data.source.local.MovieContract;
 
 /**
  * Immutable model class for a Movie.
  */
-public final class Movie {
+public final class Movie implements Parcelable {
 
   private long mId;
   private long mMovieId;
@@ -14,6 +17,18 @@ public final class Movie {
   private String mImageUrl;
   private double mPopularity;
   private double mVoteAverage;
+
+  public Movie() {
+  }
+
+  protected Movie(Parcel in) {
+    mId = in.readLong();
+    mMovieId = in.readLong();
+    mTitle = in.readString();
+    mImageUrl = in.readString();
+    mPopularity = in.readDouble();
+    mVoteAverage = in.readDouble();
+  }
 
   /**
    * Use this constructor to return a Movie from a Cursor
@@ -29,6 +44,21 @@ public final class Movie {
     movie.setPopularity(cursor.getDouble(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY)));
     movie.setVoteAverage(cursor.getDouble(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE)));
     return movie;
+  }
+
+  /**
+   * Use this constructor to return ContentValues from a Movie
+   *
+   * @return {@link ContentValues}
+   */
+  public static ContentValues from(Movie movie) {
+    final ContentValues cv = new ContentValues();
+    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, movie.getMovieId());
+    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, movie.getTitle());
+    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL, movie.getImageUrl());
+    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY, movie.getPopularity());
+    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE, movie.getVoteAverage());
+    return cv;
   }
 
   public long getId() {
@@ -78,4 +108,27 @@ public final class Movie {
   public void setVoteAverage(double voteAverage) {
     mVoteAverage = voteAverage;
   }
+
+  @Override public int describeContents() {
+    return 0;
+  }
+
+  @Override public void writeToParcel(Parcel dest, int flags) {
+    dest.writeLong(mId);
+    dest.writeLong(mMovieId);
+    dest.writeString(mTitle);
+    dest.writeString(mImageUrl);
+    dest.writeDouble(mPopularity);
+    dest.writeDouble(mVoteAverage);
+  }
+
+  @SuppressWarnings("unused") public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
+    @Override public Movie createFromParcel(Parcel in) {
+      return new Movie(in);
+    }
+
+    @Override public Movie[] newArray(int size) {
+      return new Movie[size];
+    }
+  };
 }
