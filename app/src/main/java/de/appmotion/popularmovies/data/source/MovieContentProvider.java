@@ -295,7 +295,7 @@ public class MovieContentProvider extends ContentProvider {
      * know how many rows were deleted. According to the documentation for SQLiteDatabase,
      * passing "1" for the selection will delete all rows and return the number of rows
      * deleted, which is what the caller of this method expects.
-      */
+     */
     if (null == selection) selection = "1";
 
     switch (match) {

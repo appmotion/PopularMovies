@@ -67,11 +67,11 @@ class TestUtilities {
       String columnName = entry.getKey();
       int index = valueCursor.getColumnIndex(columnName);
 
-            /* Test to see if the column is contained within the cursor */
+      /* Test to see if the column is contained within the cursor */
       String columnNotFoundError = "Column '" + columnName + "' not found. " + error;
       assertFalse(columnNotFoundError, index == -1);
 
-            /* Test to see if the expected value equals the actual value (from the Cursor) */
+      /* Test to see if the expected value equals the actual value (from the Cursor) */
       String expectedValue = entry.getValue().toString();
       String actualValue = valueCursor.getString(index);
 
