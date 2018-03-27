@@ -90,7 +90,7 @@ class MoviePopularCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
   @Override public long getItemId(int position) {
     if (mCursor != null && mCursor.moveToPosition(position)) {
-      return mCursor.getLong(mCursor.getColumnIndexOrThrow(MovieContract.MoviePopularEntry._ID));
+      return mCursor.getLong(mCursor.getColumnIndexOrThrow(MovieContract.MovieEntry._ID));
     }
     return super.getItemId(position);
   }

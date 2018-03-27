@@ -532,15 +532,15 @@ public class MainActivity extends BaseActivity
         switch (loaderId) {
           case CURSOR_LOADER_MOVIE_POPULAR:
             Uri popularMovieQueryUri = MovieContract.MoviePopularEntry.CONTENT_URI;
-            sortOrder = MovieContract.MoviePopularEntry.COLUMN_MOVIE_POPULARITY + " DESC";
+            sortOrder = MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY + " DESC";
             return new CursorLoader(MainActivity.this, popularMovieQueryUri, null, null, null, sortOrder);
           case CURSOR_LOADER_MOVIE_TOP_RATED:
             Uri topRatedMovieQueryUri = MovieContract.MovieTopRatedEntry.CONTENT_URI;
-            sortOrder = MovieContract.MovieTopRatedEntry.COLUMN_MOVIE_VOTE_AVERAGE + " DESC";
+            sortOrder = MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE + " DESC";
             return new CursorLoader(MainActivity.this, topRatedMovieQueryUri, null, null, null, sortOrder);
           case CURSOR_LOADER_MOVIE_FAVORITE:
             Uri favoriteMovieQueryUri = MovieContract.MovieFavoriteEntry.CONTENT_URI;
-            sortOrder = MovieContract.MovieFavoriteEntry.COLUMN_TIMESTAMP + " DESC";
+            sortOrder = MovieContract.MovieEntry.COLUMN_TIMESTAMP + " DESC";
             return new CursorLoader(MainActivity.this, favoriteMovieQueryUri, null, null, null, sortOrder);
           default:
             throw new RuntimeException("Loader not Implemented: " + loaderId);
