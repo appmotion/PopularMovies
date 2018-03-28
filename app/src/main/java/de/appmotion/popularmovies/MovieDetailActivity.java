@@ -123,7 +123,7 @@ public class MovieDetailActivity extends BaseActivity {
 
       showMovieData(mMovie, runtime);
     } catch (JSONException e) {
-      e.printStackTrace();
+      Log.e(TAG, "Parse Movie detail JSON error: ", e);
     }
   }
 
@@ -131,7 +131,7 @@ public class MovieDetailActivity extends BaseActivity {
     // Ttile
     mDetailBinding.tvMovieTitle.setText(movie.getTitle());
     // Year
-    //mDetailBinding.tvMovieYear.setText(movie.getReleaseDate());
+    mDetailBinding.tvMovieYear.setText(movie.getReleaseDate());
     // Runtime
     if (runtime != null) {
       runtime = runtime + "min";
@@ -143,7 +143,7 @@ public class MovieDetailActivity extends BaseActivity {
     String voteAverage = movie.getVoteAverage() + " / 10";
     mDetailBinding.tvMovieRating.setText(voteAverage);
     // Overview
-    //mDetailBinding.tvMovieOverview.setText(movie.getOverview());
+    mDetailBinding.tvMovieOverview.setText(movie.getOverview());
 
     // Load Movie Image
     Picasso.with(this)

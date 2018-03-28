@@ -12,14 +12,25 @@ import java.util.Locale;
 public abstract class BaseActivity extends AppCompatActivity {
 
   protected @NetworkUtils.ImageSize String mRequiredImageSize;
-  protected String mDefaultLanguage = Locale.getDefault().toString();
-  protected String mDefaultCountry = Locale.getDefault().getCountry();
+  protected Locale mLocale;
+  protected String mDefaultLanguage;
+  protected String mDefaultCountry;
   private Toast mToast;
 
   @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    mLocale = getResources().getConfiguration().locale;
+    mDefaultLanguage = mLocale.getLanguage();
+    mDefaultCountry = mLocale.getCountry();
     // Calculate mRequiredImageSize once for later usage.
     calculateImageSizeForApiCall();
+  }
+
+  @Override protected void onResume() {
+    mLocale = getResources().getConfiguration().locale;
+    mDefaultLanguage = mLocale.getLanguage();
+    mDefaultCountry = mLocale.getCountry();
+    super.onResume();
   }
 
   @Override protected void onPause() {

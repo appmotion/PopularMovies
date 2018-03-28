@@ -47,13 +47,17 @@ public class MovieDbHelper extends SQLiteOpenHelper {
         + MovieContract.MovieEntry.COLUMN_MOVIE_ID
         + " INTEGER NOT NULL, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_TITLE
-        + " TEXT NOT NULL, "
+        + " TEXT, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
         + " TEXT, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY
         + " REAL, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
         + " REAL, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE
+        + " TEXT, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_OVERVIEW
+        + " TEXT, "
         + MovieContract.MovieEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         /*
@@ -84,13 +88,17 @@ public class MovieDbHelper extends SQLiteOpenHelper {
         + MovieContract.MovieEntry.COLUMN_MOVIE_ID
         + " INTEGER NOT NULL, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_TITLE
-        + " TEXT NOT NULL, "
+        + " TEXT, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
         + " TEXT, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY
         + " REAL, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
         + " REAL, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE
+        + " TEXT, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_OVERVIEW
+        + " TEXT, "
         + MovieContract.MovieEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         + " UNIQUE ("
@@ -112,13 +120,17 @@ public class MovieDbHelper extends SQLiteOpenHelper {
         + MovieContract.MovieEntry.COLUMN_MOVIE_ID
         + " INTEGER NOT NULL, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_TITLE
-        + " TEXT NOT NULL, "
+        + " TEXT, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
         + " TEXT, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY
         + " REAL, "
         + MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
         + " REAL, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE
+        + " TEXT, "
+        + MovieContract.MovieEntry.COLUMN_MOVIE_OVERVIEW
+        + " TEXT, "
         + MovieContract.MovieEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         + " UNIQUE ("

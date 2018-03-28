@@ -38,6 +38,8 @@ public final class MovieContract {
     public static final String COLUMN_MOVIE_IMAGE_URL = "movie_image_url";
     public static final String COLUMN_MOVIE_POPULARITY = "movie_popularity";
     public static final String COLUMN_MOVIE_VOTE_AVERAGE = "movie_vote_average";
+    public static final String COLUMN_MOVIE_RELEASE_DATE = "movie_release_date";
+    public static final String COLUMN_MOVIE_OVERVIEW = "movie_overview";
     public static final String COLUMN_TIMESTAMP = "timestamp";
   }
 

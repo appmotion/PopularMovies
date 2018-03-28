@@ -17,6 +17,8 @@ public final class Movie implements Parcelable {
   private String mImageUrl;
   private double mPopularity;
   private double mVoteAverage;
+  private String mReleaseDate;
+  private String mOverview;
 
   public Movie() {
   }
@@ -28,6 +30,8 @@ public final class Movie implements Parcelable {
     mImageUrl = in.readString();
     mPopularity = in.readDouble();
     mVoteAverage = in.readDouble();
+    mReleaseDate = in.readString();
+    mOverview = in.readString();
   }
 
   /**
@@ -43,6 +47,8 @@ public final class Movie implements Parcelable {
     movie.setImageUrl(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL)));
     movie.setPopularity(cursor.getDouble(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY)));
     movie.setVoteAverage(cursor.getDouble(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE)));
+    movie.setReleaseDate(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE)));
+    movie.setOverview(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_OVERVIEW)));
     return movie;
   }
 
@@ -58,6 +64,8 @@ public final class Movie implements Parcelable {
     cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL, movie.getImageUrl());
     cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY, movie.getPopularity());
     cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE, movie.getVoteAverage());
+    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE, movie.getReleaseDate());
+    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_OVERVIEW, movie.getOverview());
     return cv;
   }
 
@@ -109,6 +117,22 @@ public final class Movie implements Parcelable {
     mVoteAverage = voteAverage;
   }
 
+  public String getReleaseDate() {
+    return mReleaseDate;
+  }
+
+  public void setReleaseDate(String releaseDate) {
+    mReleaseDate = releaseDate;
+  }
+
+  public String getOverview() {
+    return mOverview;
+  }
+
+  public void setOverview(String overview) {
+    mOverview = overview;
+  }
+
   @Override public int describeContents() {
     return 0;
   }
@@ -120,6 +144,8 @@ public final class Movie implements Parcelable {
     dest.writeString(mImageUrl);
     dest.writeDouble(mPopularity);
     dest.writeDouble(mVoteAverage);
+    dest.writeString(mReleaseDate);
+    dest.writeString(mOverview);
   }
 
   @SuppressWarnings("unused") public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {

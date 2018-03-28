@@ -371,19 +371,23 @@ public class MainActivity extends BaseActivity
           String imageUrl = result.optString("poster_path");
           double popularity = result.optDouble("popularity", 0);
           double voteAverage = result.optDouble("vote_average", 0);
+          String releaseDate = result.optString("release_date");
+          String overview = result.optString("overview");
           Movie movie = new Movie();
           movie.setMovieId(movieId);
           movie.setTitle(title);
           movie.setImageUrl(imageUrl);
           movie.setPopularity(popularity);
           movie.setVoteAverage(voteAverage);
+          movie.setReleaseDate(releaseDate);
+          movie.setOverview(overview);
           movieList.add(movie);
         }
         i++;
       }
       insertMovieList(movieList);
     } catch (JSONException e) {
-      e.printStackTrace();
+      Log.e(TAG, "Parse Movie JSON list error: ", e);
     }
   }
 
@@ -400,14 +404,7 @@ public class MainActivity extends BaseActivity
     ContentValues[] cvArray = new ContentValues[movieList.size()];
 
     for (int i = 0; i < movieList.size(); i++) {
-      Movie movie = movieList.get(i);
-      ContentValues cv = new ContentValues();
-      cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, movie.getMovieId());
-      cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, movie.getTitle());
-      cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL, movie.getImageUrl());
-      cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY, movie.getPopularity());
-      cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE, movie.getVoteAverage());
-      cvArray[i] = cv;
+      cvArray[i] = Movie.from(movieList.get(i));
     }
 
     if (mMenuState == MOVIE_POPULAR) {
