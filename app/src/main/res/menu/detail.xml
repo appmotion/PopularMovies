@@ -7,13 +7,13 @@
 
   <item
       android:id="@+id/action_favorite_add"
-      android:icon="@drawable/ic_action_favorite"
+      android:icon="@drawable/ic_favorite_white_24dp"
       android:title="@string/action_favorite_add"
       app:showAsAction="always"/>
 
   <item
       android:id="@+id/action_share"
-      android:icon="@drawable/abc_ic_menu_share_mtrl_alpha"
+      android:icon="@drawable/ic_share_white_24dp"
       android:title="@string/action_share"
       app:showAsAction="ifRoom"/>
 

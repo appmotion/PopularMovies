@@ -15,7 +15,7 @@
   <!-- action bar with logo -->
   <style name="ActionBar.Solid.Movie.NoTitle" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
     <item name="displayOptions">useLogo|showHome</item>
-    <item name="logo">@drawable/ic_action_favorite</item>
+    <item name="logo">@drawable/ic_favorite_white_24dp</item>
   </style>
 
   <style name="AppTheme.Movie" parent="@style/AppTheme">

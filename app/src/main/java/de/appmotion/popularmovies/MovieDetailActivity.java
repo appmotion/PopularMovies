@@ -1,5 +1,6 @@
 package de.appmotion.popularmovies;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.data.Movie;
@@ -20,7 +22,9 @@ import de.appmotion.popularmovies.data.source.local.MovieContract;
 import de.appmotion.popularmovies.data.source.remote.NetworkLoader;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import de.appmotion.popularmovies.databinding.ActivityMovieDetailBinding;
+import de.appmotion.popularmovies.databinding.MovieTrailerBinding;
 import java.net.URL;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -40,6 +44,8 @@ public class MovieDetailActivity extends BaseActivity {
 
   // This number will uniquely identify a NetworkLoader for loading movie detail data from themoviedb.org.
   private static final int NETWORK_LOADER_MOVIE_DETAIL = 1;
+  // This number will uniquely identify a NetworkLoader for loading movie trailer data from themoviedb.org.
+  private static final int NETWORK_LOADER_MOVIE_TRAILER = 2;
 
   // Callback for {@link NetworkLoader}
   private LoaderManager.LoaderCallbacks<String> mNetworkLoaderCallback;
@@ -69,13 +75,15 @@ public class MovieDetailActivity extends BaseActivity {
       showMessage(getString(R.string.error_showing_movie_detail));
     }
 
-    showMovieData(mMovie, null);
+    showMovieDetails(mMovie, null);
 
     // Initiate Callbacks for the Loader
     mNetworkLoaderCallback = initNetworkLoaderCallback();
 
     // Loader for Movie Details
     getSupportLoaderManager().initLoader(NETWORK_LOADER_MOVIE_DETAIL, null, mNetworkLoaderCallback);
+    // Loader for Movie Trailer
+    getSupportLoaderManager().initLoader(NETWORK_LOADER_MOVIE_TRAILER, null, mNetworkLoaderCallback);
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
@@ -116,18 +124,42 @@ public class MovieDetailActivity extends BaseActivity {
    *
    * @param jsonData from onLoadFinished of {@link NetworkLoader}.
    */
-  private void parseJson(String jsonData) {
+  private void parseJsonMovieDetail(String jsonData) {
     try {
       JSONObject movieDetail = new JSONObject(jsonData);
       String runtime = movieDetail.getString("runtime");
 
-      showMovieData(mMovie, runtime);
+      showMovieDetails(mMovie, runtime);
     } catch (JSONException e) {
       Log.e(TAG, "Parse Movie detail JSON error: ", e);
     }
   }
 
-  private void showMovieData(Movie movie, @Nullable String runtime) {
+  /**
+   * Called when NETWORK_LOADER_MOVIE_TRAILER finished in onLoadFinished().
+   * Parse jsonData and show in Views.
+   *
+   * @param jsonData from onLoadFinished of {@link NetworkLoader}.
+   */
+  private void parseJsonMovieTrailer(String jsonData) {
+    try {
+      JSONObject trailerData = new JSONObject(jsonData);
+      JSONArray results = trailerData.getJSONArray("results");
+
+      mDetailBinding.llMovieTrailer.removeAllViews(); // Remove all old views from llMovieTrailer before adding new ones.
+
+      for (int i = 0; i < results.length(); i++) {
+        JSONObject trailer = results.getJSONObject(i);
+        String trailerKey = trailer.getString("key");
+        String trailerName = trailer.getString("name");
+        showMovieTrailer(trailerKey, trailerName);
+      }
+    } catch (JSONException e) {
+      Log.e(TAG, "Parse Movie trailer JSON error: ", e);
+    }
+  }
+
+  private void showMovieDetails(Movie movie, @Nullable String runtime) {
     // Ttile
     mDetailBinding.tvMovieTitle.setText(movie.getTitle());
     // Year
@@ -157,6 +189,28 @@ public class MovieDetailActivity extends BaseActivity {
           @Override public void onError() {
           }
         });
+  }
+
+  private void showMovieTrailer(String trailerKey, String trailerName) {
+    MovieTrailerBinding trailerBinding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.movie_trailer, mDetailBinding.llMovieTrailer, true);
+    trailerBinding.tvTrailerName.setText(trailerName);
+    trailerBinding.getRoot().setTag(trailerKey);
+
+    trailerBinding.getRoot().setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        watchYoutubeVideo((String) v.getTag());
+      }
+    });
+  }
+
+  private void watchYoutubeVideo(String key){
+    Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
+    Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + key));
+    try {
+      startActivity(appIntent);
+    } catch (ActivityNotFoundException ex) {
+      startActivity(webIntent);
+    }
   }
 
   /**
@@ -196,6 +250,10 @@ public class MovieDetailActivity extends BaseActivity {
             // Get URL for Movie details Download
             URL movieDetailUrl = NetworkUtils.buildMovieDetailUrl(mMovie.getMovieId(), mDefaultLanguage);
             return new NetworkLoader(MovieDetailActivity.this, movieDetailUrl);
+          case NETWORK_LOADER_MOVIE_TRAILER:
+            // Get URL for Movie trailer Download
+            URL movieTrailerUrl = NetworkUtils.buildMovieTrailerUrl(mMovie.getMovieId(), mDefaultLanguage);
+            return new NetworkLoader(MovieDetailActivity.this, movieTrailerUrl);
           default:
             throw new RuntimeException("Loader not Implemented: " + loaderId);
         }
@@ -218,7 +276,27 @@ public class MovieDetailActivity extends BaseActivity {
                   showErrorMessage(NetworkLoader.EMPTY);
                   break;
                 default:
-                  parseJson(data);
+                  parseJsonMovieDetail(data);
+                  break;
+              }
+            }
+            break;
+          case NETWORK_LOADER_MOVIE_TRAILER:
+            if (data == null) {
+              Log.e(TAG, "Null response from Movie Trailer Loader");
+            } else {
+              switch (data) {
+                case NetworkLoader.API_ERROR:
+                  showErrorMessage(NetworkLoader.API_ERROR);
+                  break;
+                case NetworkLoader.OFFLINE:
+                  showErrorMessage(NetworkLoader.OFFLINE);
+                  break;
+                case NetworkLoader.EMPTY:
+                  showErrorMessage(NetworkLoader.EMPTY);
+                  break;
+                default:
+                  parseJsonMovieTrailer(data);
                   break;
               }
             }

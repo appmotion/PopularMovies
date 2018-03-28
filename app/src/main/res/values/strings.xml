@@ -18,6 +18,7 @@
   <string name="year">Year</string>
   <string name="runtime">Runtime</string>
   <string name="rating">Rating</string>
+  <string name="trailers">Trailers:</string>
   <string name="ok">OK</string>
 
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,6 +28,7 @@
      - followed by 11 letters, and then a 'y'. It is pronounced alley, like an alley cat. -
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
   <string name="ally_movie_poster">Movie Poster</string>
+  <string name="ally_play_button">Play Button</string>
 
   <!--By convention, "action" denotes that this String will be used as the label for an Action,-->
   <!--typically from the action bar. The ActionBar is limited real estate, so shorter is better.-->

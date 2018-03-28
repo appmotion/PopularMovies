@@ -1,5 +1,8 @@
 package de.appmotion.popularmovies;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -7,6 +10,7 @@ import android.util.DisplayMetrics;
 import android.widget.Toast;
 import de.appmotion.popularmovies.data.source.remote.NetworkLoader;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
+import java.util.List;
 import java.util.Locale;
 
 public abstract class BaseActivity extends AppCompatActivity {
@@ -98,6 +102,15 @@ public abstract class BaseActivity extends AppCompatActivity {
         message = errorType;
     }
     showMessage(message);
+  }
+
+  /**
+   * Finding out if an Intent is available
+   */
+  protected boolean isIntentAvailable(Intent intent) {
+    final PackageManager mgr = getPackageManager();
+    List<ResolveInfo> list = mgr.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+    return list.size() > 0;
   }
 
   /**
