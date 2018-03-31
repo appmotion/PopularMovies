@@ -24,6 +24,9 @@ import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import de.appmotion.popularmovies.databinding.ActivityMovieDetailBinding;
 import de.appmotion.popularmovies.databinding.MovieTrailerBinding;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,10 +61,16 @@ public class MovieDetailActivity extends BaseActivity {
   private ActivityMovieDetailBinding mDetailBinding;
   // Youtube-Key of the first Trailer Video
   private String mFirstTrailerKey;
+  // Format release date of movie
+  private SimpleDateFormat mReleaseDateFormat;
+  private SimpleDateFormat mYearFormat;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     mDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_movie_detail);
+
+    mReleaseDateFormat = new SimpleDateFormat("yyyy-MM-dd", mLocale);
+    mYearFormat = new SimpleDateFormat("yyyy", mLocale);
 
     // add back arrow to toolbar
     if (getSupportActionBar() != null) {
@@ -203,7 +212,12 @@ public class MovieDetailActivity extends BaseActivity {
     // Ttile
     mDetailBinding.tvMovieTitle.setText(movie.getTitle());
     // Year
-    mDetailBinding.tvMovieYear.setText(movie.getReleaseDate());
+    try {
+      Date releaseDate = mReleaseDateFormat.parse(movie.getReleaseDate());
+      mDetailBinding.tvMovieYear.setText(mYearFormat.format(releaseDate));
+    } catch (ParseException e) {
+      mDetailBinding.tvMovieYear.setText(movie.getReleaseDate());
+    }
     // Runtime
     if (runtime != null) {
       runtime = runtime + "min";

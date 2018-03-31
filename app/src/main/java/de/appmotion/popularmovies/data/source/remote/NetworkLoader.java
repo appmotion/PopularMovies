@@ -1,7 +1,6 @@
 package de.appmotion.popularmovies.data.source.remote;
 
 import android.content.Context;
-import android.os.Bundle;
 import android.support.annotation.StringDef;
 import android.support.v4.content.AsyncTaskLoader;
 import android.text.TextUtils;
