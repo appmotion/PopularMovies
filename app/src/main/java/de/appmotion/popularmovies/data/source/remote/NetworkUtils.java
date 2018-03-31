@@ -59,6 +59,7 @@ public class NetworkUtils {
   private final static String PARAM_PAGE = "page";
   private final static String PARAM_REGION = "region";
   private final static String PATH_VIDEOS = "videos";
+  private final static String PATH_REVIEWS = "reviews";
 
   /**
    * Builds the URL used to query themoviedb for API Configuration data.
@@ -133,11 +134,11 @@ public class NetworkUtils {
   }
 
   /**
-   * Builds the URL used to query themoviedb for Detail of a Movie.
+   * Builds the URL used to query themoviedb for Details of a Movie.
    *
    * @param movieId The ID of Movie requested.
    * @param language The language requested.
-   * @return The URL to use to get Top Rated Movies.
+   * @return The URL to use to get Details of a Movie.
    */
   public static URL buildMovieDetailUrl(long movieId, String language) {
     Uri builtUri = Uri.parse(THE_MOVIE_DB_MOVIE_DETAIL)
@@ -162,13 +163,39 @@ public class NetworkUtils {
    *
    * @param movieId The ID of Movie requested.
    * @param language The language requested.
-   * @return The URL to use to get Top Rated Movies.
+   * @return The URL to use to get Trailer of a Movie.
    */
   public static URL buildMovieTrailerUrl(long movieId, String language) {
     Uri builtUri = Uri.parse(THE_MOVIE_DB_MOVIE_DETAIL)
         .buildUpon()
         .appendEncodedPath(String.valueOf(movieId))
         .appendEncodedPath(PATH_VIDEOS)
+        .appendQueryParameter(API_KEY, KEY)
+        .appendQueryParameter(PARAM_LANGUAGE, language)
+        .build();
+
+    URL url = null;
+    try {
+      url = new URL(builtUri.toString());
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+    }
+
+    return url;
+  }
+
+  /**
+   * Builds the URL used to query themoviedb for Reviews of a Movie.
+   *
+   * @param movieId The ID of Movie requested.
+   * @param language The language requested.
+   * @return The URL to use to get Reviews of a Movie.
+   */
+  public static URL buildMovieReviewUrl(long movieId, String language) {
+    Uri builtUri = Uri.parse(THE_MOVIE_DB_MOVIE_DETAIL)
+        .buildUpon()
+        .appendEncodedPath(String.valueOf(movieId))
+        .appendEncodedPath(PATH_REVIEWS)
         .appendQueryParameter(API_KEY, KEY)
         .appendQueryParameter(PARAM_LANGUAGE, language)
         .build();

@@ -46,6 +46,8 @@ public class MovieDetailActivity extends BaseActivity {
   private static final int NETWORK_LOADER_MOVIE_DETAIL = 1;
   // This number will uniquely identify a NetworkLoader for loading movie trailer data from themoviedb.org.
   private static final int NETWORK_LOADER_MOVIE_TRAILER = 2;
+  // This number will uniquely identify a NetworkLoader for loading movie review data from themoviedb.org.
+  private static final int NETWORK_LOADER_MOVIE_REVIEW = 3;
 
   // Callback for {@link NetworkLoader}
   private LoaderManager.LoaderCallbacks<String> mNetworkLoaderCallback;
@@ -86,6 +88,8 @@ public class MovieDetailActivity extends BaseActivity {
     getSupportLoaderManager().initLoader(NETWORK_LOADER_MOVIE_DETAIL, null, mNetworkLoaderCallback);
     // Loader for Movie Trailer
     getSupportLoaderManager().initLoader(NETWORK_LOADER_MOVIE_TRAILER, null, mNetworkLoaderCallback);
+    // Loader for Movie Review
+    getSupportLoaderManager().initLoader(NETWORK_LOADER_MOVIE_REVIEW, null, mNetworkLoaderCallback);
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
@@ -173,6 +177,28 @@ public class MovieDetailActivity extends BaseActivity {
     }
   }
 
+  /**
+   * Called when NETWORK_LOADER_MOVIE_REVIEW finished in onLoadFinished().
+   * Parse jsonData and show in Views.
+   *
+   * @param jsonData from onLoadFinished of {@link NetworkLoader}.
+   */
+  private void parseJsonMovieReview(String jsonData) {
+    try {
+      JSONObject reviewData = new JSONObject(jsonData);
+      JSONArray results = reviewData.getJSONArray("results");
+
+      for (int i = 0; i < results.length(); i++) {
+        JSONObject review = results.getJSONObject(i);
+        String content = review.getString("content");
+        String author = review.getString("author");
+        showMovieReview(content, author);
+      }
+    } catch (JSONException e) {
+      Log.e(TAG, "Parse Movie review JSON error: ", e);
+    }
+  }
+
   private void showMovieDetails(Movie movie, @Nullable String runtime) {
     // Ttile
     mDetailBinding.tvMovieTitle.setText(movie.getTitle());
@@ -216,6 +242,11 @@ public class MovieDetailActivity extends BaseActivity {
         watchYoutubeVideo((String) v.getTag());
       }
     });
+  }
+
+  private void showMovieReview(String content, String author) {
+    String review = content + "\n\n" + getString(R.string.by) + " " + author;
+    mDetailBinding.tvMovieReview.setText(review);
   }
 
   private void watchYoutubeVideo(String key) {
@@ -267,6 +298,10 @@ public class MovieDetailActivity extends BaseActivity {
             // Get URL for Movie trailer Download
             URL movieTrailerUrl = NetworkUtils.buildMovieTrailerUrl(mMovie.getMovieId(), mDefaultLanguage);
             return new NetworkLoader(MovieDetailActivity.this, movieTrailerUrl);
+          case NETWORK_LOADER_MOVIE_REVIEW:
+            // Get URL for Movie review Download
+            URL movieReviewUrl = NetworkUtils.buildMovieReviewUrl(mMovie.getMovieId(), mDefaultLanguage);
+            return new NetworkLoader(MovieDetailActivity.this, movieReviewUrl);
           default:
             throw new RuntimeException("Loader not Implemented: " + loaderId);
         }
@@ -310,6 +345,26 @@ public class MovieDetailActivity extends BaseActivity {
                   break;
                 default:
                   parseJsonMovieTrailer(data);
+                  break;
+              }
+            }
+            break;
+          case NETWORK_LOADER_MOVIE_REVIEW:
+            if (data == null) {
+              Log.e(TAG, "Null response from Movie Review Loader");
+            } else {
+              switch (data) {
+                case NetworkLoader.API_ERROR:
+                  showErrorMessage(NetworkLoader.API_ERROR);
+                  break;
+                case NetworkLoader.OFFLINE:
+                  showErrorMessage(NetworkLoader.OFFLINE);
+                  break;
+                case NetworkLoader.EMPTY:
+                  showErrorMessage(NetworkLoader.EMPTY);
+                  break;
+                default:
+                  parseJsonMovieReview(data);
                   break;
               }
             }

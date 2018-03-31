@@ -43,11 +43,12 @@ public class MainActivity extends BaseActivity
     MovieFavoriteCursorAdapter.ListItemClickListener {
 
   // This number will uniquely identify a CursorLoader for loading data from 'movie_popular' DB table.
-  private static final int CURSOR_LOADER_MOVIE_POPULAR = 10;
+  // Use negative number because positive numbers are reserved for mMoviePageToDownload variable which is used by NetworkLoader.
+  private static final int CURSOR_LOADER_MOVIE_POPULAR = -1;
   // This number will uniquely identify a CursorLoader for loading data from 'movie_top_rated' DB table.
-  private static final int CURSOR_LOADER_MOVIE_TOP_RATED = 20;
+  private static final int CURSOR_LOADER_MOVIE_TOP_RATED = -2;
   // This number will uniquely identify a CursorLoader for loading data from 'movie_favorite' DB table.
-  private static final int CURSOR_LOADER_MOVIE_FAVORITE = 30;
+  private static final int CURSOR_LOADER_MOVIE_FAVORITE = -3;
   // Constant for logging
   private static final String TAG = MainActivity.class.getSimpleName();
   // Define {@link MenuState} Types
@@ -484,6 +485,9 @@ public class MainActivity extends BaseActivity
       @Override public void onLoadFinished(@NonNull Loader<String> loader, String data) {
         // When we finish loading, we want to hide the loading indicator from the user.
         //mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+        // Allways destroy NetworkLoader instances so they wont start themselves again automatically when we enter the Activity.
+        getSupportLoaderManager().destroyLoader(loader.getId());
 
         if (data == null) {
           Log.e(TAG, "The url was empty");

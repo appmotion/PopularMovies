@@ -179,6 +179,30 @@
             android:orientation="vertical"
             />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/black"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/user_review"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            />
+
+        <TextView
+            android:id="@+id/tv_movie_review"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+            tools:text="User review"
+            />
+
       </LinearLayout>
 
     </ScrollView>
