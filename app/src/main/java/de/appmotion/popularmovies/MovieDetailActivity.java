@@ -54,6 +54,8 @@ public class MovieDetailActivity extends BaseActivity {
   private Movie mMovie;
 
   private ActivityMovieDetailBinding mDetailBinding;
+  // Youtube-Key of the first Trailer Video
+  private String mFirstTrailerKey;
 
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -90,7 +92,16 @@ public class MovieDetailActivity extends BaseActivity {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.detail, menu);
     MenuItem menuItem = menu.findItem(R.id.action_share);
-    menuItem.setIntent(createShareTrailerIntent());
+    menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+      @Override public boolean onMenuItemClick(MenuItem item) {
+        if (mFirstTrailerKey != null && mFirstTrailerKey.length() > 0) {
+          startShareTrailerIntent();
+        } else {
+          showMessage(getString(R.string.no_trailer_to_share));
+        }
+        return false;
+      }
+    });
     return true;
   }
 
@@ -152,6 +163,9 @@ public class MovieDetailActivity extends BaseActivity {
         JSONObject trailer = results.getJSONObject(i);
         String trailerKey = trailer.getString("key");
         String trailerName = trailer.getString("name");
+        if (i == 0) {
+          mFirstTrailerKey = trailerKey;
+        }
         showMovieTrailer(trailerKey, trailerName);
       }
     } catch (JSONException e) {
@@ -192,7 +206,8 @@ public class MovieDetailActivity extends BaseActivity {
   }
 
   private void showMovieTrailer(String trailerKey, String trailerName) {
-    MovieTrailerBinding trailerBinding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.movie_trailer, mDetailBinding.llMovieTrailer, true);
+    MovieTrailerBinding trailerBinding =
+        DataBindingUtil.inflate(getLayoutInflater(), R.layout.movie_trailer, mDetailBinding.llMovieTrailer, true);
     trailerBinding.tvTrailerName.setText(trailerName);
     trailerBinding.getRoot().setTag(trailerKey);
 
@@ -203,7 +218,7 @@ public class MovieDetailActivity extends BaseActivity {
     });
   }
 
-  private void watchYoutubeVideo(String key){
+  private void watchYoutubeVideo(String key) {
     Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
     Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + key));
     try {
@@ -225,16 +240,14 @@ public class MovieDetailActivity extends BaseActivity {
   }
 
   /**
-   * Uses the ShareCompat Intent builder to create our Trailer intent for sharing. We set the
-   * type of content that we are sharing (just regular text), the text itself, and we return the
-   * newly created Intent.
-   *
-   * @return The Intent to use to start our share.
+   * Uses the ShareCompat Intent builder to create our Trailer intent for sharing, then call
+   * {@link android.content.Context#startActivity} with the given Intent.
    */
-  private Intent createShareTrailerIntent() {
+  private void startShareTrailerIntent() {
+    String youtubeUrl = "http://www.youtube.com/watch?v=" + mFirstTrailerKey;
     Intent shareIntent =
-        ShareCompat.IntentBuilder.from(this).setType("text/plain").setText("mTrailerUrl" + TRAILER_SHARE_HASHTAG).getIntent();
-    return shareIntent;
+        ShareCompat.IntentBuilder.from(this).setType("text/plain").setText(youtubeUrl + " " + TRAILER_SHARE_HASHTAG).getIntent();
+    startActivity(shareIntent);
   }
 
   /**

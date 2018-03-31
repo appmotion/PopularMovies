@@ -20,6 +20,7 @@
   <string name="rating">Rating</string>
   <string name="trailers">Trailers:</string>
   <string name="ok">OK</string>
+  <string name="no_trailer_to_share">There is no Trailer Video to be shared</string>
 
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      - Used for Accessibility purposes (Accessibility == a11y)                            -
