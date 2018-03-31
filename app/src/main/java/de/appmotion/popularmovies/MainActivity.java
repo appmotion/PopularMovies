@@ -57,6 +57,8 @@ public class MainActivity extends BaseActivity
   private static final int MOVIE_FAVORITE = 2;
   // Save {@link MenuState} via onSaveInstanceState
   private static final String STATE_MENU_STATE = "menu_state";
+  // Save mMoviePageToDownload via onSaveInstanceState
+  private static final String STATE_PAGE_TO_DOWNLOAD = "page_to_download";
   // Which page of a movie list from the server has to be downloaded. This number will uniquely identify corresponding NetworkLoader, too.
   private int mMoviePageToDownload = 1;
   // Callback for {@link NetworkLoader}
@@ -107,6 +109,7 @@ public class MainActivity extends BaseActivity
           } else if (mMenuState == MOVIE_TOP_RATED) {
             downloadAndShowTopRatedMovies(mDefaultLanguage, mDefaultCountry);
           }
+          mMoviePageToDownload++;
         }
       }
     });
@@ -158,6 +161,7 @@ public class MainActivity extends BaseActivity
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
     outState.putInt(STATE_MENU_STATE, mMenuState);
+    outState.putInt(STATE_PAGE_TO_DOWNLOAD, mMoviePageToDownload);
   }
 
   /**
@@ -436,6 +440,9 @@ public class MainActivity extends BaseActivity
       if (savedInstanceState.keySet().contains(STATE_MENU_STATE)) {
         mMenuState = savedInstanceState.getInt(STATE_MENU_STATE, MOVIE_POPULAR);
       }
+      if (savedInstanceState.keySet().contains(STATE_PAGE_TO_DOWNLOAD)) {
+        mMoviePageToDownload = savedInstanceState.getInt(STATE_PAGE_TO_DOWNLOAD, 1);
+      }
     }
   }
 
@@ -486,9 +493,6 @@ public class MainActivity extends BaseActivity
         // When we finish loading, we want to hide the loading indicator from the user.
         //mLoadingIndicator.setVisibility(View.INVISIBLE);
 
-        // Allways destroy NetworkLoader instances so they wont start themselves again automatically when we enter the Activity.
-        getSupportLoaderManager().destroyLoader(loader.getId());
-
         if (data == null) {
           Log.e(TAG, "The url was empty");
         } else {
@@ -503,9 +507,9 @@ public class MainActivity extends BaseActivity
               showErrorMessage(NetworkLoader.EMPTY);
               break;
             default:
-              // Here we succesfully get data from server. So next time we can download the following movie page by incrementing mMoviePageToDownload.
+              // Here we succesfully get data from server.
+              getSupportLoaderManager().destroyLoader(loader.getId());
               parseJson(data);
-              mMoviePageToDownload++;
               break;
           }
         }
