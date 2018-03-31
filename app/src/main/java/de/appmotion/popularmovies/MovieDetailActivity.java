@@ -2,6 +2,7 @@ package de.appmotion.popularmovies;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
@@ -40,9 +41,6 @@ public class MovieDetailActivity extends BaseActivity {
   public final static String EXTRA_MOVIE_OBJECT = BuildConfig.APPLICATION_ID + ".movie_object";
   // Constant for logging
   private static final String TAG = MovieDetailActivity.class.getSimpleName();
-  // Suggestions to Make Your Project Stand Out
-  //TODO: Implement sharing functionality to allow the user to share the first trailer’s YouTube URL from the movie details screen.
-  //TODO: Extend the favorites ContentProvider to store the movie poster, synopsis, user rating, and release date, and display them even when offline.
   private static final String TRAILER_SHARE_HASHTAG = " #PopularMovieApp";
 
   // This number will uniquely identify a NetworkLoader for loading movie detail data from themoviedb.org.
@@ -104,17 +102,37 @@ public class MovieDetailActivity extends BaseActivity {
   @Override public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.detail, menu);
-    MenuItem menuItem = menu.findItem(R.id.action_share);
-    menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-      @Override public boolean onMenuItemClick(MenuItem item) {
-        if (mFirstTrailerKey != null && mFirstTrailerKey.length() > 0) {
-          startShareTrailerIntent();
-        } else {
-          showMessage(getString(R.string.no_trailer_to_share));
+    final MenuItem menuItemFavorite = menu.findItem(R.id.action_favorite_add_or_remove);
+    menuItemFavorite.setIcon(R.drawable.ic_favorite_border_white_24dp);
+    menuItemFavorite.setTitle(R.string.action_favorite_add);
+    menuItemFavorite.setChecked(false);
+
+    // Check if currently shown Movie is already in favorite table
+    // Update function of mMenuItemShare accordingly
+    Thread thread = new Thread(new Runnable() {
+      @Override public void run() {
+        if (mMovie == null) {
+          return;
         }
-        return false;
+        final Uri queryUri = MovieContract.MovieFavoriteEntry.CONTENT_URI;
+        final String selection = MovieContract.MovieFavoriteEntry.COLUMN_MOVIE_ID + " = " + mMovie.getMovieId();
+        final Cursor cursor = getContentResolver().query(queryUri, null, selection, null, null);
+        if (cursor != null) {
+          if (cursor.moveToNext()) {
+            runOnUiThread(new Runnable() {
+              @Override public void run() {
+                menuItemFavorite.setIcon(R.drawable.ic_favorite_white_24dp);
+                menuItemFavorite.setTitle(R.string.action_favorite_remove);
+                menuItemFavorite.setChecked(true);
+              }
+            });
+          }
+          cursor.close();
+        }
       }
     });
+    thread.start();
+
     return true;
   }
 
@@ -123,18 +141,42 @@ public class MovieDetailActivity extends BaseActivity {
       case android.R.id.home:
         finish();
         return true;
-      // Add the currently shown Movie to favorite movie table in DB.
-      case R.id.action_favorite_add:
-        if (mMovie != null) {
-          Uri uri = addFavoriteMovie(mMovie);
-          if (uri != null) {
-            // Movie successfuly added to table
-            showMessage(getString(R.string.adding_movie_to_favoritelist));
+      // Add or remove the currently shown Movie to or from favorite movie table in DB.
+      case R.id.action_favorite_add_or_remove:
+        if (!item.isChecked()) {
+          if (mMovie != null) {
+            Uri uri = addFavoriteMovie(mMovie);
+            if (uri != null) {
+              // Movie successfuly added to table
+              showMessage(getString(R.string.adding_movie_to_favoritelist));
+              item.setIcon(R.drawable.ic_favorite_white_24dp);
+              item.setTitle(R.string.action_favorite_remove);
+              item.setChecked(true);
+            }
+          }
+          // Error: Movie data is empty and so it cannot be added to table
+          else {
+            showMessage(getString(R.string.error_adding_empty_movie_to_favoritelist));
+          }
+        } else {
+          if (mMovie != null) {
+            int favoritesDeleted = removeFavoriteMovie(mMovie);
+            if (favoritesDeleted > 0) {
+              // Movie successfuly removed from table
+              showMessage(getString(R.string.removing_movie_from_favoritelist));
+              item.setIcon(R.drawable.ic_favorite_border_white_24dp);
+              item.setTitle(R.string.action_favorite_add);
+              item.setChecked(false);
+            }
           }
         }
-        // Error: Movie data is empty and so it cannot be added to table
-        else {
-          showMessage(getString(R.string.error_adding_empty_movie_to_favoritelist));
+        return true;
+      // Share the first trailer video of currently shown Movie.
+      case R.id.action_share:
+        if (mFirstTrailerKey != null && mFirstTrailerKey.length() > 0) {
+          startShareTrailerIntent();
+        } else {
+          showMessage(getString(R.string.no_trailer_to_share));
         }
         return true;
       default:
@@ -282,6 +324,19 @@ public class MovieDetailActivity extends BaseActivity {
   private Uri addFavoriteMovie(Movie movie) {
     // Insert the content values via a ContentResolver
     return getContentResolver().insert(MovieContract.MovieFavoriteEntry.CONTENT_URI, Movie.from(movie));
+  }
+
+  /**
+   * Removes the record with the specified movie
+   *
+   * @param movie the Movie to be removed
+   * @return The number of rows deleted.
+   */
+  private int removeFavoriteMovie(Movie movie) {
+    Uri uri = MovieContract.MovieFavoriteEntry.CONTENT_URI;
+    String where = MovieContract.MovieFavoriteEntry.COLUMN_MOVIE_ID + " = " + mMovie.getMovieId();
+    // Delete a single row of data using a ContentResolver
+    return getContentResolver().delete(uri, where, null);
   }
 
   /**

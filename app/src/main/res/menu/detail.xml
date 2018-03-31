@@ -6,8 +6,8 @@
     tools:context="com.example.android.sunshine.DetailActivity">
 
   <item
-      android:id="@+id/action_favorite_add"
-      android:icon="@drawable/ic_favorite_white_24dp"
+      android:id="@+id/action_favorite_add_or_remove"
+      android:icon="@drawable/ic_favorite_border_white_24dp"
       android:title="@string/action_favorite_add"
       app:showAsAction="always"/>
 

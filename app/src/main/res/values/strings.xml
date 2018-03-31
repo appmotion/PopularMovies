@@ -14,6 +14,7 @@
   <string name="error_adding_duplicate_movie_to_favoritelist">The Movie is already in your favorite list</string>
   <string name="error_adding_empty_movie_to_favoritelist">Sorry, no Movie available which can be added to your favorite list</string>
   <string name="adding_movie_to_favoritelist">The Movie was added to your favorite list</string>
+  <string name="removing_movie_from_favoritelist">The Movie was removed from your favorite list</string>
   <string name="movie_detail">Movie Detail</string>
   <string name="year">Year</string>
   <string name="runtime">Runtime</string>
@@ -40,6 +41,7 @@
   <string name="action_top">Top Rated Movies</string>
   <string name="action_favorite_show">My Favorite Movies</string>
   <string name="action_favorite_add">Add Movie to favorite list</string>
+  <string name="action_favorite_remove">Remove Movie from favorite list</string>
   <string name="action_about">About</string>
 
 

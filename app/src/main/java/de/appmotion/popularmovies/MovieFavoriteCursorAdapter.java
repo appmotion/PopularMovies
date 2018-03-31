@@ -128,7 +128,7 @@ class MovieFavoriteCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
    *
    * @param id the DB id to be removed
    */
-  private void deleteFavoriteMovie(long id) {
+  private void removeFavoriteMovie(long id) {
     // Build appropriate uri with String row id appended
     String stringId = String.valueOf(id);
     Uri uri = MovieContract.MovieFavoriteEntry.CONTENT_URI;
@@ -202,7 +202,7 @@ class MovieFavoriteCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         // Called when a user swipes left or right on a ViewHolder
         @Override public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
           // remove from DB
-          deleteFavoriteMovie(viewHolder.getItemId());
+          removeFavoriteMovie(viewHolder.getItemId());
         }
       });
     }
