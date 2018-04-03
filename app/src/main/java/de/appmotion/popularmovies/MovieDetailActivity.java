@@ -293,16 +293,6 @@ public class MovieDetailActivity extends BaseActivity {
     mDetailBinding.tvMovieReview.setText(review);
   }
 
-  private void watchYoutubeVideo(String key) {
-    Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
-    Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + key));
-    try {
-      startActivity(appIntent);
-    } catch (ActivityNotFoundException ex) {
-      startActivity(webIntent);
-    }
-  }
-
   /**
    * Insert a movie to {@link MovieContract.MovieFavoriteEntry}.
    *

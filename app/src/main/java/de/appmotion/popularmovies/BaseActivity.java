@@ -1,8 +1,10 @@
 package de.appmotion.popularmovies;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -111,6 +113,23 @@ public abstract class BaseActivity extends AppCompatActivity {
     final PackageManager mgr = getPackageManager();
     List<ResolveInfo> list = mgr.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
     return list.size() > 0;
+  }
+
+  protected void watchYoutubeVideo(String key) {
+    Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
+    try {
+      startActivity(appIntent);
+    } catch (ActivityNotFoundException ex) {
+      openWebPage("http://www.youtube.com/watch?v=" + key);
+    }
+  }
+
+  protected void openWebPage(String url) {
+    Uri webpage = Uri.parse(url);
+    Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
+    if (intent.resolveActivity(getPackageManager()) != null) {
+      startActivity(intent);
+    }
   }
 
   /**
