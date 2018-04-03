@@ -1,6 +1,8 @@
 package de.appmotion.popularmovies;
 
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
+import android.content.AsyncQueryHandler;
 import android.content.Intent;
 import android.database.Cursor;
 import android.databinding.DataBindingUtil;
@@ -145,14 +147,7 @@ public class MovieDetailActivity extends BaseActivity {
       case R.id.action_favorite_add_or_remove:
         if (!item.isChecked()) {
           if (mMovie != null) {
-            Uri uri = addFavoriteMovie(mMovie);
-            if (uri != null) {
-              // Movie successfuly added to table
-              showMessage(getString(R.string.adding_movie_to_favoritelist));
-              item.setIcon(R.drawable.ic_favorite_white_24dp);
-              item.setTitle(R.string.action_favorite_remove);
-              item.setChecked(true);
-            }
+            addFavoriteMovie(mMovie, item);
           }
           // Error: Movie data is empty and so it cannot be added to table
           else {
@@ -160,14 +155,7 @@ public class MovieDetailActivity extends BaseActivity {
           }
         } else {
           if (mMovie != null) {
-            int favoritesDeleted = removeFavoriteMovie(mMovie);
-            if (favoritesDeleted > 0) {
-              // Movie successfuly removed from table
-              showMessage(getString(R.string.removing_movie_from_favoritelist));
-              item.setIcon(R.drawable.ic_favorite_border_white_24dp);
-              item.setTitle(R.string.action_favorite_add);
-              item.setChecked(false);
-            }
+            removeFavoriteMovie(mMovie, item);
           }
         }
         return true;
@@ -319,24 +307,50 @@ public class MovieDetailActivity extends BaseActivity {
    * Insert a movie to {@link MovieContract.MovieFavoriteEntry}.
    *
    * @param movie The movie to add to favorite movie table
-   * @return {@link Uri} of new record added
+   * @param menuItem The MenuItem which changes on the basis of successfully insertion of movie
    */
-  private Uri addFavoriteMovie(Movie movie) {
-    // Insert the content values via a ContentResolver
-    return getContentResolver().insert(MovieContract.MovieFavoriteEntry.CONTENT_URI, Movie.from(movie));
+  private void addFavoriteMovie(Movie movie, final MenuItem menuItem) {
+    // Insert the content values via a AsyncQueryHandler
+    @SuppressLint("HandlerLeak") AsyncQueryHandler asyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
+      @Override protected void onInsertComplete(int token, Object cookie, Uri uri) {
+        super.onInsertComplete(token, cookie, uri);
+        if (uri != null) {
+          // Movie successfuly added to table
+          showMessage(getString(R.string.adding_movie_to_favoritelist));
+          menuItem.setIcon(R.drawable.ic_favorite_white_24dp);
+          menuItem.setTitle(R.string.action_favorite_remove);
+          menuItem.setChecked(true);
+        }
+      }
+    };
+    asyncQueryHandler.startInsert(1, null, MovieContract.MovieFavoriteEntry.CONTENT_URI, Movie.from(movie));
   }
 
   /**
    * Removes the record with the specified movie
    *
    * @param movie the Movie to be removed
-   * @return The number of rows deleted.
+   * @param menuItem The MenuItem which changes on the basis of successfully remove of movie
    */
-  private int removeFavoriteMovie(Movie movie) {
+  private void removeFavoriteMovie(Movie movie, final MenuItem menuItem) {
     Uri uri = MovieContract.MovieFavoriteEntry.CONTENT_URI;
-    String where = MovieContract.MovieFavoriteEntry.COLUMN_MOVIE_ID + " = " + mMovie.getMovieId();
-    // Delete a single row of data using a ContentResolver
-    return getContentResolver().delete(uri, where, null);
+    String selection = MovieContract.MovieFavoriteEntry.COLUMN_MOVIE_ID  + " = ?";
+    String[] selectionArgs = new String[] { String.valueOf(movie.getMovieId()) };
+
+    // Delete a single row of data using a AsyncQueryHandler
+    @SuppressLint("HandlerLeak") AsyncQueryHandler asyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
+      @Override protected void onDeleteComplete(int token, Object cookie, int result) {
+        super.onDeleteComplete(token, cookie, result);
+        if (result > 0) {
+          // Movie successfuly removed from table
+          showMessage(getString(R.string.removing_movie_from_favoritelist));
+          menuItem.setIcon(R.drawable.ic_favorite_border_white_24dp);
+          menuItem.setTitle(R.string.action_favorite_add);
+          menuItem.setChecked(false);
+        }
+      }
+    };
+    asyncQueryHandler.startDelete(1, null, uri, selection, selectionArgs);
   }
 
   /**

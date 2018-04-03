@@ -1,5 +1,7 @@
 package de.appmotion.popularmovies;
 
+import android.annotation.SuppressLint;
+import android.content.AsyncQueryHandler;
 import android.content.Context;
 import android.database.Cursor;
 import android.databinding.DataBindingUtil;
@@ -133,8 +135,10 @@ class MovieFavoriteCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     String stringId = String.valueOf(id);
     Uri uri = MovieContract.MovieFavoriteEntry.CONTENT_URI;
     uri = uri.buildUpon().appendPath(stringId).build();
-    // Delete a single row of data using a ContentResolver
-    mContext.getContentResolver().delete(uri, null, null);
+
+    // Delete a single row of data using a AsyncQueryHandler
+    @SuppressLint("HandlerLeak") AsyncQueryHandler asyncQueryHandler = new AsyncQueryHandler(mContext.getContentResolver()) {};
+    asyncQueryHandler.startDelete(1, null, uri, null, null);
   }
 
   /**
