@@ -168,7 +168,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
   @Override public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
     // For now simply drop the tables and create new ones. This means if you change the
     // DATABASE_VERSION the tables will be dropped.
-    // In a production app, this method might be modified to ALTER the tables
+    // TODO: In a production app, this method might be modified to ALTER the tables
     // instead of dropping them, so that existing data is not deleted.
     sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.MoviePopularEntry.TABLE_NAME);
     sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.MovieTopRatedEntry.TABLE_NAME);

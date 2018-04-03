@@ -24,13 +24,10 @@ import de.appmotion.popularmovies.App;
 import de.appmotion.popularmovies.BuildConfig;
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Scanner;
 
 /**
  * These utilities will be used to communicate with the network.
@@ -219,33 +216,6 @@ public class NetworkUtils {
    */
   public static Uri buildMovieImageUri(@ImageSize String imageSize, String imagePath) {
     return Uri.parse(TMDB_IMAGE_URL).buildUpon().appendEncodedPath(imageSize).appendEncodedPath(imagePath).build();
-  }
-
-  /**
-   * This method returns the entire result from the HTTP response.
-   *
-   * @param url The URL to fetch the HTTP response from.
-   * @return The contents of the HTTP response, null if no response
-   * @throws IOException Related to network and stream reading
-   */
-  public static String getResponseFromHttpUrl(URL url) throws IOException {
-    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-    try {
-      InputStream in = urlConnection.getInputStream();
-
-      Scanner scanner = new Scanner(in);
-      scanner.useDelimiter("\\A");
-
-      boolean hasInput = scanner.hasNext();
-      String response = null;
-      if (hasInput) {
-        response = scanner.next();
-      }
-      scanner.close();
-      return response;
-    } finally {
-      urlConnection.disconnect();
-    }
   }
 
   public static boolean isAnyNetworkOn() {
