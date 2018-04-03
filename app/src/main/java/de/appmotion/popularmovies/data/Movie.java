@@ -4,7 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
-import de.appmotion.popularmovies.data.source.local.MovieContract;
+import de.appmotion.popularmovies.data.source.local.DatabaseContract;
 
 /**
  * Immutable model class for a Movie.
@@ -50,14 +50,14 @@ public final class Movie implements Parcelable {
    */
   public static Movie from(Cursor cursor) {
     final Movie movie = new Movie();
-    movie.setId(cursor.getLong(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry._ID)));
-    movie.setMovieId(cursor.getLong(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_ID)));
-    movie.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE)));
-    movie.setImageUrl(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL)));
-    movie.setPopularity(cursor.getDouble(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY)));
-    movie.setVoteAverage(cursor.getDouble(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE)));
-    movie.setReleaseDate(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE)));
-    movie.setOverview(cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.COLUMN_MOVIE_OVERVIEW)));
+    movie.setId(cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseContract.MovieEntry._ID)));
+    movie.setMovieId(cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseContract.MovieEntry.COLUMN_MOVIE_ID)));
+    movie.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.MovieEntry.COLUMN_MOVIE_TITLE)));
+    movie.setImageUrl(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL)));
+    movie.setPopularity(cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseContract.MovieEntry.COLUMN_MOVIE_POPULARITY)));
+    movie.setVoteAverage(cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE)));
+    movie.setReleaseDate(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE)));
+    movie.setOverview(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.MovieEntry.COLUMN_MOVIE_OVERVIEW)));
     return movie;
   }
 
@@ -68,13 +68,13 @@ public final class Movie implements Parcelable {
    */
   public static ContentValues from(Movie movie) {
     final ContentValues cv = new ContentValues();
-    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, movie.getMovieId());
-    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, movie.getTitle());
-    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL, movie.getImageUrl());
-    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY, movie.getPopularity());
-    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE, movie.getVoteAverage());
-    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE, movie.getReleaseDate());
-    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_OVERVIEW, movie.getOverview());
+    cv.put(DatabaseContract.MovieEntry.COLUMN_MOVIE_ID, movie.getMovieId());
+    cv.put(DatabaseContract.MovieEntry.COLUMN_MOVIE_TITLE, movie.getTitle());
+    cv.put(DatabaseContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL, movie.getImageUrl());
+    cv.put(DatabaseContract.MovieEntry.COLUMN_MOVIE_POPULARITY, movie.getPopularity());
+    cv.put(DatabaseContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE, movie.getVoteAverage());
+    cv.put(DatabaseContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE, movie.getReleaseDate());
+    cv.put(DatabaseContract.MovieEntry.COLUMN_MOVIE_OVERVIEW, movie.getOverview());
     return cv;
   }
 

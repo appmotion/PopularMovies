@@ -1,8 +1,8 @@
 package de.appmotion.popularmovies;
 
 import android.annotation.SuppressLint;
-import android.content.ActivityNotFoundException;
 import android.content.AsyncQueryHandler;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.databinding.DataBindingUtil;
@@ -21,7 +21,7 @@ import android.view.View;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.data.Movie;
-import de.appmotion.popularmovies.data.source.local.MovieContract;
+import de.appmotion.popularmovies.data.source.local.DatabaseContract;
 import de.appmotion.popularmovies.data.source.remote.NetworkLoader;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import de.appmotion.popularmovies.databinding.ActivityMovieDetailBinding;
@@ -116,8 +116,8 @@ public class MovieDetailActivity extends BaseActivity {
         if (mMovie == null) {
           return;
         }
-        final Uri queryUri = MovieContract.MovieFavoriteEntry.CONTENT_URI;
-        final String selection = MovieContract.MovieFavoriteEntry.COLUMN_MOVIE_ID + " = " + mMovie.getMovieId();
+        final Uri queryUri = DatabaseContract.MovieFavoriteEntry.CONTENT_URI;
+        final String selection = DatabaseContract.MovieFavoriteEntry.COLUMN_MOVIE_ID + " = " + mMovie.getMovieId();
         final Cursor cursor = getContentResolver().query(queryUri, null, selection, null, null);
         if (cursor != null) {
           if (cursor.moveToNext()) {
@@ -294,12 +294,14 @@ public class MovieDetailActivity extends BaseActivity {
   }
 
   /**
-   * Insert a movie to {@link MovieContract.MovieFavoriteEntry}.
+   * Insert a movie to {@link DatabaseContract.MovieFavoriteEntry}.
    *
    * @param movie The movie to add to favorite movie table
    * @param menuItem The MenuItem which changes on the basis of successfully insertion of movie
    */
   private void addFavoriteMovie(Movie movie, final MenuItem menuItem) {
+    Uri uri = DatabaseContract.MovieFavoriteEntry.CONTENT_URI;
+    ContentValues movieContentValues = Movie.from(movie);
     // Insert the content values via a AsyncQueryHandler
     @SuppressLint("HandlerLeak") AsyncQueryHandler asyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
       @Override protected void onInsertComplete(int token, Object cookie, Uri uri) {
@@ -313,7 +315,7 @@ public class MovieDetailActivity extends BaseActivity {
         }
       }
     };
-    asyncQueryHandler.startInsert(1, null, MovieContract.MovieFavoriteEntry.CONTENT_URI, Movie.from(movie));
+    asyncQueryHandler.startInsert(1, null, uri, movieContentValues);
   }
 
   /**
@@ -323,8 +325,8 @@ public class MovieDetailActivity extends BaseActivity {
    * @param menuItem The MenuItem which changes on the basis of successfully remove of movie
    */
   private void removeFavoriteMovie(Movie movie, final MenuItem menuItem) {
-    Uri uri = MovieContract.MovieFavoriteEntry.CONTENT_URI;
-    String selection = MovieContract.MovieFavoriteEntry.COLUMN_MOVIE_ID  + " = ?";
+    Uri uri = DatabaseContract.MovieFavoriteEntry.CONTENT_URI;
+    String selection = DatabaseContract.MovieFavoriteEntry.COLUMN_MOVIE_ID  + " = ?";
     String[] selectionArgs = new String[] { String.valueOf(movie.getMovieId()) };
 
     // Delete a single row of data using a AsyncQueryHandler

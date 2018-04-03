@@ -7,7 +7,7 @@ import android.provider.BaseColumns;
  * Defines table and column names for the popularmovies database. Furthermore the Content provider constants for accessing data in this
  * contract are defined.
  */
-public final class MovieContract {
+public final class DatabaseContract {
 
   /*
    * Content provider constants
@@ -28,7 +28,7 @@ public final class MovieContract {
 
   // To prevent someone from accidentally instantiating the contract class,
   // make the constructor private.
-  private MovieContract() {
+  private DatabaseContract() {
   }
 
   public static class MovieEntry implements BaseColumns {

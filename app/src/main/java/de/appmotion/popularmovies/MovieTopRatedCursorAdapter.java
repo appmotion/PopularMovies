@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import de.appmotion.popularmovies.data.Movie;
-import de.appmotion.popularmovies.data.source.local.MovieContract;
+import de.appmotion.popularmovies.data.source.local.DatabaseContract;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import de.appmotion.popularmovies.databinding.MovieItemBinding;
 import java.lang.annotation.Retention;
@@ -90,7 +90,7 @@ class MovieTopRatedCursorAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
   @Override public long getItemId(int position) {
     if (mCursor != null && mCursor.moveToPosition(position)) {
-      return mCursor.getLong(mCursor.getColumnIndexOrThrow(MovieContract.MovieEntry._ID));
+      return mCursor.getLong(mCursor.getColumnIndexOrThrow(DatabaseContract.MovieEntry._ID));
     }
     return super.getItemId(position);
   }

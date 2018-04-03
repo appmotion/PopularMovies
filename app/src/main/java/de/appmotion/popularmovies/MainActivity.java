@@ -22,7 +22,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import de.appmotion.popularmovies.data.Movie;
-import de.appmotion.popularmovies.data.source.local.MovieContract;
+import de.appmotion.popularmovies.data.source.local.DatabaseContract;
 import de.appmotion.popularmovies.data.source.remote.NetworkLoader;
 import de.appmotion.popularmovies.data.source.remote.NetworkUtils;
 import de.appmotion.popularmovies.databinding.ActivityMainBinding;
@@ -397,7 +397,7 @@ public class MainActivity extends BaseActivity
   }
 
   /**
-   * Insert a movie list to {@link MovieContract.MoviePopularEntry} or {@link MovieContract.MovieTopRatedEntry}.
+   * Insert a movie list to {@link DatabaseContract.MoviePopularEntry} or {@link DatabaseContract.MovieTopRatedEntry}.
    *
    * @param movieList List of downloaded Movies
    * @return the number of newly created rows.
@@ -413,9 +413,9 @@ public class MainActivity extends BaseActivity
     }
 
     if (mMenuState == MOVIE_POPULAR) {
-      return getContentResolver().bulkInsert(MovieContract.MoviePopularEntry.CONTENT_URI, cvArray);
+      return getContentResolver().bulkInsert(DatabaseContract.MoviePopularEntry.CONTENT_URI, cvArray);
     } else if (mMenuState == MOVIE_TOP_RATED) {
-      return getContentResolver().bulkInsert(MovieContract.MovieTopRatedEntry.CONTENT_URI, cvArray);
+      return getContentResolver().bulkInsert(DatabaseContract.MovieTopRatedEntry.CONTENT_URI, cvArray);
     } else {
       return 0;
     }
@@ -537,16 +537,16 @@ public class MainActivity extends BaseActivity
 
         switch (loaderId) {
           case CURSOR_LOADER_MOVIE_POPULAR:
-            Uri popularMovieQueryUri = MovieContract.MoviePopularEntry.CONTENT_URI;
-            sortOrder = MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY + " DESC";
+            Uri popularMovieQueryUri = DatabaseContract.MoviePopularEntry.CONTENT_URI;
+            sortOrder = DatabaseContract.MoviePopularEntry.COLUMN_MOVIE_POPULARITY + " DESC";
             return new CursorLoader(MainActivity.this, popularMovieQueryUri, null, null, null, sortOrder);
           case CURSOR_LOADER_MOVIE_TOP_RATED:
-            Uri topRatedMovieQueryUri = MovieContract.MovieTopRatedEntry.CONTENT_URI;
-            sortOrder = MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE + " DESC";
+            Uri topRatedMovieQueryUri = DatabaseContract.MovieTopRatedEntry.CONTENT_URI;
+            sortOrder = DatabaseContract.MovieTopRatedEntry.COLUMN_MOVIE_VOTE_AVERAGE + " DESC";
             return new CursorLoader(MainActivity.this, topRatedMovieQueryUri, null, null, null, sortOrder);
           case CURSOR_LOADER_MOVIE_FAVORITE:
-            Uri favoriteMovieQueryUri = MovieContract.MovieFavoriteEntry.CONTENT_URI;
-            sortOrder = MovieContract.MovieEntry.COLUMN_TIMESTAMP + " DESC";
+            Uri favoriteMovieQueryUri = DatabaseContract.MovieFavoriteEntry.CONTENT_URI;
+            sortOrder = DatabaseContract.MovieFavoriteEntry.COLUMN_TIMESTAMP + " DESC";
             return new CursorLoader(MainActivity.this, favoriteMovieQueryUri, null, null, null, sortOrder);
           default:
             throw new RuntimeException("Loader not Implemented: " + loaderId);

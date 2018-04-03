@@ -7,7 +7,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 /**
  * Manages a local database for movie data.
  */
-public class MovieDbHelper extends SQLiteOpenHelper {
+public class DatabaseHelper extends SQLiteOpenHelper {
+
+  private static DatabaseHelper sInstance;
 
   // The database name
   private static final String DATABASE_NAME = "movie.db";
@@ -15,8 +17,22 @@ public class MovieDbHelper extends SQLiteOpenHelper {
   // If you change the database schema, you must increment the database version or the onUpgrade method will not be called.
   private static final int DATABASE_VERSION = 2;
 
-  // Constructor
-  public MovieDbHelper(Context context) {
+  public static synchronized DatabaseHelper getInstance(Context context) {
+
+    // Use the application context, which will ensure that you
+    // don't accidentally leak an Activity's context.
+    // See this article for more information: http://bit.ly/6LRzfx
+    if (sInstance == null) {
+      sInstance = new DatabaseHelper(context.getApplicationContext());
+    }
+    return sInstance;
+  }
+
+  /**
+   * Constructor should be private to prevent direct instantiation.
+   * make call to static method "getInstance()" instead.
+   */
+  private DatabaseHelper(Context context) {
     super(context, DATABASE_NAME, null, DATABASE_VERSION);
   }
 
@@ -40,25 +56,25 @@ public class MovieDbHelper extends SQLiteOpenHelper {
      * deleted rows.
      */
     final String SQL_CREATE_MOVIE_POPULAR_TABLE = "CREATE TABLE "
-        + MovieContract.MoviePopularEntry.TABLE_NAME
+        + DatabaseContract.MoviePopularEntry.TABLE_NAME
         + " ("
-        + MovieContract.MovieEntry._ID
+        + DatabaseContract.MovieEntry._ID
         + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_ID
         + " INTEGER NOT NULL, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_TITLE
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_TITLE
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_POPULARITY
         + " REAL, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
         + " REAL, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_OVERVIEW
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_OVERVIEW
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_TIMESTAMP
+        + DatabaseContract.MovieEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         /*
          * To ensure this table can only contain one Movie entry per Movie ID, we declare
@@ -67,7 +83,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
          * insert another Movie entry with that ID, we replace the old Movie entry.
          */
         + " UNIQUE ("
-        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_ID
         + ") ON CONFLICT REPLACE"
         + ");";
 
@@ -81,28 +97,28 @@ public class MovieDbHelper extends SQLiteOpenHelper {
      * Create a table to hold top rated movie data
      */
     final String SQL_CREATE_MOVIE_TOP_RATED_TABLE = "CREATE TABLE "
-        + MovieContract.MovieTopRatedEntry.TABLE_NAME
+        + DatabaseContract.MovieTopRatedEntry.TABLE_NAME
         + " ("
-        + MovieContract.MovieEntry._ID
+        + DatabaseContract.MovieEntry._ID
         + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_ID
         + " INTEGER NOT NULL, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_TITLE
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_TITLE
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_POPULARITY
         + " REAL, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
         + " REAL, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_OVERVIEW
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_OVERVIEW
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_TIMESTAMP
+        + DatabaseContract.MovieEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         + " UNIQUE ("
-        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_ID
         + ") ON CONFLICT REPLACE"
         + ");";
 
@@ -113,28 +129,28 @@ public class MovieDbHelper extends SQLiteOpenHelper {
      * Create a table to hold favorite movie data
      */
     final String SQL_CREATE_MOVIE_FAVORITE_TABLE = "CREATE TABLE "
-        + MovieContract.MovieFavoriteEntry.TABLE_NAME
+        + DatabaseContract.MovieFavoriteEntry.TABLE_NAME
         + " ("
-        + MovieContract.MovieEntry._ID
+        + DatabaseContract.MovieEntry._ID
         + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_ID
         + " INTEGER NOT NULL, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_TITLE
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_TITLE
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_IMAGE_URL
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_POPULARITY
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_POPULARITY
         + " REAL, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_VOTE_AVERAGE
         + " REAL, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_MOVIE_OVERVIEW
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_OVERVIEW
         + " TEXT, "
-        + MovieContract.MovieEntry.COLUMN_TIMESTAMP
+        + DatabaseContract.MovieEntry.COLUMN_TIMESTAMP
         + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         + " UNIQUE ("
-        + MovieContract.MovieEntry.COLUMN_MOVIE_ID
+        + DatabaseContract.MovieEntry.COLUMN_MOVIE_ID
         + ") ON CONFLICT REPLACE"
         + ");";
 
@@ -154,9 +170,9 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     // DATABASE_VERSION the tables will be dropped.
     // In a production app, this method might be modified to ALTER the tables
     // instead of dropping them, so that existing data is not deleted.
-    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MoviePopularEntry.TABLE_NAME);
-    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieTopRatedEntry.TABLE_NAME);
-    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieFavoriteEntry.TABLE_NAME);
+    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.MoviePopularEntry.TABLE_NAME);
+    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.MovieTopRatedEntry.TABLE_NAME);
+    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.MovieFavoriteEntry.TABLE_NAME);
     onCreate(sqLiteDatabase);
   }
 }
